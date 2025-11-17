@@ -10,9 +10,10 @@ import { useState } from "react";
 
 interface ProductCardProps {
   product: Product;
+  viewMode?: "grid-5" | "grid-3" | "list";
 }
 
-export const ProductCard = ({ product }: ProductCardProps) => {
+export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) => {
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -30,6 +31,88 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       addToWishlist(product);
     }
   };
+
+  if (viewMode === "list") {
+    return (
+      <div className="group relative bg-card rounded-lg border border-border hover:shadow-lg transition-shadow p-4">
+        <div className="flex gap-6">
+          <Link to={`/products/${product.id}`} className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg">
+            <img
+              src={product.images[0] || "/placeholder.svg"}
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            {product.isNew && (
+              <Badge className="absolute top-2 left-2 bg-primary">New</Badge>
+            )}
+            {product.discount && (
+              <Badge className="absolute top-2 right-2 bg-destructive">
+                -{product.discount}%
+              </Badge>
+            )}
+          </Link>
+
+          <div className="flex-1 flex flex-col">
+            <Link to={`/products/${product.id}`}>
+              <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                {product.name}
+              </h3>
+            </Link>
+            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+              {product.description}
+            </p>
+
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${
+                      i < Math.floor(product.rating)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">
+                ({product.reviewCount})
+              </span>
+            </div>
+
+            <div className="mt-auto flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-foreground">
+                  ৳{product.price.toLocaleString()}
+                </span>
+                {product.originalPrice && (
+                  <span className="text-lg text-muted-foreground line-through">
+                    ৳{product.originalPrice.toLocaleString()}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleAddToCart}>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </Button>
+                <Button
+                  size="icon"
+                  variant={inWishlist ? "default" : "outline"}
+                  onClick={handleWishlistToggle}
+                >
+                  <Heart
+                    className={`h-4 w-4 ${inWishlist ? "fill-current" : ""}`}
+                  />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
