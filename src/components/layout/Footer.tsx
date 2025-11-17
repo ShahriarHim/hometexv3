@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,27 +41,27 @@ export const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/shop" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/shop" className="text-muted-foreground hover:text-primary transition-colors">
                   Shop All Products
                 </Link>
               </li>
               <li>
-                <Link to="/categories/bedding" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/categories/bedding" className="text-muted-foreground hover:text-primary transition-colors">
                   Bedding Collection
                 </Link>
               </li>
               <li>
-                <Link to="/categories/bath" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/categories/bath" className="text-muted-foreground hover:text-primary transition-colors">
                   Bath Essentials
                 </Link>
               </li>
               <li>
-                <Link to="/corporate" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/corporate" className="text-muted-foreground hover:text-primary transition-colors">
                   Corporate Solutions
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">
                   About Us
                 </Link>
               </li>
@@ -71,32 +73,32 @@ export const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link to="/shipping" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/shipping" className="text-muted-foreground hover:text-primary transition-colors">
                   Shipping & Delivery
                 </Link>
               </li>
               <li>
-                <Link to="/returns" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/returns" className="text-muted-foreground hover:text-primary transition-colors">
                   Returns & Exchanges
                 </Link>
               </li>
               <li>
-                <Link to="/faq" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/faq" className="text-muted-foreground hover:text-primary transition-colors">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">
                   Terms & Conditions
                 </Link>
               </li>
@@ -137,13 +139,13 @@ export const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
             <p>© 2024 Hometex Bangladesh. All rights reserved.</p>
             <div className="flex space-x-4 mt-4 md:mt-0">
-              <Link to="/privacy" className="hover:text-primary transition-colors">
+              <Link href="/privacy" className="hover:text-primary transition-colors">
                 Privacy
               </Link>
-              <Link to="/terms" className="hover:text-primary transition-colors">
+              <Link href="/terms" className="hover:text-primary transition-colors">
                 Terms
               </Link>
-              <Link to="/sitemap" className="hover:text-primary transition-colors">
+              <Link href="/sitemap" className="hover:text-primary transition-colors">
                 Sitemap
               </Link>
             </div>

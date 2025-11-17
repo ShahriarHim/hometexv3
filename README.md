@@ -1,73 +1,29 @@
-# Welcome to your Lovable project
+# Hometex Bangladesh Web App
 
-## Project info
+Modern ecommerce experience for Hometex Bangladesh, powered by Next.js 16 (App Router), React 18, Tailwind CSS, shadcn/ui, and TanStack Query.
 
-**URL**: https://lovable.dev/projects/2e9bc670-0adb-4b55-99b9-17da69b3717b
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/2e9bc670-0adb-4b55-99b9-17da69b3717b) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Getting Started
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone <repo-url>
+cd hometexV3
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+- Local dev server listens on `https://localhost:3000`
+- `npm run build` generates the production bundle
+- `npm run start` serves the optimized standalone build locally
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Project Structure
 
-**Use GitHub Codespaces**
+- `src/app` – Next.js App Router layouts, pages, metadata, and providers
+- `src/views` – client-side screen modules consumed by the App Router
+- `src/components` – shared UI primitives (shadcn/ui + custom layout)
+- `src/context` – client providers for cart, wishlist, auth, and orders
+- `src/lib` & `src/data` – utilities, mock APIs, and demo catalog data
+- `public` – static assets (favicons, OG images, robots, etc.)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deployment
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/2e9bc670-0adb-4b55-99b9-17da69b3717b) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The project builds as a Next.js standalone output. Deploy the `.next/standalone` bundle (or use `next start`) on Vercel, Netlify, Cloudflare, Fly.io, or any Node 18+ environment behind your preferred CDN.*** End Patch

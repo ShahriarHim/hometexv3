@@ -1,12 +1,14 @@
-import { Product } from "@/types";
-import { Link } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import type { Product } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ShoppingCart, Heart, Star } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { useState } from "react";
 
 interface ProductCardProps {
   product: Product;
@@ -36,7 +38,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
     return (
       <div className="group relative bg-card rounded-lg border border-border hover:shadow-lg transition-shadow p-4">
         <div className="flex gap-6">
-          <Link to={`/products/${product.id}`} className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg">
+          <Link href={`/products/${product.id}`} className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg">
             <img
               src={product.images[0] || "/placeholder.svg"}
               alt={product.name}
@@ -53,7 +55,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
           </Link>
 
           <div className="flex-1 flex flex-col">
-            <Link to={`/products/${product.id}`}>
+            <Link href={`/products/${product.id}`}>
               <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
                 {product.name}
               </h3>
@@ -116,7 +118,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-      <Link to={`/products/${product.id}`}>
+      <Link href={`/products/${product.id}`}>
         <div className="relative aspect-square overflow-hidden bg-muted">
           <img
             src={product.images[0] || "/placeholder.svg"}
@@ -142,7 +144,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
         </div>
       </Link>
       <CardContent className="p-4">
-        <Link to={`/products/${product.id}`}>
+        <Link href={`/products/${product.id}`}>
           <h3 className="font-medium text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
             {product.name}
           </h3>
@@ -153,7 +155,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
           <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-lg font-bold text-primary">৳{product.price.toLocaleString()}</span>
+          <span className="text-lg font-bold text-foreground">৳{product.price.toLocaleString()}</span>
           {product.originalPrice && (
             <span className="text-sm text-muted-foreground line-through">
               ৳{product.originalPrice.toLocaleString()}

@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
 import { toast } from "sonner";
-import { CartItem } from "@/types";
+import type { CartItem } from "@/types";
 
 export interface Order {
   id: string;
@@ -38,7 +40,9 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const savedOrders = localStorage.getItem("hometex-orders");
     if (savedOrders) {
-      setOrders(JSON.parse(savedOrders));
+      startTransition(() => {
+        setOrders(JSON.parse(savedOrders));
+      });
     }
   }, []);
 

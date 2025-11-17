@@ -1,0 +1,563 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: rgba(212, 237, 48, 0.3);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  max-width: 900px;
+  width: 80%;
+  max-height: 90vh;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  margin: auto;
+}
+
+.card {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, #d4ed30, #a8c423);
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  position: relative;
+}
+
+.modalHeader {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 10;
+  width: calc(100% - 60px); /* accounting for left (40px) and right (20px) */
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+
+.closeButton {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.printButton {
+  background: rgba(255, 255, 255, 0.9);
+  margin-right: 30px;
+  color: #333;
+  border: none;
+  top: 5px;
+  padding: 2px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 6px;
+  width:200px;
+  justify-content: center;
+}
+
+.invoiceButton {
+  position: absolute;
+  top: 5px;
+  left: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border: none;
+  padding: 2px 12px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  justify-content: center;
+  z-index: 10;
+}
+
+.checkboxContainer {
+  position: absolute;
+  top: 30px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.checkboxLabel {
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.container {
+  display: flex;
+  padding: 10px;
+  gap: 30px;
+  margin-top: 60px;
+  flex: 1;
+  min-height: 0;
+}
+
+.description, .center, .details {
+  flex: 1;
+  padding: 20px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.productTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.descriptionText {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.text {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.shortText {
+  max-height: 120px;
+  overflow: hidden;
+  position: relative;
+}
+
+.shortText::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to bottom, transparent, #a8c423);
+}
+
+.showMore {
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-block;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+.showMore:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.title {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  min-height: 0;
+  justify-content: space-between;
+}
+
+.shoe {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  object-fit: contain;
+  margin: 20px 0;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.price {
+  width: 100%;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin-top: 10px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.colors, .sizes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.color {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.color.active {
+  border: 2px solid #333;
+  transform: scale(1.1);
+}
+
+.size {
+  padding: 4px 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.size.active {
+  background: #333;
+  color: #fff;
+}
+
+.quantity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quantityButton {
+  width: 25px;
+  height: 25px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.quantityButton:hover {
+  background: #e0e0e0;
+}
+
+.quantityInput {
+  width: 35px;
+  height: 25px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.addToCart {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.addToCart:hover {
+  background: #000;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1024px) {
+  .modal {
+    width: 90%;
+    max-height: 95vh;
+    padding: 15px;
+  }
+  
+  .container {
+    padding: 15px;
+    gap: 20px;
+    margin-top: 50px;
+  }
+  
+  .modalHeader {
+    top: 15px;
+    right: 15px;
+  }
+  
+  .invoiceButton {
+    left: 30px;
+  }
+  
+  .checkboxContainer {
+    right: 30px;
+  }
+  
+  .closeButton {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .printButton {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .card {
+    flex-direction: column;
+  }
+  
+  .description, .center, .details {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 20px;
+    max-height: 33.33%;
+    border-radius: 0;
+  }
+  
+  .description {
+    border-radius: 15px 15px 0 0;
+  }
+  
+  .details {
+    border-radius: 0 0 15px 15px;
+  }
+  
+  .shoe {
+    max-width: 250px;
+    margin: 15px 0;
+  }
+  
+  .details {
+    padding: 12px;
+  }
+  
+  .info {
+    gap: 8px;
+  }
+  
+  .center {
+    padding: 15px;
+  }
+  
+  .price {
+    margin-top: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    height: 95vh;
+    padding: 12px;
+  }
+  
+  .container {
+    padding: 12px;
+    height: calc(100% - 24px);
+    margin-top: 45px;
+  }
+  
+  .modalHeader {
+    top: 12px;
+    right: 12px;
+  }
+  
+  .invoiceButton {
+    left: 25px;
+  }
+  
+  .checkboxContainer {
+    right: 25px;
+  }
+  
+  .closeButton {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .printButton {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  
+  .description, .center, .details {
+    max-height: 33.33%;
+  }
+  
+  .productTitle {
+    font-size: 20px;
+  }
+  
+  .price {
+    font-size: 24px;
+  }
+  
+  .subTitle {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .color {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .size {
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+  
+  .details {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    width: 98%;
+    height: 98vh;
+    padding: 10px;
+  }
+  
+  .container {
+    padding: 10px;
+    height: calc(100% - 20px);
+    margin-top: 40px;
+  }
+  
+  .modalHeader {
+    top: 10px;
+    right: 10px;
+  }
+  
+  .invoiceButton {
+    left: 20px;
+  }
+  
+  .checkboxContainer {
+    right: 20px;
+  }
+  
+  .closeButton {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .printButton {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+  
+  .description, .center, .details {
+    max-height: 33.33%;
+  }
+  
+  .productTitle {
+    font-size: 18px;
+  }
+  
+  .price {
+    font-size: 20px;
+  }
+  
+  .addToCart {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .details {
+    padding: 8px;
+  }
+  
+  .info {
+    gap: 6px;
+  }
+  
+  .quantityButton {
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+  
+  .quantityInput {
+    width: 30px;
+    height: 22px;
+    font-size: 12px;
+  }
+}

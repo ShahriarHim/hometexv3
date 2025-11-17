@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { CartItem, Product } from "@/types";
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
+import type { CartItem, Product } from "@/types";
 import { toast } from "sonner";
 
 interface CartContextType {
@@ -17,11 +19,12 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem("hometex-cart");
     if (savedCart) {
-      setItems(JSON.parse(savedCart));
+      startTransition(() => {
+        setItems(JSON.parse(savedCart));
+      });
     }
   }, []);
 

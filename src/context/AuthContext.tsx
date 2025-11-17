@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
 import { toast } from "sonner";
 
 interface User {
@@ -25,7 +27,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const savedUser = localStorage.getItem("hometex-user");
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      startTransition(() => {
+        setUser(JSON.parse(savedUser));
+      });
     }
   }, []);
 

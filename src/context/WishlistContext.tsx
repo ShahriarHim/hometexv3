@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { WishlistItem, Product } from "@/types";
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
+import type { WishlistItem, Product } from "@/types";
 import { toast } from "sonner";
 
 interface WishlistContextType {
@@ -18,7 +20,9 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     const savedWishlist = localStorage.getItem("hometex-wishlist");
     if (savedWishlist) {
-      setItems(JSON.parse(savedWishlist));
+      startTransition(() => {
+        setItems(JSON.parse(savedWishlist));
+      });
     }
   }, []);
 
