@@ -1,6 +1,0 @@
-1:"$Sreact.fragment"
-2:I[60303,["/_next/static/chunks/30af97f17085cc3d.js","/_next/static/chunks/6ee112e7e908701b.js","/_next/static/chunks/1efa47023203a77e.js","/_next/static/chunks/6731af311226108f.js","/_next/static/chunks/e2acc21da6d415fe.js"],"default"]
-3:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
-4:"$Sreact.suspense"
-0:{"buildId":"3GRyravbLffZunjRimY0V","rsc":["$","$1","c",{"children":[["$","$L2",null,{"title":"Terms & Conditions","description":"These terms govern how you browse, shop, and collaborate with Hometex Bangladesh online.","children":["$","ol",null,{"className":"list-decimal list-inside space-y-2 text-foreground","children":[["$","li",null,{"children":"Orders are confirmed once payment is authorized or COD is verified."}],["$","li",null,{"children":"Pricing may change without notice; promotions cannot be combined unless stated."}],["$","li",null,{"children":"Disputes are handled under the jurisdiction of the courts of Dhaka, Bangladesh."}]]}]}],[["$","script","script-0",{"src":"/_next/static/chunks/e2acc21da6d415fe.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
-5:null

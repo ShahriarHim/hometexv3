@@ -1,6 +1,0 @@
-1:"$Sreact.fragment"
-2:I[60303,["/_next/static/chunks/30af97f17085cc3d.js","/_next/static/chunks/6ee112e7e908701b.js","/_next/static/chunks/1efa47023203a77e.js","/_next/static/chunks/6731af311226108f.js","/_next/static/chunks/e2acc21da6d415fe.js"],"default"]
-3:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
-4:"$Sreact.suspense"
-0:{"buildId":"3GRyravbLffZunjRimY0V","rsc":["$","$1","c",{"children":[["$","$L2",null,{"title":"Privacy Policy","description":"We collect only the data required to fulfill orders, personalize merchandising, and comply with Bangladeshi commerce regulations.","children":["$","div",null,{"className":"space-y-2 text-foreground","children":[["$","p",null,{"children":"Personal data is encrypted at rest, never sold, and may be deleted upon request. Analytics are aggregated and anonymized."}],["$","p",null,{"children":"For GDPR/DPDP compliance questions, email privacy@hometex.com and our data protection officer will respond within 48 hours."}]]}]}],[["$","script","script-0",{"src":"/_next/static/chunks/e2acc21da6d415fe.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
-5:null
