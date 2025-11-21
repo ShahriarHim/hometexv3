@@ -4,6 +4,7 @@ import { Quicksand } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import FloatingBar from "@/components/FloatingBar";
+import CookiesManager from "@/components/CookiesManager";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           {children}
           <FloatingBar />
+          <CookiesManager />
         </Providers>
       </body>
     </html>

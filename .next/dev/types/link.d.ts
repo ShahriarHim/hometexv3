@@ -41,6 +41,7 @@ declare namespace __next_route_internal_types__ {
     | `/checkout`
     | `/contact`
     | `/corporate`
+    | `/corporate-enquires`
     | `/faq`
     | `/gift-someone`
     | `/orders`
@@ -51,6 +52,7 @@ declare namespace __next_route_internal_types__ {
     | `/shipping`
     | `/shop`
     | `/sitemap`
+    | `/stores`
     | `/terms`
   type DynamicRoutes<T extends string = string> = 
     | `/categories/${SafeSlug<T>}`
