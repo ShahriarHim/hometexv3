@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import FloatingBar from "@/components/FloatingBar";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -32,7 +33,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={quicksand.variable}>
       <body className="min-h-screen bg-background text-foreground antialiased font-sans">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <FloatingBar />
+        </Providers>
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 import { HeroShowcase } from "@/views/home/HeroShowcase";
 import { InfoHighlights } from "@/views/home/InfoHighlights";
+import HotDeals from "@/components/home/HotDeals";
 import { ProductShowcaseTabs } from "@/views/home/ProductShowcaseTabs";
 import { CollectionSpotlight } from "@/views/home/CollectionSpotlight";
 import { PromoGrid } from "@/views/home/PromoGrid";
@@ -14,6 +15,7 @@ export const HomeView = () => {
     <main className="flex-1">
       <HeroShowcase />
       <InfoHighlights />
+      <HotDeals />
       <ProductShowcaseTabs />
       <CollectionSpotlight />
       <PromoGrid />

@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+.next/*
+hometexv_v2.0
+# End of file
