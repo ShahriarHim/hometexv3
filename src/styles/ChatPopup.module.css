@@ -1,0 +1,185 @@
+/* styles/ChatPopup.module.css */
+
+.popupContainer {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 350px;
+  max-width: 90%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1050;
+  animation: fadeIn 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.popupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  background-color: #f9f9f9;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.popupTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.popupClose {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 18px;
+  transition: color 0.3s ease;
+}
+
+.popupClose:hover {
+  color: #333;
+}
+
+.popupBody {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.popupInput {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.popupList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.popupListItem {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.popupListItem:hover {
+  background-color: #f9f9f9;
+}
+
+.popupFooter {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+  background-color: #f9f9f9;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.footerItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.footerItem:hover {
+  color: #333;
+}
+
+.footerIcon {
+  font-size: 18px;
+}
+
+.footerItemActive {
+  color: #ff007a;
+}
+
+.messageSection {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.messageList {
+  flex: 1;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+  min-height: 150px;
+}
+
+.messageInputContainer {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.messageInput {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.sendButton {
+  padding: 10px 20px;
+  background-color: #ff007a;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+.sendButton:hover {
+  background-color: #e6006d;
+}
+
+.sendMessageButton {
+  width: 100%;
+  padding: 12px;
+  background-color: #ff007a;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.sendMessageButton:hover {
+  background-color: #e6006d;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

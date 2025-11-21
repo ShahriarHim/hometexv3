@@ -11,6 +11,7 @@ import {
     FaArrowUp,
     FaWhatsapp,
 } from 'react-icons/fa';
+import ChatPopup from './ChatPopup';
 
 const FloatingBar = () => {
     const [showBar, setShowBar] = useState(false); // Visibility based on scroll
@@ -61,7 +62,7 @@ const FloatingBar = () => {
         {
             icon: <FaPhoneAlt />,
             tooltip: 'Customer Service',
-            onClick: () => console.log("Customer Service Clicked"),
+            onClick: handleChatToggle,
             className: 'floating-btn-middle',
         },
         {
@@ -127,6 +128,9 @@ const FloatingBar = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Chat Popup */}
+            {isChatVisible && <ChatPopup onClose={() => setIsChatVisible(false)} />}
 
             {/* Static Placeholders for Popups (Visual only for now as requested) */}
             
