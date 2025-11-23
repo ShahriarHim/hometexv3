@@ -57,8 +57,8 @@ declare namespace __next_route_internal_types__ {
   type DynamicRoutes<T extends string = string> = 
     | `/categories/${SafeSlug<T>}`
     | `/orders/${SafeSlug<T>}`
-    | `/products/${SafeSlug<T>}`
-    | `/products/${SafeSlug<T>}/experience`
+    | `/products/${SafeSlug<T>}/${SafeSlug<T>}/${SafeSlug<T>}`
+    | `/products/${SafeSlug<T>}/${SafeSlug<T>}/${SafeSlug<T>}/experience`
 
   type RouteImpl<T> = 
     | StaticRoutes

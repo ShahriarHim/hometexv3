@@ -9,142 +9,38 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useState, useRef, useEffect } from "react";
 import SearchPopup from "@/components/layout/SearchPopup";
 import PreHeader from "@/components/layout/PreHeader";
+import { api, type Category } from "@/lib/api";
 
-// Dummy Data for Categories
-const DUMMY_CATEGORIES = [
-  {
-    id: 1,
-    name: "Bedding",
-    image: null, 
-    sub: [
-      {
-        id: 11,
-        name: "Bed Sheets",
-        child: [
-          { id: 111, name: "Cotton Bed Sheets" },
-          { id: 112, name: "Satin Bed Sheets" },
-          { id: 113, name: "Solid Color Bed Sheets" },
-          { id: 114, name: "Printed Bed Sheets" },
-        ],
-      },
-      {
-        id: 12,
-        name: "Pillows & Covers",
-        child: [
-          { id: 121, name: "Sleeping Pillows" },
-          { id: 122, name: "Decorative Pillows" },
-          { id: 123, name: "Pillow Covers" },
-        ],
-      },
-      {
-        id: 13,
-        name: "Comforters & Quilts",
-        child: [
-            { id: 131, name: "Winter Comforters" },
-            { id: 132, name: "AC Quilts" }
-        ],
-      },
-      {
-          id: 14,
-          name: "Mosquito Nets",
-          child: []
-      }
-    ],
-  },
-  {
-    id: 2,
-    name: "Bath",
-    image: null,
-    sub: [
-      {
-        id: 21,
-        name: "Towels",
-        child: [
-          { id: 211, name: "Bath Towels" },
-          { id: 212, name: "Hand Towels" },
-          { id: 213, name: "Face Towels" },
-        ],
-      },
-      {
-        id: 22,
-        name: "Bath Robes",
-        child: [
-            { id: 221, name: "Cotton Bath Robes" },
-            { id: 222, name: "Waffle Bath Robes" }
-        ],
-      },
-      {
-        id: 23,
-        name: "Bath Mats",
-        child: [],
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: "Living & Decor",
-    image: null,
-    sub: [
-      {
-        id: 31,
-        name: "Curtains",
-        child: [
-            { id: 311, name: "Door Curtains" },
-            { id: 312, name: "Window Curtains" },
-            { id: 313, name: "Shower Curtains" }
-        ],
-      },
-      {
-        id: 32,
-        name: "Carpets & Rugs",
-        child: [],
-      },
-      {
-        id: 33,
-        name: "Cushions",
-        child: [],
-      },
-    ],
-  },
-  {
-    id: 4,
-    name: "Kitchen & Dining",
-    image: null,
-    sub: [
-      {
-        id: 41,
-        name: "Table Linen",
-        child: [
-            { id: 411, name: "Table Cloths" },
-            { id: 412, name: "Table Runners" },
-            { id: 413, name: "Placemats" }
-        ],
-      },
-      {
-        id: 42,
-        name: "Aprons & Gloves",
-        child: [],
-      },
-    ],
-  },
-  {
-      id: 5,
-      name: "Kids",
-      image: null,
-      sub: [
-          {
-              id: 51,
-              name: "Kids Bedding",
-              child: []
-          },
-          {
-              id: 52,
-              name: "Kids Bath",
-              child: []
-          }
-      ]
-  }
-];
+// Transform API category structure to component structure
+interface TransformedCategory {
+  id: number;
+  name: string;
+  image: string | null;
+  sub: {
+    id: number;
+    name: string;
+    child: {
+      id: number;
+      name: string;
+    }[];
+  }[];
+}
+
+const transformCategories = (categories: Category[]): TransformedCategory[] => {
+  return categories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    image: category.image || null,
+    sub: category.sub_categories.map((subCategory) => ({
+      id: subCategory.id,
+      name: subCategory.name,
+      child: subCategory.child_sub_categories.map((childSubCategory) => ({
+        id: childSubCategory.id,
+        name: childSubCategory.name,
+      })),
+    })),
+  }));
+};
 
 export const Header = () => {
   const { getTotalItems } = useCart();
@@ -158,6 +54,34 @@ export const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+
+  // Categories State
+  const [categories, setCategories] = useState<TransformedCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const response = await api.menu.getAll();
+        if (response.success) {
+          const transformedCategories = transformCategories(response.data);
+          setCategories(transformedCategories);
+        } else {
+          setCategoriesError("Failed to load categories");
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setCategoriesError("Failed to load categories");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleMouseEnter = () => {
     if (dropdownTimeoutRef.current) {
@@ -243,8 +167,13 @@ export const Header = () => {
                   <div 
                       className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl py-2 animate-in fade-in slide-in-from-top-2"
                   >
+                      {categoriesLoading ? (
+                        <div className="px-4 py-2 text-sm text-gray-500">Loading categories...</div>
+                      ) : categoriesError ? (
+                        <div className="px-4 py-2 text-sm text-red-500">{categoriesError}</div>
+                      ) : (
                       <ul className="flex flex-col">
-                          {DUMMY_CATEGORIES.map((category) => {
+                          {categories.map((category) => {
                               const hasSub = category.sub && category.sub.length > 0;
                               return (
                                   <li key={category.id} className="group relative px-4 py-2 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50 last:border-0">
@@ -297,6 +226,7 @@ export const Header = () => {
                               );
                           })}
                       </ul>
+                      )}
                   </div>
               )}
             </div>
@@ -372,8 +302,13 @@ export const Header = () => {
               {/* Mobile Categories */}
               <div className="px-4 py-2">
                 <div className="font-semibold mb-2 text-primary">Categories</div>
+                {categoriesLoading ? (
+                  <div className="text-sm text-gray-500">Loading...</div>
+                ) : categoriesError ? (
+                  <div className="text-sm text-red-500">{categoriesError}</div>
+                ) : (
                 <div className="pl-4 space-y-2 border-l-2 border-secondary">
-                    {DUMMY_CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                          <Link 
                             key={cat.id}
                             href={`/categories/${cat.name.toLowerCase().replace(/ /g, '-')}`}
@@ -384,6 +319,7 @@ export const Header = () => {
                          </Link>
                     ))}
                 </div>
+                )}
               </div>
 
               <Link

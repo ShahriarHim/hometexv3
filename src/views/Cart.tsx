@@ -53,7 +53,9 @@ const Cart = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
+            {items.map((item) => {
+              const productUrl = `/products/${item.product.category}/${item.product.childSubcategory || item.product.subcategory || 'all'}/${item.product.id}`;
+              return (
               <Card key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`}>
                 <CardContent className="p-6">
                   <div className="flex gap-4">
@@ -64,7 +66,7 @@ const Cart = () => {
                     />
                     <div className="flex-1">
                       <Link
-                        href={`/products/${item.product.id}`}
+                        href={productUrl}
                         className="font-semibold hover:text-primary transition-colors"
                       >
                         {item.product.name}
@@ -109,7 +111,8 @@ const Cart = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {/* Order Summary */}

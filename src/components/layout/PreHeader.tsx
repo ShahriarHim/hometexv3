@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ChevronDown, User, Mail, Ticket, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 
 // Dynamic Text Component logic inline to avoid extra files for now
 const TEXT_OPTIONS = [
@@ -22,17 +24,17 @@ const TEXT_OPTIONS = [
 ];
 
 const PreHeader = () => {
+  const router = useRouter();
   const [visitUsText, setVisitUsText] = useState(TEXT_OPTIONS[0].visitUs);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
   const [isVisible, setIsVisible] = useState(true);
 
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { items: cartItems, getTotalPrice } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
   const cartCount = cartItems.length;
 
   // Scroll handler to hide PreHeader on scroll
@@ -83,6 +85,16 @@ const PreHeader = () => {
       setIsAccountDropdownOpen(false);
   };
 
+  const handleLoginClick = () => {
+    router.push('/auth');
+    setIsAccountDropdownOpen(false);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setIsAccountDropdownOpen(false);
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -112,16 +124,17 @@ const PreHeader = () => {
                         {/* Account Menu Items */}
                         <ul className="py-1 relative bg-white rounded-lg text-sm">
                             <li className="group">
-                                {isLoggedIn ? (
+                                {isAuthenticated ? (
                                     <>
                                         <Link 
                                             href={"/account/profile" as any}
                                             className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
                                         >
-                                            <div className="font-medium text-sm">{userName || "User"}</div>
+                                            <div className="font-medium text-sm">{user?.name || "User"}</div>
                                             <div className="text-xs text-gray-500">View account</div>
                                         </Link>
                                         <button
+                                            onClick={handleLogout}
                                             className="block w-full text-left px-4 py-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50"
                                         >
                                             Sign Out
@@ -129,6 +142,7 @@ const PreHeader = () => {
                                     </>
                                 ) : (
                                     <button
+                                        onClick={handleLoginClick}
                                         className="block w-full text-left px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
                                     >
                                         Sign Up / Login
@@ -219,7 +233,7 @@ const PreHeader = () => {
             >
                 <Ticket className="w-4 h-4 text-pink-500 mr-1" />
                 <span className="text-xs">
-                    {isLoggedIn ? (
+                    {isAuthenticated ? (
                         <Link href={"/account/orderDash" as any}>Order Tracking</Link>
                     ) : (
                         "Order Tracking"

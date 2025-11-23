@@ -35,10 +35,11 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
   };
 
   if (viewMode === "list") {
+    const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || 'all'}/${product.id}`;
     return (
       <div className="group relative bg-card rounded-lg border border-border hover:shadow-lg transition-shadow p-4">
         <div className="flex gap-6">
-          <Link href={`/products/${product.id}`} className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg">
+          <Link href={productUrl} className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg">
             <img
               src={product.images[0] || "/placeholder.svg"}
               alt={product.name}
@@ -55,7 +56,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
           </Link>
 
           <div className="flex-1 flex flex-col">
-            <Link href={`/products/${product.id}`}>
+            <Link href={productUrl}>
               <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
                 {product.name}
               </h3>
@@ -116,9 +117,11 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
     );
   }
 
+  const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || 'all'}/${product.id}`;
+  
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-      <Link href={`/products/${product.id}`}>
+      <Link href={productUrl}>
         <div className="relative aspect-square overflow-hidden bg-muted">
           <img
             src={product.images[0] || "/placeholder.svg"}
@@ -144,7 +147,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
         </div>
       </Link>
       <CardContent className="p-4">
-        <Link href={`/products/${product.id}`}>
+        <Link href={productUrl}>
           <h3 className="font-medium text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
             {product.name}
           </h3>
