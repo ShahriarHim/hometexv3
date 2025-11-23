@@ -17,7 +17,14 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const [signupData, setSignupData] = useState({ email: "", password: "", name: "" });
+  const [signupData, setSignupData] = useState({ 
+    first_name: "", 
+    last_name: "", 
+    email: "", 
+    phone: "", 
+    password: "", 
+    conf_password: "" 
+  });
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -44,12 +51,20 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate password match
+    if (signupData.password !== signupData.conf_password) {
+      alert("Passwords do not match!");
+      return;
+    }
+    
     setLoading(true);
     try {
-      await signup(signupData.email, signupData.password, signupData.name);
+      await signup(signupData);
       router.push("/");
     } catch (error) {
       console.error(error);
+      // Error is already shown via toast in the signup function
     } finally {
       setLoading(false);
     }
@@ -114,16 +129,29 @@ const Auth = () => {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="John Doe"
-                      value={signupData.name}
-                      onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                      required
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-first-name">First Name</Label>
+                      <Input
+                        id="signup-first-name"
+                        type="text"
+                        placeholder="John"
+                        value={signupData.first_name}
+                        onChange={(e) => setSignupData({ ...signupData, first_name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-last-name">Last Name</Label>
+                      <Input
+                        id="signup-last-name"
+                        type="text"
+                        placeholder="Doe"
+                        value={signupData.last_name}
+                        onChange={(e) => setSignupData({ ...signupData, last_name: e.target.value })}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
@@ -137,6 +165,17 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Phone</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="01712345678"
+                      value={signupData.phone}
+                      onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
                     <Input
                       id="signup-password"
@@ -144,6 +183,18 @@ const Auth = () => {
                       value={signupData.password}
                       onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                       required
+                      minLength={6}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-conf-password">Confirm Password</Label>
+                    <Input
+                      id="signup-conf-password"
+                      type="password"
+                      value={signupData.conf_password}
+                      onChange={(e) => setSignupData({ ...signupData, conf_password: e.target.value })}
+                      required
+                      minLength={6}
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>

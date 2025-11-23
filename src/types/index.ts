@@ -7,6 +7,7 @@ export interface Product {
   description: string;
   category: string;
   subcategory?: string;
+  childSubcategory?: string;
   images: string[];
   inStock: boolean;
   rating: number;

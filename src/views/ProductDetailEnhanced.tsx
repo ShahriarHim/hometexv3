@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { products } from "@/data/demo-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,20 +10,109 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { api, transformAPIProductToProduct } from "@/lib/api";
+import type { Product } from "@/types";
 
 const ProductDetailEnhanced = () => {
-  const params = useParams<{ id?: string }>();
-  const product = products.find((p) => p.id === params?.id);
+  const params = useParams<{ id?: string; category?: string; childCategory?: string }>();
+  const id = params?.id;
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist } = useWishlist();
 
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0]);
-  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0]);
+  const [selectedColor, setSelectedColor] = useState<string | undefined>();
+  const [selectedSize, setSelectedSize] = useState<string | undefined>();
   const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await api.products.getById(id);
+        
+        // Check if the API returned an error
+        if (response.success === false) {
+          setError(response.message || "Failed to load product");
+          return;
+        }
+        
+        // Handle both response formats: { success: true, data: product } or direct product
+        const productData = response.data || response;
+        
+        if (productData && productData.id) {
+          const transformedProduct = transformAPIProductToProduct(productData);
+          setProduct(transformedProduct);
+          setSelectedColor(transformedProduct.colors?.[0]);
+          setSelectedSize(transformedProduct.sizes?.[0]);
+        } else {
+          setError("Product not found");
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to load product";
+        setError(errorMessage.includes("500") 
+          ? "The server is temporarily unavailable. Please try again later." 
+          : "Failed to load product. Please check your connection.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-16">
+          <div className="max-w-md mx-auto text-center space-y-6">
+            <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+              <Shield className="h-10 w-10 text-destructive" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold mb-2">Oops! Something went wrong</h1>
+              <p className="text-muted-foreground mb-4">{error}</p>
+            </div>
+            <div className="flex gap-4 justify-center">
+              <Button onClick={() => window.location.reload()}>
+                Try Again
+              </Button>
+              <Button variant="outline" onClick={() => window.history.back()}>
+                Go Back
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (

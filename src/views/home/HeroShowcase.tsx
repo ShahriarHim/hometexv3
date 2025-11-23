@@ -6,22 +6,54 @@ import { Autoplay, Pagination, EffectFade } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
-import { heroSlides } from "@/data/migration-content";
+import { heroSlides as fallbackSlides, HeroSlide } from "@/data/migration-content";
+import { api, transformHeroBannerToSlide } from "@/lib/api";
 import Link from "next/link";
 
 export const HeroShowcase = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(fallbackSlides);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleSlideChange = (swiper: any) => {
     setActiveIndex(swiper.activeIndex);
   };
 
+  // Fetch hero banners from API
+  useEffect(() => {
+    const fetchHeroBanners = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.heroBanners.getAll();
+        
+        if (response.success && response.data.length > 0) {
+          // Transform API data to HeroSlide format
+          const transformedSlides = response.data
+            .filter((banner) => banner.status === 1) // Only active banners
+            .map((banner) => transformHeroBannerToSlide(banner));
+          
+          setHeroSlides(transformedSlides);
+        } else {
+          // Use fallback slides if API returns no data
+          setHeroSlides(fallbackSlides);
+        }
+      } catch (error) {
+        console.error("Failed to fetch hero banners:", error);
+        // Use fallback slides on error
+        setHeroSlides(fallbackSlides);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHeroBanners();
+  }, []);
+
   if (isLoading) {
     return (
-      <div className="relative overflow-hidden">
-        <div className="max-w-[1400px] mx-auto bg-white rounded-lg shadow-lg h-[500px] flex items-center justify-center">
-          <div className="w-20 h-20 animate-spin">Loading...</div>
+      <div className="relative overflow-hidden py-5">
+        <div className="max-w-[1400px] mx-auto bg-gray-200 rounded-lg h-[500px] flex items-center justify-center animate-pulse">
+          <div className="text-gray-500 text-xl font-medium">Loading hero banners...</div>
         </div>
       </div>
     );

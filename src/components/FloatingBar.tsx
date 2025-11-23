@@ -12,6 +12,10 @@ import {
     FaWhatsapp,
 } from 'react-icons/fa';
 import ChatPopup from './ChatPopup';
+import CartPopup from './CartPopup';
+import WishlistPopup from './WishlistPopup';
+import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 
 const FloatingBar = () => {
     const [showBar, setShowBar] = useState(false); // Visibility based on scroll
@@ -22,9 +26,12 @@ const FloatingBar = () => {
     const [showRecentlyViewed, setShowRecentlyViewed] = useState(false);
     const [showLocationPanel, setShowLocationPanel] = useState(false);
 
-    // Static dummy data for display purposes
-    const cartItemsCount = 2;
-    const totalPrice = 1250;
+    // Get cart and wishlist data from context
+    const { getTotalItems, getTotalPrice } = useCart();
+    const { items: wishlistItems } = useWishlist();
+    
+    const cartItemsCount = getTotalItems();
+    const totalPrice = getTotalPrice();
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -58,36 +65,42 @@ const FloatingBar = () => {
             tooltip: 'All Categories',
             onClick: () => setShowCategoriesPopup(true),
             className: 'floating-btn-first',
+            badge: null,
         },
         {
             icon: <FaPhoneAlt />,
             tooltip: 'Customer Service',
             onClick: handleChatToggle,
             className: 'floating-btn-middle',
+            badge: null,
         },
         {
             icon: <FaMapMarkerAlt />,
             tooltip: 'Current Location',
             onClick: handleGetCurrentLocation,
             className: 'floating-btn-middle',
+            badge: null,
         },
         {
             icon: <FaHeart />,
             tooltip: 'Wishlist',
             onClick: handleWishClick,
             className: 'floating-btn-middle',
+            badge: wishlistItems.length,
         },
         {
             icon: <FaEye />,
             tooltip: 'Recently Viewed',
             onClick: handleRecentlyViewedClick,
             className: 'floating-btn-middle',
+            badge: null,
         },
         {
             icon: <FaArrowUp />,
             tooltip: 'Back to Top',
             onClick: scrollToTop,
             className: 'floating-btn-last',
+            badge: null,
         },
     ];
 
@@ -112,6 +125,9 @@ const FloatingBar = () => {
                             <button key={index} className={`floating-btn ${button.className}`} onClick={button.onClick}>
                                 {button.icon}
                                 <span className="tooltip">{button.tooltip}</span>
+                                {button.badge !== null && button.badge > 0 && (
+                                    <span className="icon-badge">{button.badge}</span>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -131,6 +147,12 @@ const FloatingBar = () => {
 
             {/* Chat Popup */}
             {isChatVisible && <ChatPopup onClose={() => setIsChatVisible(false)} />}
+
+            {/* Cart Popup */}
+            <CartPopup isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+            {/* Wishlist Popup */}
+            <WishlistPopup isOpen={isWishOpen} onClose={() => setIsWishOpen(false)} />
 
             {/* Static Placeholders for Popups (Visual only for now as requested) */}
             
@@ -268,6 +290,24 @@ const FloatingBar = () => {
                     font-size: 10px;
                     font-weight: bold;
                     border: 2px solid rgba(51, 51, 51, 0.8);
+                }
+
+                .icon-badge {
+                    position: absolute;
+                    top: -3px;
+                    right: -3px;
+                    background-color: #ff4444;
+                    color: white;
+                    border-radius: 50%;
+                    width: 16px;
+                    height: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 9px;
+                    font-weight: bold;
+                    border: 2px solid rgba(51, 51, 51, 0.8);
+                    z-index: 1;
                 }
 
                 .floating-btn {
@@ -603,6 +643,13 @@ const FloatingBar = () => {
                         width: 15px;
                         height: 15px;
                         font-size: 9px;
+                        top: -2px;
+                        right: -2px;
+                    }
+                    .icon-badge {
+                        width: 14px;
+                        height: 14px;
+                        font-size: 8px;
                         top: -2px;
                         right: -2px;
                     }
