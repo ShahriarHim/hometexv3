@@ -36,6 +36,7 @@ declare namespace __next_route_internal_types__ {
     | `/${SafeSlug<T>}`
     | `/${SafeSlug<T>}/about`
     | `/${SafeSlug<T>}/account`
+    | `/${SafeSlug<T>}/account/profile`
     | `/${SafeSlug<T>}/account/wishlist`
     | `/${SafeSlug<T>}/auth`
     | `/${SafeSlug<T>}/cart`

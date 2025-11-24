@@ -1,6 +1,80 @@
 // API Integration utilities
 // TODO: Replace these placeholder functions with actual API calls
 
+// Helper function to get the auth token
+export const getAuthToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem("hometex-auth-token");
+  }
+  return null;
+};
+
+// Helper function to make authenticated API requests
+export const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
+  const token = getAuthToken();
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+  };
+  
+  if (token) {
+    Object.assign(headers, { Authorization: `Bearer ${token}` });
+  }
+  
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+};
+
+// Types for Authentication API
+export interface SignupResponse {
+  success: {
+    name: string;
+    statue: number;
+    message: string;
+    authorisation: {
+      token: string;
+      type: string;
+    };
+  };
+}
+
+export interface LoginResponse {
+  success: {
+    name: string;
+    statue: number;
+    message: string;
+    authorisation: {
+      token: string;
+      type: string;
+    };
+  };
+}
+
+// Types for User Profile API
+export interface UserProfile {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+  country?: string;
+  avatar?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProfileResponse {
+  success: boolean;
+  message: string;
+  data: UserProfile;
+}
+
 // Types for Products API
 export interface APIProduct {
   id: number;
@@ -198,9 +272,51 @@ export const api = {
     },
   },
 
+  // User Profile
+  profile: {
+    getMyProfile: async (): Promise<ProfileResponse> => {
+      const response = await authenticatedFetch("https://www.hometexbd.ltd/api/my-profile", {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch profile");
+      }
+      
+      return response.json();
+    },
+    
+    updateProfile: async (profileData: {
+      first_name?: string;
+      last_name?: string;
+      phone?: string;
+      address?: string;
+    }): Promise<ProfileResponse> => {
+      const response = await authenticatedFetch("https://www.hometexbd.ltd/api/update-profile", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profileData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
+      }
+      
+      return response.json();
+    },
+  },
+
   // Authentication
   auth: {
-    login: async (email: string, password: string) => {
+    login: async (email: string, password: string): Promise<LoginResponse> => {
       const response = await fetch("https://www.hometexbd.ltd/api/customer-login", {
         method: "POST",
         headers: { 
@@ -228,7 +344,7 @@ export const api = {
       phone: string;
       password: string;
       conf_password: string;
-    }) => {
+    }): Promise<SignupResponse> => {
       const response = await fetch("https://www.hometexbd.ltd/api/customer-signup", {
         method: "POST",
         headers: { 
@@ -247,7 +363,7 @@ export const api = {
     },
     
     logout: async () => {
-      const response = await fetch("https://www.hometexbd.ltd/api/customer-logout", {
+      const response = await authenticatedFetch("https://www.hometexbd.ltd/api/customer-logout", {
         method: "POST",
       });
       
