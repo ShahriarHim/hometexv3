@@ -8,6 +8,7 @@ interface User {
   email: string;
   name: string;
   avatar?: string;
+  token?: string;
 }
 
 export interface SignupData {
@@ -17,6 +18,11 @@ export interface SignupData {
   phone: string;
   password: string;
   conf_password: string;
+}
+
+export interface ValidationError {
+  fieldErrors?: Record<string, string[]>;
+  message: string;
 }
 
 interface AuthContextType {
@@ -56,26 +62,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
+        // Handle validation errors with field-specific messages
+        if (data.error && typeof data.error === 'object') {
+          const errorMessages: string[] = [];
+          const fieldErrors: Record<string, string[]> = {};
+          
+          // Extract all field errors
+          Object.keys(data.error).forEach((field) => {
+            const fieldErrorArray = data.error[field];
+            if (Array.isArray(fieldErrorArray)) {
+              fieldErrors[field] = fieldErrorArray;
+              fieldErrorArray.forEach((errorMsg) => {
+                errorMessages.push(errorMsg);
+                toast.error(errorMsg);
+              });
+            }
+          });
+          
+          // Throw error with field errors attached
+          if (errorMessages.length > 0) {
+            const error: any = new Error(errorMessages.join(', '));
+            error.fieldErrors = fieldErrors;
+            throw error;
+          }
+        }
+        
+        // Fallback to generic error message
+        const errorMessage = data.message || "Login failed";
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
       }
       
-      const data = await response.json();
+      // Extract token from response
+      const token = data.success?.authorisation?.token || data.authorisation?.token;
       
       // Create user object from response
       const loggedInUser = {
-        id: data.customer?.id || data.user?.id || "user-" + Date.now(),
+        id: data.customer?.id || data.user?.id || data.success?.id || "user-" + Date.now(),
         email: email,
-        name: data.customer?.name || data.user?.name || email.split("@")[0],
+        name: data.success?.name || data.customer?.name || data.user?.name || email.split("@")[0],
+        token: token,
       };
       
       setUser(loggedInUser);
       localStorage.setItem("hometex-user", JSON.stringify(loggedInUser));
-      toast.success("Logged in successfully!");
+      
+      // Store token separately for easy access
+      if (token) {
+        localStorage.setItem("hometex-auth-token", token);
+      }
+      
+      toast.success(data.success?.message || "Logged in successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to login";
-      toast.error(errorMessage);
+      // Error already shown via toast in the try block
       throw error;
     }
   };
@@ -91,26 +133,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify(signupData),
       });
       
+      const data = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Signup failed");
+        // Handle validation errors with field-specific messages
+        if (data.error && typeof data.error === 'object') {
+          const errorMessages: string[] = [];
+          const fieldErrors: Record<string, string[]> = {};
+          
+          // Extract all field errors
+          Object.keys(data.error).forEach((field) => {
+            const fieldErrorArray = data.error[field];
+            if (Array.isArray(fieldErrorArray)) {
+              fieldErrors[field] = fieldErrorArray;
+              fieldErrorArray.forEach((errorMsg) => {
+                errorMessages.push(errorMsg);
+                toast.error(errorMsg);
+              });
+            }
+          });
+          
+          // Throw error with field errors attached
+          if (errorMessages.length > 0) {
+            const error: any = new Error(errorMessages.join(', '));
+            error.fieldErrors = fieldErrors;
+            throw error;
+          }
+        }
+        
+        // Fallback to generic error message
+        const errorMessage = data.message || "Signup failed";
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
       }
       
-      const data = await response.json();
+      // Extract token from response
+      const token = data.success?.authorisation?.token || data.authorisation?.token;
       
       // Create user object from response
       const newUser = {
-        id: data.customer?.id || "user-" + Date.now(),
+        id: data.customer?.id || data.success?.id || "user-" + Date.now(),
         email: signupData.email,
-        name: `${signupData.first_name} ${signupData.last_name}`,
+        name: data.success?.name || `${signupData.first_name} ${signupData.last_name}`,
+        token: token,
       };
       
       setUser(newUser);
       localStorage.setItem("hometex-user", JSON.stringify(newUser));
-      toast.success("Account created successfully! Please check your email for verification.");
+      
+      // Store token separately for easy access
+      if (token) {
+        localStorage.setItem("hometex-auth-token", token);
+      }
+      
+      toast.success(data.success?.message || "Account created successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to create account";
-      toast.error(errorMessage);
+      // Error already shown via toast in the try block
       throw error;
     }
   };
@@ -132,17 +210,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      const token = localStorage.getItem("hometex-auth-token");
       await fetch("https://www.hometexbd.ltd/api/customer-logout", {
         method: "POST",
+        headers: token ? {
+          "Authorization": `Bearer ${token}`
+        } : {},
       });
       
       setUser(null);
       localStorage.removeItem("hometex-user");
+      localStorage.removeItem("hometex-auth-token");
       toast.success("Logged out successfully");
     } catch (error) {
       // Still logout locally even if API call fails
       setUser(null);
       localStorage.removeItem("hometex-user");
+      localStorage.removeItem("hometex-auth-token");
       toast.success("Logged out successfully");
     }
   };
