@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
 import { ShoppingCart, Heart, User, Search, Menu, X } from "lucide-react";
 import { FaCaretRight, FaBars, FaMapMarkerAlt, FaGift, FaBriefcase, FaCommentDots } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,8 @@ const transformCategories = (categories: Category[]): TransformedCategory[] => {
 };
 
 export const Header = () => {
+  const t = useTranslations("navigation");
+  const tCommon = useTranslations("common");
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -156,7 +159,7 @@ export const Header = () => {
                   onClick={toggleCategories}
               >
                   <img src="/images/icons/icon-menu.png" alt="Menu Icon" className="w-4 h-4" />
-                  <span className="font-semibold">All Categories</span>
+                  <span className="font-semibold">{t("allCategories")}</span>
                   <FaCaretRight 
                       className={`h-3 w-3 transition-transform duration-200 ${showAllCategories || isDropdownOpen ? 'rotate-90' : ''}`} 
                   />
@@ -168,7 +171,7 @@ export const Header = () => {
                       className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl py-2 animate-in fade-in slide-in-from-top-2"
                   >
                       {categoriesLoading ? (
-                        <div className="px-4 py-2 text-sm text-gray-500">Loading categories...</div>
+                        <div className="px-4 py-2 text-sm text-gray-500">{tCommon("loading")}</div>
                       ) : categoriesError ? (
                         <div className="px-4 py-2 text-sm text-red-500">{categoriesError}</div>
                       ) : (
@@ -237,7 +240,7 @@ export const Header = () => {
                 onClick={handleSearchClick}
             >
                <Search className="h-5 w-5 text-yellow-600" />
-               <span>Search</span>
+               <span>{tCommon("search")}</span>
             </Button>
            </div>
 
@@ -256,24 +259,24 @@ export const Header = () => {
 
           {/* Right Section: Actions */}
           <div className="flex items-center justify-end gap-4 flex-1">
-            <Link href={"/stores" as any} className="hidden md:flex items-center gap-2 text-sm font-medium hover:text-primary">
+            <Link href="/stores" className="hidden md:flex items-center gap-2 text-sm font-medium hover:text-primary">
                <div className="text-yellow-600"><FaMapMarkerAlt className="h-5 w-5" /></div>
-               <span>Find a Store</span>
+               <span>{t("findStore")}</span>
             </Link>
             
-             <Link href={"/gift-someone" as any} className="hidden md:flex items-center gap-2 text-sm font-medium hover:text-primary">
+             <Link href="/gift-someone" className="hidden md:flex items-center gap-2 text-sm font-medium hover:text-primary">
                <div className="text-yellow-600"><FaGift className="h-5 w-5" /></div>
-               <span>Gift Someone</span>
+               <span>{t("giftSomeone")}</span>
             </Link>
 
-            <Link href={"/daily-deals" as any} className="hidden md:flex items-center gap-2 text-sm font-medium hover:text-primary">
+            <Link href="/daily-deals" className="hidden md:flex items-center gap-2 text-sm font-medium hover:text-primary">
                <div className="text-yellow-600"><FaBriefcase className="h-5 w-5" /></div>
-               <span>Daily Deals</span>
+               <span>{t("dailyDeals")}</span>
             </Link>
             
             <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2 px-2 hover:bg-transparent hover:text-primary">
                 <div className="text-yellow-600"><FaCommentDots className="h-5 w-5" /></div>
-                <span>Message</span>
+                <span>{t("message")}</span>
             </Button>
 
             {/* Mobile Menu Toggle */}
@@ -293,17 +296,17 @@ export const Header = () => {
           <nav className="md:hidden py-4 border-t border-border animate-in slide-in-from-top-5">
             <div className="flex flex-col space-y-1">
               <Link href="/" className="px-4 py-2 text-sm font-medium hover:bg-secondary rounded-md transition-colors" onClick={() => setIsMenuOpen(false)}>
-                Home
+                {t("home")}
               </Link>
                <Link href="/shop" className="px-4 py-2 text-sm font-medium hover:bg-secondary rounded-md transition-colors" onClick={() => setIsMenuOpen(false)}>
-                Shop All
+                {t("shop")}
               </Link>
               
               {/* Mobile Categories */}
               <div className="px-4 py-2">
-                <div className="font-semibold mb-2 text-primary">Categories</div>
+                <div className="font-semibold mb-2 text-primary">{t("categories")}</div>
                 {categoriesLoading ? (
-                  <div className="text-sm text-gray-500">Loading...</div>
+                  <div className="text-sm text-gray-500">{tCommon("loading")}</div>
                 ) : categoriesError ? (
                   <div className="text-sm text-red-500">{categoriesError}</div>
                 ) : (
@@ -327,14 +330,14 @@ export const Header = () => {
                 className="px-4 py-2 text-sm font-medium hover:bg-secondary rounded-md transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Corporate
+                {t("corporate")}
               </Link>
               <Link
                 href="/account"
                 className="px-4 py-2 text-sm font-medium hover:bg-secondary rounded-md transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                My Account
+                {tCommon("account")}
               </Link>
             </div>
           </nav>
