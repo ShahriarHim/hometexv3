@@ -31,34 +31,34 @@ declare namespace __next_route_internal_types__ {
   type OptionalCatchAllSlug<S extends string> =
     S extends `${string}${SearchOrHash}` ? never : S
 
-  type StaticRoutes = 
-    | `/`
-    | `/about`
-    | `/account`
-    | `/account/wishlist`
-    | `/auth`
-    | `/cart`
-    | `/checkout`
-    | `/contact`
-    | `/corporate`
-    | `/corporate-enquires`
-    | `/faq`
-    | `/gift-someone`
-    | `/orders`
-    | `/privacy`
-    | `/products`
-    | `/returns`
-    | `/search`
-    | `/shipping`
-    | `/shop`
-    | `/sitemap`
-    | `/stores`
-    | `/terms`
+  type StaticRoutes = never
   type DynamicRoutes<T extends string = string> = 
-    | `/categories/${SafeSlug<T>}`
-    | `/orders/${SafeSlug<T>}`
-    | `/products/${SafeSlug<T>}/${SafeSlug<T>}/${SafeSlug<T>}`
-    | `/products/${SafeSlug<T>}/${SafeSlug<T>}/${SafeSlug<T>}/experience`
+    | `/${SafeSlug<T>}`
+    | `/${SafeSlug<T>}/about`
+    | `/${SafeSlug<T>}/account`
+    | `/${SafeSlug<T>}/account/wishlist`
+    | `/${SafeSlug<T>}/auth`
+    | `/${SafeSlug<T>}/cart`
+    | `/${SafeSlug<T>}/categories/${SafeSlug<T>}`
+    | `/${SafeSlug<T>}/checkout`
+    | `/${SafeSlug<T>}/contact`
+    | `/${SafeSlug<T>}/corporate`
+    | `/${SafeSlug<T>}/corporate-enquires`
+    | `/${SafeSlug<T>}/faq`
+    | `/${SafeSlug<T>}/gift-someone`
+    | `/${SafeSlug<T>}/orders`
+    | `/${SafeSlug<T>}/orders/${SafeSlug<T>}`
+    | `/${SafeSlug<T>}/privacy`
+    | `/${SafeSlug<T>}/products`
+    | `/${SafeSlug<T>}/products/${SafeSlug<T>}/${SafeSlug<T>}/${SafeSlug<T>}`
+    | `/${SafeSlug<T>}/products/${SafeSlug<T>}/${SafeSlug<T>}/${SafeSlug<T>}/experience`
+    | `/${SafeSlug<T>}/returns`
+    | `/${SafeSlug<T>}/search`
+    | `/${SafeSlug<T>}/shipping`
+    | `/${SafeSlug<T>}/shop`
+    | `/${SafeSlug<T>}/sitemap`
+    | `/${SafeSlug<T>}/stores`
+    | `/${SafeSlug<T>}/terms`
 
   type RouteImpl<T> = 
     | StaticRoutes

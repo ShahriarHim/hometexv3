@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useRef, useTransition } from 'react';
+import { Link } from '@/i18n/routing';
+import { useRouter, usePathname } from '@/i18n/routing';
+import { useLocale, useTranslations } from 'next-intl';
 import { ChevronDown, User, Mail, Ticket, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
@@ -24,11 +25,17 @@ const TEXT_OPTIONS = [
 ];
 
 const PreHeader = () => {
+  const t = useTranslations("common");
+  const tAccount = useTranslations("account");
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = useLocale();
+  const [isPending, startTransition] = useTransition();
   const [visitUsText, setVisitUsText] = useState(TEXT_OPTIONS[0].visitUs);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
+  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [isVisible, setIsVisible] = useState(true);
 
@@ -85,6 +92,14 @@ const PreHeader = () => {
       setIsAccountDropdownOpen(false);
   };
 
+  const handleLanguageChange = (newLocale: string) => {
+    startTransition(() => {
+      router.replace(pathname, { locale: newLocale });
+    });
+    setIsLanguageDropdownOpen(false);
+    setIsAccountDropdownOpen(false);
+  };
+
   const handleLoginClick = () => {
     router.push('/auth');
     setIsAccountDropdownOpen(false);
@@ -112,7 +127,7 @@ const PreHeader = () => {
             >
                 <div className="flex items-center cursor-pointer hover:text-blue-500 pl-4">
                     <User className="w-4 h-4 text-pink-500 mr-1" />
-                    <span className="text-xs whitespace-nowrap">My Account</span>
+                    <span className="text-xs whitespace-nowrap">{t("account")}</span>
                     <ChevronDown className="w-3 h-3 ml-1" />
                 </div>
 
@@ -127,17 +142,17 @@ const PreHeader = () => {
                                 {isAuthenticated ? (
                                     <>
                                         <Link 
-                                            href={"/account/profile" as any}
+                                            href="/account/profile"
                                             className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
                                         >
                                             <div className="font-medium text-sm">{user?.name || "User"}</div>
-                                            <div className="text-xs text-gray-500">View account</div>
+                                            <div className="text-xs text-gray-500">{tAccount("viewAccount")}</div>
                                         </Link>
                                         <button
                                             onClick={handleLogout}
                                             className="block w-full text-left px-4 py-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50"
                                         >
-                                            Sign Out
+                                            {tAccount("logout")}
                                         </button>
                                     </>
                                 ) : (
@@ -145,7 +160,7 @@ const PreHeader = () => {
                                         onClick={handleLoginClick}
                                         className="block w-full text-left px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
                                     >
-                                        Sign Up / Login
+                                        {tAccount("signUpLogin")}
                                     </button>
                                 )}
                             </li>
@@ -159,7 +174,7 @@ const PreHeader = () => {
                                 onMouseLeave={() => setIsCurrencyDropdownOpen(false)}
                             >
                                 <div className="px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50 cursor-pointer flex justify-between items-center">
-                                    <span>Currency</span>
+                                    <span>{t("currency")}</span>
                                     <span className="font-medium">{selectedCurrency}</span>
                                 </div>
                                 {isCurrencyDropdownOpen && (
@@ -182,19 +197,50 @@ const PreHeader = () => {
 
                             <li className="group">
                                 <Link 
-                                    href={"/my-rewards" as any}
+                                    href="/my-rewards"
                                     className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
                                 >
-                                    My Rewards
+                                    {tAccount("myRewards")}
                                 </Link>
                             </li>
-                            <li className="group">
-                                <Link 
-                                    href={"/language" as any}
-                                    className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                                >
-                                    Language
-                                </Link>
+                            
+                            {/* Language Dropdown Item */}
+                            <li 
+                                className="relative group"
+                                onMouseEnter={() => setIsLanguageDropdownOpen(true)}
+                                onMouseLeave={() => setIsLanguageDropdownOpen(false)}
+                            >
+                                <div className="px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50 cursor-pointer flex justify-between items-center">
+                                    <span>{t("language")}</span>
+                                    <span className="font-medium">{locale === 'en' ? 'EN' : 'বাং'}</span>
+                                </div>
+                                {isLanguageDropdownOpen && (
+                                    <div className="absolute left-full top-0 bg-white shadow-xl rounded-lg w-32 -mr-1 transform translate-x-2 border border-gray-100 z-[200]">
+                                        <div className="absolute -left-2 top-3 w-4 h-4 bg-white transform rotate-45 border-l border-t border-gray-100"></div>
+                                        <ul className="py-1 relative bg-white rounded-lg">
+                                            <li 
+                                                className={`px-3 py-1.5 cursor-pointer ${
+                                                    locale === 'en' 
+                                                        ? 'text-blue-600 bg-blue-50 font-medium' 
+                                                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                                                }`}
+                                                onClick={() => handleLanguageChange('en')}
+                                            >
+                                                English
+                                            </li>
+                                            <li 
+                                                className={`px-3 py-1.5 cursor-pointer ${
+                                                    locale === 'bn' 
+                                                        ? 'text-blue-600 bg-blue-50 font-medium' 
+                                                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                                                }`}
+                                                onClick={() => handleLanguageChange('bn')}
+                                            >
+                                                বাংলা (Bengali)
+                                            </li>
+                                        </ul>
+                                    </div>
+                                )}
                             </li>
                         </ul>
                     </div>
@@ -203,11 +249,11 @@ const PreHeader = () => {
 
             {/* Corporate Inquiries */}
             <Link 
-                href={"/corporate-enquires" as any}
+                href="/corporate-enquires"
                 className="flex items-center hover:text-blue-500"
             >
                 <Mail className="w-4 h-4 text-pink-500 mr-1" />
-                <span className="text-xs whitespace-nowrap">Corporate Inquiries</span>
+                <span className="text-xs whitespace-nowrap">{t("corporateInquiries")}</span>
             </Link>
           </div>
 
@@ -234,9 +280,9 @@ const PreHeader = () => {
                 <Ticket className="w-4 h-4 text-pink-500 mr-1" />
                 <span className="text-xs">
                     {isAuthenticated ? (
-                        <Link href={"/account/orderDash" as any}>Order Tracking</Link>
+                        <Link href="/account/orderDash">{t("orderTracking")}</Link>
                     ) : (
-                        "Order Tracking"
+                        t("orderTracking")
                     )}
                 </span>
             </div>
@@ -245,7 +291,7 @@ const PreHeader = () => {
             <Link href="/cart">
                 <div className="relative bg-black text-white px-4 py-4 -mt-1 flex items-center cursor-pointer hover:text-yellow-500 transition-colors duration-200 z-[160] mr-2">
                     <ShoppingCart className="w-4 h-4 text-pink-500 mr-2" />
-                    <span className="text-xs whitespace-nowrap">My Cart</span>
+                    <span className="text-xs whitespace-nowrap">{t("cart")}</span>
                     
                     {/* Triangle decorations at bottom */}
                     <div className="absolute bottom-[-12px] left-0 right-0 h-3 overflow-visible z-[155]">

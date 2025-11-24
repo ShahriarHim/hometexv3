@@ -1,18 +1,9 @@
 {
   "app": {
-    "[project]/src/app/_not-found/page": [
+    "[project]/src/app/[locale]/page": [
       "static/media/4a7551bcc3548e67-s.p.717db902.woff2"
     ],
-    "[project]/src/app/auth/page": [
-      "static/media/4a7551bcc3548e67-s.p.717db902.woff2"
-    ],
-    "[project]/src/app/checkout/page": [
-      "static/media/4a7551bcc3548e67-s.p.717db902.woff2"
-    ],
-    "[project]/src/app/products/[category]/[childCategory]/[id]/page": [
-      "static/media/4a7551bcc3548e67-s.p.717db902.woff2"
-    ],
-    "[project]/src/app/shop/page": [
+    "[project]/src/app/[locale]/stores/page": [
       "static/media/4a7551bcc3548e67-s.p.717db902.woff2"
     ]
   },
