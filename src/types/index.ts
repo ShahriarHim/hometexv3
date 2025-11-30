@@ -21,6 +21,35 @@ export interface Product {
   discount?: number;
 }
 
+export interface ProductVariant {
+  id: number;
+  parent_id: number;
+  sku: string;
+  name: string;
+  slug: string;
+  attributes: {
+    Size?: string;
+    Color?: string;
+    [key: string]: any;
+  };
+  pricing: {
+    regular_price: number;
+    sale_price: number | null;
+    final_price: number;
+  };
+  inventory: {
+    stock_status: string;
+    stock_quantity: number;
+  };
+  media: any[];
+  weight: number;
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+  };
+}
+
 export interface Category {
   id: string;
   name: string;
