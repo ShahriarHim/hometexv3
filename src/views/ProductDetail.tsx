@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductCard } from "@/components/products/ProductCard";
 import { MediaGallery } from "@/components/products/MediaGallery";
+import PriceDropNotification from "@/components/products/PriceDropNotification";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { 
@@ -44,6 +45,8 @@ const ProductDetailNew = () => {
   const [quantity, setQuantity] = useState(1);
   const [showTaxIncluded, setShowTaxIncluded] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [similarProducts, setSimilarProducts] = useState<any[]>([]); // Using any[] since API returns different structure
+  const [similarProductsLoading, setSimilarProductsLoading] = useState(false);
   const [showBulkPricingModal, setShowBulkPricingModal] = useState(false);
   const [selectedBulkPrice, setSelectedBulkPrice] = useState<number | null>(null);
 
@@ -78,11 +81,8 @@ const ProductDetailNew = () => {
           currency: productData.pricing.currency
         });
 
-        // Fetch related products if IDs are available
-        if (productData.related_products?.similar_products?.length > 0) {
-          // In a real app, you'd fetch these by IDs
-          // For now, we'll just use the demo data
-        }
+        // Fetch similar products
+        fetchSimilarProducts(productData.id.toString());
       } catch (err) {
         console.error("Error fetching product:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load product";
@@ -96,6 +96,22 @@ const ProductDetailNew = () => {
 
     fetchProduct();
   }, [id]);
+
+  // Fetch similar products
+  const fetchSimilarProducts = async (productId: string) => {
+    try {
+      setSimilarProductsLoading(true);
+      const response = await api.products.getSimilar(productId);
+      
+      if (response.success && response.data?.products) {
+        setSimilarProducts(response.data.products);
+      }
+    } catch (err) {
+      console.error("Error fetching similar products:", err);
+    } finally {
+      setSimilarProductsLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -411,7 +427,7 @@ const ProductDetailNew = () => {
         <main className="flex-1 container mx-auto px-4 py-6">
           {/* Breadcrumb */}
           <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-foreground">Home</Link>
+            <Link href={"/" as const} className="hover:text-foreground">Home</Link>
             <ChevronRight className="h-4 w-4" />
             {product.breadcrumb.map((crumb, idx) => (
               <div key={`${crumb.slug}-${idx}`} className="flex items-center space-x-2">
@@ -427,13 +443,13 @@ const ProductDetailNew = () => {
             <ChevronRight className="h-4 w-4" />
             <span className="text-foreground">{product.name}</span>
           </nav>
-
+{/* 
           <Button variant="ghost" asChild className="mb-6">
             <Link href="/shop">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Shop
             </Link>
-          </Button>
+          </Button> */}
 
           <div className="grid lg:grid-cols-2 gap-12 mb-12">
             {/* Media Gallery */}
@@ -1039,8 +1055,62 @@ const ProductDetailNew = () => {
           </Tabs>
 
           {/* Related Products */}
+          {similarProducts && similarProducts.length > 0 && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-3xl font-bold">Similar Products</h2>
+                {similarProductsLoading && (
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {similarProducts.map((similarProduct: any) => {
+                  // Similar products API returns a different structure than single product API
+                  const finalPrice = similarProduct.sell_price?.price || similarProduct.original_price || 0;
+                  const regularPrice = similarProduct.original_price || finalPrice;
+                  const hasDiscount = regularPrice > finalPrice;
+                  
+                  // Parse discount from string format (e.g., "10%")
+                  let discountPercent = 0;
+                  if (similarProduct.discount_percent && typeof similarProduct.discount_percent === 'string') {
+                    discountPercent = parseInt(similarProduct.discount_percent.replace('%', '')) || 0;
+                  }
+                  
+                  const transformedProduct = {
+                    id: similarProduct.id.toString(),
+                    name: similarProduct.name || 'Unnamed Product',
+                    slug: similarProduct.slug || '',
+                    price: finalPrice,
+                    originalPrice: hasDiscount ? regularPrice : undefined,
+                    description: similarProduct.description || '',
+                    category: similarProduct.category?.slug || '',
+                    subcategory: similarProduct.sub_category?.slug,
+                    images: similarProduct.primary_photo 
+                      ? [similarProduct.primary_photo]
+                      : (similarProduct.brand?.logo ? [similarProduct.brand.logo] : []),
+                    inStock: similarProduct.stock > 0 && similarProduct.status === "Active",
+                    rating: 4.5, // Similar products API doesn't include full review data
+                    reviewCount: 0,
+                    material: similarProduct.brand?.name,
+                    isFeatured: similarProduct.isFeatured === 1,
+                    isNew: similarProduct.isNew === 1,
+                    discount: discountPercent > 0 ? discountPercent : undefined,
+                  };
+                  
+                  return (
+                    <ProductCard 
+                      key={similarProduct.id} 
+                      product={transformedProduct} 
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Legacy Related Products Section - Keep for compatibility */}
           {product.related_products && (
-            <div className="space-y-8">
+            <div className="space-y-8 mt-12">
               {product.related_products.frequently_bought_together && product.related_products.frequently_bought_together.length > 0 && (
                 <div>
                   <h2 className="text-2xl font-bold mb-6">Frequently Bought Together</h2>
@@ -1049,20 +1119,22 @@ const ProductDetailNew = () => {
                   </p>
                 </div>
               )}
-
-              {product.related_products.similar_products && product.related_products.similar_products.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">Similar Products</h2>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Product IDs: {product.related_products.similar_products.join(", ")}
-                  </p>
-                </div>
-              )}
             </div>
           )}
         </main>
 
         <Footer />
+
+        {/* Price Drop Notification */}
+        {product && (
+          <PriceDropNotification 
+            product={{
+              id: product.id,
+              name: product.name,
+              price: currentPrice,
+            }}
+          />
+        )}
 
         {/* Bulk Pricing Modal */}
         <Dialog open={showBulkPricingModal} onOpenChange={setShowBulkPricingModal}>
