@@ -78,65 +78,254 @@ export interface ProfileResponse {
 // Types for Products API
 export interface APIProduct {
   id: number;
+  sku: string;
   name: string;
   slug: string;
-  cost: string;
-  price: string;
-  original_price: number;
-  price_formula: string | null;
-  field_limit: string | null;
-  sell_price: {
-    price: number;
-    discount: number;
-    symbol: string;
-  };
-  sku: string;
-  stock: number;
-  isFeatured: number;
-  isNew: number;
-  isTrending: number;
-  status: string;
-  discount_fixed: string;
-  discount_percent: string;
   description: string;
-  created_at: string;
-  updated_at: string;
-  discount_start: string;
-  discount_end: string;
-  shops: Array<{
-    shop_id: number;
-    shop_name: string;
-    shop_quantity: number;
-  }>;
-  brand: {
-    id: number;
-    name: string;
-  };
+  short_description: string;
+  status: string;
+  visibility: string;
+  type: string;
   category: {
     id: number;
     name: string;
+    slug: string;
+    level: number;
   };
   sub_category: {
     id: number;
     name: string;
+    slug: string;
+    level: number;
   };
   child_sub_category?: {
     id: number;
     name: string;
+    slug: string;
+    level: number;
   } | null;
+  breadcrumb: Array<{
+    id: number;
+    name: string;
+    slug: string;
+  }>;
+  tags: string[];
+  brand: {
+    id: number;
+    name: string;
+    slug: string;
+    logo: string;
+  };
+  manufacturer: {
+    id: number;
+    name: string;
+    country: string;
+  };
+  country_of_origin: {
+    id: number;
+    name: string;
+    code: string;
+  };
+  pricing: {
+    currency: string;
+    currency_symbol: string;
+    cost_price: number;
+    regular_price: number;
+    sale_price: number | null;
+    final_price: number;
+    discount: {
+      type: string;
+      value: number;
+      amount: number;
+      start_date: string;
+      end_date: string;
+      is_active: boolean;
+      remaining_days: number | null;
+    };
+    tax: {
+      rate: number;
+      amount: number;
+      included: boolean;
+      class: string;
+    };
+    profit_margin: {
+      amount: number;
+      percentage: number;
+    };
+    price_range: {
+      min: number;
+      max: number;
+    };
+  };
+  inventory: {
+    stock_status: string;
+    stock_quantity: number;
+    low_stock_threshold: number;
+    is_low_stock: boolean;
+    allow_backorders: boolean;
+    manage_stock: boolean;
+    stock_by_location: Array<{
+      shop_id: number;
+      shop_name: string;
+      shop_slug: string;
+      quantity: number;
+      reserved: number;
+    }>;
+    sold_count: number;
+    restock_date: string | null;
+  };
+  has_variations: boolean;
+  parent_id: number | null;
+  variations: Array<{
+    id: number;
+    parent_id: number;
+    sku: string;
+    name: string;
+    slug: string;
+    attributes: {
+      Size?: string;
+      Color?: string;
+      [key: string]: any;
+    };
+    pricing: {
+      regular_price: number;
+      sale_price: number | null;
+      final_price: number;
+    };
+    inventory: {
+      stock_status: string;
+      stock_quantity: number;
+    };
+    media: any[];
+    weight: number;
+    dimensions: {
+      length: number;
+      width: number;
+      height: number;
+    };
+  }>;
+  attributes: any[];
+  specifications: any[];
+  media: {
+    gallery: any[];
+    videos: Array<{
+      id: number;
+      type: string;
+      url: string;
+      thumbnail: string;
+      title: string;
+    }>;
+  };
+  reviews: {
+    average_rating: number;
+    rating_count: number;
+    review_count: number;
+    rating_distribution: {
+      "5_star": number;
+      "4_star": number;
+      "3_star": number;
+      "2_star": number;
+      "1_star": number;
+    };
+    verified_purchase_percentage: number;
+    recommendation_percentage: number;
+  };
+  shipping: {
+    weight: number;
+    weight_unit: string;
+    dimensions: {
+      length: number;
+      width: number;
+      height: number;
+      unit: string;
+    };
+    shipping_class: string;
+    free_shipping: boolean;
+    ships_from: {
+      country: string;
+      city: string;
+    };
+    estimated_delivery: {
+      min_days: number;
+      max_days: number;
+      express_available: boolean;
+    };
+  };
+  badges: {
+    is_featured: boolean;
+    is_new: boolean;
+    is_trending: boolean;
+    is_bestseller: boolean;
+    is_on_sale: boolean;
+    is_limited_edition: boolean;
+    is_exclusive: boolean;
+    is_eco_friendly: boolean;
+  };
+  seo: {
+    meta_title: string;
+    meta_description: string;
+    meta_keywords: string[];
+    canonical_url: string | null;
+    og_title: string;
+    og_description: string;
+    og_image: string;
+    twitter_card: string;
+  };
+  related_products: {
+    similar_products: number[];
+    frequently_bought_together: number[];
+    customers_also_viewed: number[];
+    recently_viewed: number[];
+  };
+  warranty: {
+    has_warranty: boolean;
+    duration: number;
+    duration_unit: string;
+    type: string;
+    details: string;
+  };
+  return_policy: {
+    returnable: boolean;
+    return_window_days: number;
+    conditions: string;
+  };
+  minimum_order_quantity: number;
+  maximum_order_quantity: number;
+  bulk_pricing: Array<{
+    min_quantity: number;
+    max_quantity: number | null;
+    price: number;
+    discount_percentage: number | null;
+  }>;
   supplier: {
     id: number;
     name: string;
     phone: string;
+    email: string;
+    address: string;
   };
-  country: {
+  vendor: any;
+  created_at: string;
+  updated_at: string;
+  published_at: string;
+  created_by: {
     id: number;
     name: string;
+    role: string;
   };
-  created_by: string;
-  updated_by: string;
-  primary_photo: string;
-  attributes: any[];
+  updated_by: {
+    id: number;
+    name: string;
+    role: string;
+  };
+  analytics: {
+    views_count: number;
+    clicks_count: number;
+    add_to_cart_count: number;
+    purchase_count: number;
+    conversion_rate: number;
+    wishlist_count: number;
+  };
 }
 
 export interface ProductsResponse {
@@ -663,36 +852,78 @@ export const transformHeroBannerToSlide = (banner: HeroBannerItem) => {
 
 // Helper function to transform API product data to Product format
 export const transformAPIProductToProduct = (apiProduct: APIProduct) => {
-  // Calculate discount percentage from prices
-  const discountPercent = apiProduct.sell_price.discount || 
-    (apiProduct.original_price > apiProduct.sell_price.price 
-      ? Math.round(((apiProduct.original_price - apiProduct.sell_price.price) / apiProduct.original_price) * 100)
-      : 0);
+  // Extract pricing information
+  const pricing = apiProduct.pricing || {};
+  const finalPrice = pricing.final_price || pricing.regular_price || 0;
+  const regularPrice = pricing.regular_price || finalPrice;
+  const salePrice = pricing.sale_price;
+  
+  // Calculate discount percentage
+  let discountPercent = 0;
+  if (pricing.discount && pricing.discount.is_active) {
+    discountPercent = Math.round(pricing.discount.value || 0);
+  } else if (salePrice && regularPrice > salePrice) {
+    discountPercent = Math.round(((regularPrice - salePrice) / regularPrice) * 100);
+  } else if (regularPrice > finalPrice) {
+    discountPercent = Math.round(((regularPrice - finalPrice) / regularPrice) * 100);
+  }
 
   // Strip HTML tags from description
   const stripHtml = (html: string) => {
+    if (!html) return '';
     return html.replace(/<[^>]*>/g, '').trim();
   };
 
+  // Extract unique colors and sizes from variations
+  const colors = apiProduct.has_variations && apiProduct.variations
+    ? Array.from(new Set(apiProduct.variations
+        .map(v => v.attributes?.Color)
+        .filter(Boolean))) as string[]
+    : [];
+
+  const sizes = apiProduct.has_variations && apiProduct.variations
+    ? Array.from(new Set(apiProduct.variations
+        .map(v => v.attributes?.Size)
+        .filter(Boolean))) as string[]
+    : [];
+
+  // Get images from media gallery, fallback to brand logo or empty array
+  const images = apiProduct.media?.gallery && apiProduct.media.gallery.length > 0
+    ? apiProduct.media.gallery.map((img: any) => img.url || img)
+    : apiProduct.brand?.logo
+    ? [apiProduct.brand.logo]
+    : [];
+
+  // Extract features from specifications or attributes
+  const features: string[] = [];
+  if (apiProduct.specifications && Array.isArray(apiProduct.specifications)) {
+    apiProduct.specifications.forEach((spec: any) => {
+      if (spec.value) {
+        features.push(`${spec.name || spec.key || ''}: ${spec.value}`);
+      }
+    });
+  }
+
   return {
     id: apiProduct.id.toString(),
-    name: apiProduct.name,
-    slug: apiProduct.slug,
-    price: apiProduct.sell_price.price,
-    originalPrice: apiProduct.original_price > apiProduct.sell_price.price 
-      ? apiProduct.original_price 
-      : undefined,
-    description: stripHtml(apiProduct.description),
-    category: apiProduct.category.name.toLowerCase().replace(/\s+/g, '-'),
-    subcategory: apiProduct.sub_category?.name.toLowerCase().replace(/\s+/g, '-'),
-    childSubcategory: apiProduct.child_sub_category?.name.toLowerCase().replace(/\s+/g, '-'),
-    images: [apiProduct.primary_photo],
-    inStock: apiProduct.stock > 0,
-    rating: 4.5, // Default rating since API doesn't provide this
-    reviewCount: 0, // Default since API doesn't provide this
+    name: apiProduct.name || 'Unnamed Product',
+    slug: apiProduct.slug || '',
+    price: finalPrice,
+    originalPrice: regularPrice > finalPrice ? regularPrice : undefined,
+    description: stripHtml(apiProduct.description || apiProduct.short_description || ''),
+    category: apiProduct.category?.slug || apiProduct.category?.name?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized',
+    subcategory: apiProduct.sub_category?.slug || apiProduct.sub_category?.name?.toLowerCase().replace(/\s+/g, '-'),
+    childSubcategory: apiProduct.child_sub_category?.slug || apiProduct.child_sub_category?.name?.toLowerCase().replace(/\s+/g, '-'),
+    images: images,
+    inStock: apiProduct.inventory?.stock_status === 'in_stock' && (apiProduct.inventory?.stock_quantity ?? 0) > 0,
+    rating: apiProduct.reviews?.average_rating || 4.5,
+    reviewCount: apiProduct.reviews?.review_count || 0,
     material: apiProduct.brand?.name,
-    isFeatured: apiProduct.isFeatured === 1,
-    isNew: apiProduct.isNew === 1,
+    isFeatured: apiProduct.badges?.is_featured || false,
+    isNew: apiProduct.badges?.is_new || false,
     discount: discountPercent > 0 ? discountPercent : undefined,
+    colors: colors.length > 0 ? colors : undefined,
+    sizes: sizes.length > 0 ? sizes : undefined,
+    features: features.length > 0 ? features : undefined,
   };
 };

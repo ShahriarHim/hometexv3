@@ -18,14 +18,8 @@ import { useWishlist } from "@/context/WishlistContext";
 import { 
   ShoppingCart, Heart, Star, Truck, Shield, Package, 
   ArrowLeft, Loader2, MapPin, Clock, Award, Check,
-  ChevronRight, AlertTriangle, Info, Tag, TrendingUp, X
+  ChevronRight, AlertTriangle, Info, Tag, TrendingUp
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { api, type APIProduct } from "@/lib/api";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
@@ -44,8 +38,6 @@ const ProductDetailNew = () => {
   const [quantity, setQuantity] = useState(1);
   const [showTaxIncluded, setShowTaxIncluded] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
-  const [showBulkPricingModal, setShowBulkPricingModal] = useState(false);
-  const [selectedBulkPrice, setSelectedBulkPrice] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -147,15 +139,12 @@ const ProductDetailNew = () => {
   const currentStockStatus = currentVariant?.inventory.stock_status ?? product.inventory.stock_status;
   const currentSku = currentVariant?.sku ?? product.sku;
 
-  // Calculate effective price based on selected bulk price or current price
-  const effectiveBasePrice = selectedBulkPrice !== null ? selectedBulkPrice : currentPrice;
-
   // Calculate price with/without tax
   const taxAmount = product.pricing.tax.included 
     ? 0 
-    : (effectiveBasePrice * product.pricing.tax.rate) / 100;
-  const priceWithTax = effectiveBasePrice + taxAmount;
-  const displayPrice = showTaxIncluded ? priceWithTax : effectiveBasePrice;
+    : (currentPrice * product.pricing.tax.rate) / 100;
+  const priceWithTax = currentPrice + taxAmount;
+  const displayPrice = showTaxIncluded ? priceWithTax : currentPrice;
 
   // Check if discount is active
   const isDiscountActive = product.pricing.discount.is_active;
@@ -166,21 +155,18 @@ const ProductDetailNew = () => {
   const isLowStock = product.inventory.is_low_stock || currentStock <= product.inventory.low_stock_threshold;
 
   // Extract unique attribute keys from variations
-  const attributeKeys = product.has_variations && product.variations && product.variations.length > 0
-    ? Array.from(
-        new Set(
-          product.variations.flatMap(v => Object.keys(v.attributes || {}))
-        )
-      )
-    : [];
+  const attributeKeys = Array.from(
+    new Set(
+      product.variations.flatMap(v => Object.keys(v.attributes || {}))
+    )
+  );
 
-  // Get available values for each attribute (deduplicated)
+  // Get available values for each attribute
   const getAvailableAttributeValues = (attrKey: string) => {
-    if (!product.variations) return [];
     return Array.from(
       new Set(
         product.variations
-          .filter(v => v.attributes && v.attributes[attrKey])
+          .filter(v => v.attributes[attrKey])
           .map(v => v.attributes[attrKey])
       )
     );
@@ -188,11 +174,10 @@ const ProductDetailNew = () => {
 
   // Check if a specific combination is available
   const isAttributeCombinationAvailable = (attrKey: string, value: string) => {
-    if (!product.variations) return false;
     const testAttributes = { ...selectedAttributes, [attrKey]: value };
     return product.variations.some(v => {
       const match = Object.entries(testAttributes).every(
-        ([k, val]) => v.attributes && v.attributes[k] === val
+        ([k, val]) => v.attributes[k] === val
       );
       return match && v.inventory.stock_status === "in_stock" && v.inventory.stock_quantity > 0;
     });
@@ -204,10 +189,8 @@ const ProductDetailNew = () => {
     setSelectedAttributes(newAttributes);
 
     // Find matching variant
-    if (!product.variations) return;
-    
     const matchingVariant = product.variations.find(v =>
-      Object.entries(newAttributes).every(([k, val]) => v.attributes && v.attributes[k] === val)
+      Object.entries(newAttributes).every(([k, val]) => v.attributes[k] === val)
     );
 
     if (matchingVariant) {
@@ -256,13 +239,7 @@ const ProductDetailNew = () => {
   };
 
   const bulkTier = getBulkPrice();
-
-  // Handle bulk pricing tier selection
-  const handleBulkPricingSelect = (price: number) => {
-    setSelectedBulkPrice(price);
-    setShowBulkPricingModal(false);
-    toast.success("Bulk price applied!");
-  };
+  const effectivePrice = bulkTier?.price ?? currentPrice;
 
   // Handle add to cart
   const handleAddToCart = () => {
@@ -281,7 +258,7 @@ const ProductDetailNew = () => {
       id: product.id.toString(),
       name: product.name,
       slug: product.slug,
-      price: effectiveBasePrice,
+      price: effectivePrice,
       originalPrice: currentRegularPrice,
       description: product.description,
       category: product.category.slug,
@@ -302,7 +279,7 @@ const ProductDetailNew = () => {
       product_id: product.id.toString(),
       variant_id: selectedVariant || undefined,
       sku: currentSku,
-      price: effectiveBasePrice,
+      price: effectivePrice,
       quantity
     });
 
@@ -341,7 +318,7 @@ const ProductDetailNew = () => {
       event: "begin_checkout",
       product_id: product.id.toString(),
       variant_id: selectedVariant || undefined,
-      price: effectiveBasePrice,
+      price: effectivePrice,
       quantity
     });
     // Redirect to checkout
@@ -451,66 +428,51 @@ const ProductDetailNew = () => {
               {/* Header */}
               <div>
                 {/* Badges */}
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {product.badges.is_featured && (
-                    <Badge variant="default" className="animate-pulse">Featured</Badge>
+                    <Badge variant="default">Featured</Badge>
                   )}
                   {product.badges.is_new && (
-                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">✨ New</Badge>
+                    <Badge className="bg-green-500">New</Badge>
                   )}
                   {product.badges.is_trending && (
-                    <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
-                      <TrendingUp className="w-3 h-3 mr-1" />Trending
-                    </Badge>
+                    <Badge className="bg-orange-500"><TrendingUp className="w-3 h-3 mr-1" />Trending</Badge>
                   )}
                   {product.badges.is_bestseller && (
-                    <Badge className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0">
-                      🏆 Bestseller
-                      {product.inventory.sold_count > 0 && ` • ${product.inventory.sold_count} sold`}
-                    </Badge>
+                    <Badge className="bg-yellow-500">Bestseller</Badge>
                   )}
                   {product.badges.is_on_sale && (
-                    <Badge variant="destructive" className="animate-pulse">🔥 On Sale</Badge>
+                    <Badge variant="destructive">On Sale</Badge>
                   )}
                   {product.status === "active" && isInStock ? (
-                    <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
+                    <Badge variant="outline" className="bg-green-50">
                       <Check className="w-3 h-3 mr-1" />In Stock
                     </Badge>
                   ) : (
                     <Badge variant="destructive">Out of Stock</Badge>
                   )}
                   {isLowStock && isInStock && (
-                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 animate-pulse">
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700">
                       <AlertTriangle className="w-3 h-3 mr-1" />Low Stock
                     </Badge>
                   )}
                 </div>
 
-                <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  {product.name}
-                </h1>
-                {/* <p className="text-sm text-muted-foreground mb-4">SKU: {currentSku}</p> */}
+                <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+                <p className="text-sm text-muted-foreground mb-4">SKU: {currentSku}</p>
 
                 {/* Brand */}
-                {/* {product.brand && (
+                {product.brand && (
                   <Link 
                     href={`/brand/${product.brand.slug}`}
-                    className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity group"
+                    className="inline-flex items-center gap-2 mb-4 hover:opacity-80"
                   >
                     {product.brand.logo && (
-                      <div className="h-8 w-auto overflow-hidden rounded">
-                        <img 
-                          src={product.brand.logo} 
-                          alt={product.brand.name} 
-                          className="h-8 object-contain group-hover:scale-110 transition-transform" 
-                        />
-                      </div>
+                      <img src={product.brand.logo} alt={product.brand.name} className="h-8 object-contain" />
                     )}
-                    <span className="text-sm font-medium group-hover:text-primary transition-colors">
-                      {product.brand.name}
-                    </span>
+                    <span className="text-sm font-medium">{product.brand.name}</span>
                   </Link>
-                )} */}
+                )}
 
                 {/* Rating */}
                 <div className="flex items-center space-x-2 mb-4">
@@ -518,21 +480,18 @@ const ProductDetailNew = () => {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
-                        className={`h-5 w-5 transition-all ${
+                        className={`h-5 w-5 ${
                           star <= Math.round(product.reviews.average_rating)
                             ? "fill-yellow-400 text-yellow-400"
-                            : "text-gray-300"
+                            : "text-muted"
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="text-sm font-semibold">
-                    {product.reviews.average_rating.toFixed(1)}
+                  <span className="text-sm">
+                    {product.reviews.average_rating.toFixed(1)} ({product.reviews.review_count} reviews)
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    ({product.reviews.review_count} reviews)
-                  </span>
-                  <span className="text-sm text-green-600 font-medium">
                     • {product.reviews.verified_purchase_percentage.toFixed(0)}% verified
                   </span>
                 </div>
@@ -543,23 +502,19 @@ const ProductDetailNew = () => {
               {/* Pricing */}
               <div className="space-y-3">
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  <span className="text-4xl font-bold text-primary">
                     {product.pricing.currency_symbol}{displayPrice.toLocaleString()}
                   </span>
                   {(currentSalePrice || currentRegularPrice > currentPrice) && (
-                    <span className="text-2xl text-muted-foreground line-through decoration-2">
+                    <span className="text-2xl text-muted-foreground line-through">
                       {product.pricing.currency_symbol}{currentRegularPrice.toLocaleString()}
                     </span>
                   )}
                   {isDiscountActive && discountValue > 0 && (
-                    <Badge variant="destructive" className="text-lg px-4 py-1.5 animate-pulse">
+                    <Badge variant="destructive" className="text-lg px-3 py-1">
                       {discountValue}% OFF
                     </Badge>
                   )}
-                  <Badge variant="outline" className="text-base px-3 py-1.5 bg-green-50 border-green-300 text-green-700 font-medium">
-                    <Package className="w-4 h-4 mr-1.5" />
-                    {currentStock} available
-                  </Badge>
                 </div>
 
                 {/* Tax toggle */}
@@ -579,22 +534,12 @@ const ProductDetailNew = () => {
                 {product.bulk_pricing.length > 0 && (
                   <Card className="bg-blue-50 border-blue-200">
                     <CardContent className="p-4">
-                      <div className="flex items-start gap-2">
-                        <Tag className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex items-start gap-2 mb-2">
+                        <Tag className="h-4 w-4 text-blue-600 mt-0.5" />
                         <div className="flex-1">
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <p className="text-sm font-medium text-blue-900">Bulk Pricing Available</p>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => setShowBulkPricingModal(true)}
-                              className="h-auto p-0 text-blue-700 hover:text-blue-900 font-medium"
-                            >
-                              View Bulk Pricing
-                            </Button>
-                          </div>
+                          <p className="text-sm font-medium text-blue-900">Bulk Pricing Available</p>
                           <div className="mt-2 space-y-1">
-                            {product.bulk_pricing.slice(0, 3).map((tier, idx) => (
+                            {product.bulk_pricing.map((tier, idx) => (
                               <div key={idx} className="text-xs text-blue-700">
                                 Buy {tier.min_quantity}
                                 {tier.max_quantity && `-${tier.max_quantity}`}: {product.pricing.currency_symbol}
@@ -602,11 +547,6 @@ const ProductDetailNew = () => {
                                 {tier.discount_percentage && ` (${tier.discount_percentage.toFixed(1)}% off)`}
                               </div>
                             ))}
-                            {product.bulk_pricing.length > 3 && (
-                              <div className="text-xs text-blue-600 font-medium">
-                                +{product.bulk_pricing.length - 3} more tier(s)
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -617,65 +557,39 @@ const ProductDetailNew = () => {
 
               <Separator />
 
-              {/* Description
+              {/* Description */}
               <div>
                 <p className="text-muted-foreground" dangerouslySetInnerHTML={{ __html: product.description }} />
-              </div> */}
+              </div>
 
               {/* Variant Selection */}
-              {product.has_variations && product.variations && product.variations.length > 0 && attributeKeys.length > 0 && (
-                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                  <CardContent className="p-4 space-y-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-900">
-                      <Package className="w-4 h-4" />
-                      <span>Product Options</span>
-                    </div>
-                    {attributeKeys.map(attrKey => {
-                      const uniqueValues = getAvailableAttributeValues(attrKey);
-                      
-                      return (
-                        <div key={attrKey}>
-                          <p className="text-sm font-medium mb-2 text-gray-700">
-                            Select {attrKey}:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {uniqueValues.map(value => {
-                              const isAvailable = isAttributeCombinationAvailable(attrKey, value);
-                              const isSelected = selectedAttributes[attrKey] === value;
-                              
-                              return (
-                                <Button
-                                  key={value}
-                                  variant={isSelected ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => handleAttributeSelect(attrKey, value)}
-                                  disabled={!isAvailable}
-                                  className={`min-w-[70px] transition-all ${
-                                    isSelected 
-                                      ? "bg-primary shadow-lg scale-105" 
-                                      : "hover:scale-105 hover:border-primary"
-                                  } ${!isAvailable && "opacity-40 cursor-not-allowed"}`}
-                                >
-                                  {value}
-                                  {isSelected && <Check className="ml-1 w-3 h-3" />}
-                                </Button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    
-                    {selectedVariant && (
-                      <div className="pt-3 border-t border-blue-200">
-                        <div className="flex items-center justify-between text-xs text-blue-900">
-                          <span>Selected: {currentSku}</span>
-                          <span className="font-semibold">{currentStock} in stock</span>
-                        </div>
+              {product.has_variations && attributeKeys.length > 0 && (
+                <div className="space-y-4">
+                  {attributeKeys.map(attrKey => (
+                    <div key={attrKey}>
+                      <p className="text-sm font-medium mb-2">{attrKey}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {getAvailableAttributeValues(attrKey).map(value => {
+                          const isAvailable = isAttributeCombinationAvailable(attrKey, value);
+                          const isSelected = selectedAttributes[attrKey] === value;
+                          
+                          return (
+                            <Button
+                              key={value}
+                              variant={isSelected ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleAttributeSelect(attrKey, value)}
+                              disabled={!isAvailable}
+                              className="min-w-[60px]"
+                            >
+                              {value}
+                            </Button>
+                          );
+                        })}
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    </div>
+                  ))}
+                </div>
               )}
 
               {/* Quantity */}
@@ -708,6 +622,9 @@ const ProductDetailNew = () => {
                   >
                     +
                   </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {currentStock} available
+                  </span>
                 </div>
                 {bulkTier && bulkTier.discount_percentage && (
                   <p className="text-sm text-green-600 mt-2">
@@ -721,7 +638,7 @@ const ProductDetailNew = () => {
                 <Button
                   onClick={handleAddToCart}
                   size="lg"
-                  className="flex-1 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                  className="flex-1"
                   disabled={!isInStock || product.status !== "active"}
                 >
                   <ShoppingCart className="mr-2 h-5 w-5" />
@@ -731,35 +648,34 @@ const ProductDetailNew = () => {
                   onClick={handleBuyNow}
                   size="lg"
                   variant="secondary"
-                  className="flex-1 shadow-md hover:shadow-lg transition-all hover:scale-105"
+                  className="flex-1"
                   disabled={!isInStock || product.status !== "active"}
                 >
-                  ⚡ Buy Now
+                  Buy Now
                 </Button>
                 <Button
                   onClick={handleWishlistToggle}
                   variant={inWishlist ? "default" : "outline"}
                   size="lg"
-                  className="shadow-md hover:shadow-lg transition-all hover:scale-110"
                 >
-                  <Heart className={`h-5 w-5 transition-all ${inWishlist ? "fill-current animate-pulse" : ""}`} />
+                  <Heart className={`h-5 w-5 ${inWishlist ? "fill-current" : ""}`} />
                 </Button>
               </div>
 
               {/* Stock Locations */}
               {product.inventory.stock_by_location && product.inventory.stock_by_location.length > 0 && (
-                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                <Card>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="h-4 w-4 text-purple-600" />
-                      <p className="text-sm font-semibold text-purple-900">Available at Locations</p>
+                      <MapPin className="h-4 w-4" />
+                      <p className="text-sm font-medium">Available at Locations</p>
                     </div>
                     <div className="space-y-2">
                       {product.inventory.stock_by_location.map(loc => (
-                        <div key={loc.shop_id} className="flex justify-between text-sm bg-white/50 rounded p-2">
-                          <span className="font-medium">{loc.shop_name}</span>
-                          <span className="text-purple-700 font-bold">
-                            {loc.quantity} units
+                        <div key={loc.shop_id} className="flex justify-between text-sm">
+                          <span>{loc.shop_name}</span>
+                          <span className="font-medium">
+                            {loc.quantity} in stock
                             {loc.reserved > 0 && ` (${loc.reserved} reserved)`}
                           </span>
                         </div>
@@ -770,43 +686,37 @@ const ProductDetailNew = () => {
               )}
 
               {/* Shipping Info */}
-              {/* <Card className="bg-gradient-to-br from-green-50 to-teal-50 border-green-200">
+              <Card>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500 rounded-lg">
-                      <Truck className="h-5 w-5 text-white" />
-                    </div>
+                    <Truck className="h-5 w-5 text-primary" />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-green-900">Fast Delivery</p>
-                      <p className="text-xs text-green-700">
+                      <p className="text-sm font-medium">Delivery</p>
+                      <p className="text-xs text-muted-foreground">
                         {product.shipping.estimated_delivery.min_days}-{product.shipping.estimated_delivery.max_days} days
                         {product.shipping.estimated_delivery.express_available && " • Express available"}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500 rounded-lg">
-                      <Package className="h-5 w-5 text-white" />
-                    </div>
+                    <Package className="h-5 w-5 text-primary" />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-blue-900">
-                        {product.shipping.free_shipping ? "🎁 Free Shipping" : "Standard Shipping"}
+                      <p className="text-sm font-medium">
+                        {product.shipping.free_shipping ? "Free Shipping" : "Standard Shipping"}
                       </p>
-                      <p className="text-xs text-blue-700">
+                      <p className="text-xs text-muted-foreground">
                         Ships from {product.shipping.ships_from.city}, {product.shipping.ships_from.country}
                       </p>
                     </div>
                   </div>
                   {product.return_policy.returnable && (
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-500 rounded-lg">
-                        <Shield className="h-5 w-5 text-white" />
-                      </div>
+                      <Shield className="h-5 w-5 text-primary" />
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-purple-900">
-                          {product.return_policy.return_window_days} Days Easy Return
+                        <p className="text-sm font-medium">
+                          {product.return_policy.return_window_days} Days Return
                         </p>
-                        <p className="text-xs text-purple-700">
+                        <p className="text-xs text-muted-foreground">
                           {product.return_policy.conditions}
                         </p>
                       </div>
@@ -814,27 +724,23 @@ const ProductDetailNew = () => {
                   )}
                   {product.warranty.has_warranty && (
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-amber-500 rounded-lg">
-                        <Award className="h-5 w-5 text-white" />
-                      </div>
+                      <Award className="h-5 w-5 text-primary" />
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-amber-900">Quality Warranty</p>
-                        <p className="text-xs text-amber-700">
+                        <p className="text-sm font-medium">Warranty</p>
+                        <p className="text-xs text-muted-foreground">
                           {product.warranty.duration} {product.warranty.duration_unit} {product.warranty.type} warranty
                         </p>
                       </div>
                     </div>
                   )}
                 </CardContent>
-              </Card> */}
+              </Card>
 
-              {/* Sold count - only show if NOT a bestseller */}
-              {product.inventory.sold_count > 0 && !product.badges.is_bestseller && (
-                <div className="flex items-center justify-center gap-2 text-sm bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-3">
-                  <TrendingUp className="h-4 w-4 text-orange-600" />
-                  <span className="font-semibold text-orange-900">
-                    🔥 {product.inventory.sold_count} units sold - Popular choice!
-                  </span>
+              {/* Sold count */}
+              {product.inventory.sold_count > 0 && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>{product.inventory.sold_count} units sold</span>
                 </div>
               )}
             </div>
@@ -1063,63 +969,6 @@ const ProductDetailNew = () => {
         </main>
 
         <Footer />
-
-        {/* Bulk Pricing Modal */}
-        <Dialog open={showBulkPricingModal} onOpenChange={setShowBulkPricingModal}>
-          <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
-            <DialogHeader>
-              <DialogTitle>Bulk Pricing Tiers</DialogTitle>
-            </DialogHeader>
-            <div className="flex-1 overflow-y-auto pr-2">
-              <div className="space-y-3">
-                {product && product.bulk_pricing.map((tier, idx) => (
-                  <Card 
-                    key={idx}
-                    className={`cursor-pointer transition-all hover:shadow-md hover:border-blue-400 ${
-                      selectedBulkPrice === tier.price ? 'border-blue-600 bg-blue-50' : ''
-                    }`}
-                    onClick={() => handleBulkPricingSelect(tier.price)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Tag className="h-4 w-4 text-blue-600" />
-                            <span className="font-semibold text-gray-900">
-                              {tier.min_quantity}
-                              {tier.max_quantity && ` - ${tier.max_quantity}`}
-                              {!tier.max_quantity && '+'} units
-                            </span>
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            Minimum quantity: {tier.min_quantity}
-                            {tier.max_quantity && ` | Maximum: ${tier.max_quantity}`}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-600">
-                            {product.pricing.currency_symbol}{tier.price.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-muted-foreground">per unit</div>
-                          {tier.discount_percentage && (
-                            <Badge variant="destructive" className="mt-1">
-                              {tier.discount_percentage.toFixed(1)}% OFF
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-            <div className="pt-4 border-t">
-              <p className="text-sm text-muted-foreground text-center">
-                Click any tier to apply that pricing
-              </p>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </>
   );
