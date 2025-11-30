@@ -142,7 +142,7 @@ const PreHeader = () => {
                                 {isAuthenticated ? (
                                     <>
                                         <Link 
-                                            href="/account/profile"
+                                            href="/account/orderDash"
                                             className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
                                         >
                                             <div className="font-medium text-sm">{user?.name || "User"}</div>

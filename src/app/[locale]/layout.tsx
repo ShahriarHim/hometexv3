@@ -58,8 +58,8 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={quicksand.variable}>
-      <body className="min-h-screen bg-background text-foreground antialiased font-sans">
+    <html lang={locale} className={quicksand.variable} suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground antialiased font-sans" suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <Providers>
             {children}
