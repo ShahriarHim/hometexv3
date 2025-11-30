@@ -687,6 +687,72 @@ export const api = {
       const response = await fetch(`/api/products/${productId}/reviews`);
       return response.json();
     },
+    
+    getSimilar: async (productId: string): Promise<ProductsResponse> => {
+      try {
+        const response = await fetch(`https://www.hometexbd.ltd/api/products/${productId}/similar`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          return {
+            success: false,
+            message: data.message || `Failed to fetch similar products: ${response.statusText}`,
+            data: { products: [] },
+          };
+        }
+        
+        return data;
+      } catch (error) {
+        return {
+          success: false,
+          message: "Unable to connect to the server. Please check your internet connection.",
+          data: { products: [] },
+        };
+      }
+    },
+    
+    getByIds: async (productIds: number[]): Promise<ProductsResponse> => {
+      try {
+        // Fetch multiple products by their IDs
+        const promises = productIds.map(id => 
+          fetch(`https://www.hometexbd.ltd/api/products/${id}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            cache: "no-store",
+          })
+        );
+        
+        const responses = await Promise.all(promises);
+        const dataPromises = responses.map(r => r.json());
+        const results = await Promise.all(dataPromises);
+        
+        // Filter successful responses and extract product data
+        const products = results
+          .filter(result => result.success && result.data)
+          .map(result => result.data);
+        
+        return {
+          success: true,
+          message: "Products retrieved successfully",
+          data: { products },
+        };
+      } catch (error) {
+        return {
+          success: false,
+          message: "Unable to fetch products. Please check your internet connection.",
+          data: { products: [] },
+        };
+      }
+    },
   },
 
   // Delivery Tracking

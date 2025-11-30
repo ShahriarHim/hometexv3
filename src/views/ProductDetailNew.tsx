@@ -405,12 +405,12 @@ const ProductDetailNew = () => {
             <span className="text-foreground">{product.name}</span>
           </nav>
 
-          <Button variant="ghost" asChild className="mb-6">
+          {/* <Button variant="ghost" asChild className="mb-6">
             <Link href="/shop">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Shop
             </Link>
-          </Button>
+          </Button> */}
 
           <div className="grid lg:grid-cols-2 gap-12 mb-12">
             {/* Media Gallery */}
