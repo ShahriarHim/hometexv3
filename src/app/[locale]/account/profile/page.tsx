@@ -1,6 +1,15 @@
-import AccountView from "@/views/Account";
+"use client";
 
-export default function ProfilePage() {
-  return <AccountView />;
+import { useEffect } from "react";
+import { useRouter } from "@/i18n/routing";
+
+export default function ProfileRedirect() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/account/orderDash");
+  }, [router]);
+
+  return null;
 }
 

@@ -577,10 +577,46 @@ export const api = {
       return response.json();
     },
     
-    getAll: async (userId: string) => {
-      // TODO: Replace with actual API endpoint
-      const response = await fetch(`/api/orders?userId=${userId}`);
-      return response.json();
+    getAll: async () => {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: "Please login to view your orders",
+          data: [],
+        };
+      }
+
+      try {
+        const response = await authenticatedFetch(
+          "https://htbapi.hometexbd.ltd/api/my-order-list",
+          {
+            method: "GET",
+          }
+        );
+
+        const data = await response.json();
+        
+        if (data.success) {
+          return {
+            success: true,
+            message: data.message || "Orders retrieved successfully",
+            data: data.data || [],
+          };
+        } else {
+          return {
+            success: false,
+            message: data.error || data.message || "Failed to fetch orders",
+            data: [],
+          };
+        }
+      } catch (error: any) {
+        return {
+          success: false,
+          message: error.message || "Failed to fetch orders",
+          data: [],
+        };
+      }
     },
     
     getById: async (orderId: string) => {
@@ -750,6 +786,96 @@ export const api = {
           success: false,
           message: "Unable to fetch products. Please check your internet connection.",
           data: { products: [] },
+        };
+      }
+    },
+  },
+
+  // Price Drop Alerts
+  priceDrop: {
+    getList: async () => {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: "Please login to view your price drop notifications",
+          data: [],
+        };
+      }
+
+      try {
+        const response = await authenticatedFetch(
+          "https://htbapi.hometexbd.ltd/api/product/price-drop-list",
+          {
+            method: "GET",
+          }
+        );
+
+        const data = await response.json();
+        
+        if (data.success) {
+          return {
+            success: true,
+            message: data.message || "Price drop alerts retrieved successfully",
+            data: data.data || [],
+          };
+        } else {
+          return {
+            success: false,
+            message: data.message || "Failed to fetch price drop alerts",
+            data: [],
+          };
+        }
+      } catch (error: any) {
+        return {
+          success: false,
+          message: error.message || "Failed to fetch price drop alerts",
+          data: [],
+        };
+      }
+    },
+  },
+
+  // Restock Requests
+  restock: {
+    getList: async () => {
+      const token = getAuthToken();
+      if (!token) {
+        return {
+          success: false,
+          message: "Please login to view your restock requests",
+          data: [],
+        };
+      }
+
+      try {
+        const response = await authenticatedFetch(
+          "https://htbapi.hometexbd.ltd/api/product/restock-request-list",
+          {
+            method: "GET",
+          }
+        );
+
+        const data = await response.json();
+        
+        if (data.success) {
+          return {
+            success: true,
+            message: data.message || "Restock requests retrieved successfully",
+            data: data.data || [],
+          };
+        } else {
+          return {
+            success: false,
+            message: data.message || "Failed to fetch restock requests",
+            data: [],
+          };
+        }
+      } catch (error: any) {
+        return {
+          success: false,
+          message: error.message || "Failed to fetch restock requests",
+          data: [],
         };
       }
     },
