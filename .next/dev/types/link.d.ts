@@ -57,7 +57,6 @@ declare namespace __next_route_internal_types__ {
     | `/${SafeSlug<T>}/returns`
     | `/${SafeSlug<T>}/search`
     | `/${SafeSlug<T>}/shipping`
-    | `/${SafeSlug<T>}/shop`
     | `/${SafeSlug<T>}/sitemap`
     | `/${SafeSlug<T>}/stores`
     | `/${SafeSlug<T>}/terms`

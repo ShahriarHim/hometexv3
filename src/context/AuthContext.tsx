@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
 import { toast } from "sonner";
+import { fetchPublicWithFallback, fetchWithFallback } from "@/lib/api";
 
 interface User {
   id: string;
@@ -50,17 +51,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch("https://www.hometexbd.ltd/api/customer-login", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ 
-          email, 
-          password, 
-          user_type: 3 
-        }),
-      });
+      const response = await fetchPublicWithFallback(
+        "/api/customer-login",
+        "https://www.hometexbd.ltd",
+        {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ 
+            email, 
+            password, 
+            user_type: 3 
+          }),
+        }
+      );
       
       const data = await response.json();
       
@@ -124,14 +129,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (signupData: SignupData) => {
     try {
-      const response = await fetch("https://www.hometexbd.ltd/api/customer-signup", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(signupData),
-      });
+      const response = await fetchPublicWithFallback(
+        "/api/customer-signup",
+        "https://www.hometexbd.ltd",
+        {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(signupData),
+        }
+      );
       
       const data = await response.json();
       
@@ -211,12 +220,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       const token = localStorage.getItem("hometex-auth-token");
-      await fetch("https://www.hometexbd.ltd/api/customer-logout", {
-        method: "POST",
-        headers: token ? {
-          "Authorization": `Bearer ${token}`
-        } : {},
-      });
+      await fetchWithFallback(
+        "/api/customer-logout",
+        "https://www.hometexbd.ltd",
+        {
+          method: "POST",
+          headers: token ? {
+            "Authorization": `Bearer ${token}`
+          } : {},
+        }
+      );
       
       setUser(null);
       localStorage.removeItem("hometex-user");

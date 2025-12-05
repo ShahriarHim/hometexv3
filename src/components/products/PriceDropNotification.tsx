@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './PriceDropNotification.module.css';
 import { Bell, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { getAuthToken } from '@/lib/api';
+import { getAuthToken, fetchWithFallback } from '@/lib/api';
 
 interface PriceDropNotificationProps {
   product: {
@@ -42,16 +42,20 @@ const PriceDropNotification: React.FC<PriceDropNotificationProps> = ({ product }
 
       setIsSubmitting(true);
 
-      const response = await fetch('https://www.hometexbd.ltd/api/product/price-drop', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          product_id: product.id
-        })
-      });
+      const response = await fetchWithFallback(
+        '/api/product/price-drop',
+        'https://www.hometexbd.ltd',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            product_id: product.id
+          })
+        }
+      );
 
       const data = await response.json();
 

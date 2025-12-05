@@ -27,6 +27,86 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
   });
 };
 
+// Helper function to try localhost first, then fallback to production (for authenticated requests)
+export const fetchWithFallback = async (
+  endpoint: string,
+  productionBaseUrl: string,
+  options: RequestInit = {}
+) => {
+  const localhostUrl = `http://localhost:8000${endpoint}`;
+  const productionUrl = `${productionBaseUrl}${endpoint}`;
+  
+  try {
+    // Try localhost first with a short timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    
+    const localResponse = await authenticatedFetch(localhostUrl, {
+      ...options,
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    // If localhost responds successfully, use it
+    if (localResponse.ok) {
+      return localResponse;
+    }
+    
+    // If localhost returns an error status, still try production
+    // (fall through to production)
+  } catch (error: any) {
+    // Network error, timeout, or CORS issue - try production
+    if (error.name !== 'AbortError') {
+      // Only log non-timeout errors
+      console.debug('Localhost request failed, trying production:', error.message);
+    }
+  }
+  
+  // Fallback to production
+  return authenticatedFetch(productionUrl, options);
+};
+
+// Helper function to try localhost first, then fallback to production (for public requests)
+export const fetchPublicWithFallback = async (
+  endpoint: string,
+  productionBaseUrl: string,
+  options: RequestInit = {}
+) => {
+  const localhostUrl = `http://localhost:8000${endpoint}`;
+  const productionUrl = `${productionBaseUrl}${endpoint}`;
+  
+  try {
+    // Try localhost first with a short timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    
+    const localResponse = await fetch(localhostUrl, {
+      ...options,
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    // If localhost responds successfully, use it
+    if (localResponse.ok) {
+      return localResponse;
+    }
+    
+    // If localhost returns an error status, still try production
+    // (fall through to production)
+  } catch (error: any) {
+    // Network error, timeout, or CORS issue - try production
+    if (error.name !== 'AbortError') {
+      // Only log non-timeout errors
+      console.debug('Localhost request failed, trying production:', error.message);
+    }
+  }
+  
+  // Fallback to production
+  return fetch(productionUrl, options);
+};
+
 // Types for Authentication API
 export interface SignupResponse {
   success: {
@@ -426,13 +506,17 @@ export const api = {
   // Hero Banners
   heroBanners: {
     getAll: async (): Promise<HeroBannersResponse> => {
-      const response = await fetch("https://www.hometexbd.ltd/api/hero-banners", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store", // Disable caching to get fresh data
-      });
+      const response = await fetchPublicWithFallback(
+        "/api/hero-banners",
+        "https://www.hometexbd.ltd",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store", // Disable caching to get fresh data
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`Failed to fetch hero banners: ${response.statusText}`);
@@ -445,13 +529,17 @@ export const api = {
   // Menu/Categories
   menu: {
     getAll: async (): Promise<MenuResponse> => {
-      const response = await fetch("https://www.hometexbd.ltd/api/product/menu", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store", // Disable caching to get fresh data
-      });
+      const response = await fetchPublicWithFallback(
+        "/api/product/menu",
+        "https://www.hometexbd.ltd",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store", // Disable caching to get fresh data
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`Failed to fetch menu: ${response.statusText}`);
@@ -464,12 +552,16 @@ export const api = {
   // User Profile
   profile: {
     getMyProfile: async (): Promise<ProfileResponse> => {
-      const response = await authenticatedFetch("https://www.hometexbd.ltd/api/my-profile", {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-        },
-      });
+      const response = await fetchWithFallback(
+        "/api/my-profile",
+        "https://www.hometexbd.ltd",
+        {
+          method: "GET",
+          headers: {
+            "Accept": "application/json",
+          },
+        }
+      );
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -485,14 +577,18 @@ export const api = {
       phone?: string;
       address?: string;
     }): Promise<ProfileResponse> => {
-      const response = await authenticatedFetch("https://www.hometexbd.ltd/api/update-profile", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profileData),
-      });
+      const response = await fetchWithFallback(
+        "/api/update-profile",
+        "https://www.hometexbd.ltd",
+        {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(profileData),
+        }
+      );
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -506,17 +602,21 @@ export const api = {
   // Authentication
   auth: {
     login: async (email: string, password: string): Promise<LoginResponse> => {
-      const response = await fetch("https://www.hometexbd.ltd/api/customer-login", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ 
-          email, 
-          password, 
-          user_type: 3 
-        }),
-      });
+      const response = await fetchPublicWithFallback(
+        "/api/customer-login",
+        "https://www.hometexbd.ltd",
+        {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ 
+            email, 
+            password, 
+            user_type: 3 
+          }),
+        }
+      );
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -534,14 +634,18 @@ export const api = {
       password: string;
       conf_password: string;
     }): Promise<SignupResponse> => {
-      const response = await fetch("https://www.hometexbd.ltd/api/customer-signup", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(signupData),
-      });
+      const response = await fetchPublicWithFallback(
+        "/api/customer-signup",
+        "https://www.hometexbd.ltd",
+        {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(signupData),
+        }
+      );
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -552,9 +656,13 @@ export const api = {
     },
     
     logout: async () => {
-      const response = await authenticatedFetch("https://www.hometexbd.ltd/api/customer-logout", {
-        method: "POST",
-      });
+      const response = await fetchWithFallback(
+        "/api/customer-logout",
+        "https://www.hometexbd.ltd",
+        {
+          method: "POST",
+        }
+      );
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -588,8 +696,9 @@ export const api = {
       }
 
       try {
-        const response = await authenticatedFetch(
-          "https://htbapi.hometexbd.ltd/api/my-order-list",
+        const response = await fetchWithFallback(
+          "/api/my-order-list",
+          "https://htbapi.hometexbd.ltd",
           {
             method: "GET",
           }
@@ -669,15 +778,20 @@ export const api = {
       if (params?.category) queryParams.append('category', params.category);
       if (params?.sort) queryParams.append('sort', params.sort);
       
-      const url = `https://www.hometexbd.ltd/api/products${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+      const endpoint = `/api/products${queryString}`;
       
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      });
+      const response = await fetchPublicWithFallback(
+        endpoint,
+        "https://www.hometexbd.ltd",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        }
+      );
       
       if (!response.ok) {
         throw new Error(`Failed to fetch products: ${response.statusText}`);
@@ -688,13 +802,17 @@ export const api = {
     
     getById: async (productId: string): Promise<ProductResponse> => {
       try {
-        const response = await fetch(`https://www.hometexbd.ltd/api/products/${productId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        });
+        const response = await fetchPublicWithFallback(
+          `/api/products/${productId}`,
+          "https://www.hometexbd.ltd",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            cache: "no-store",
+          }
+        );
         
         const data = await response.json();
         
@@ -726,13 +844,17 @@ export const api = {
     
     getSimilar: async (productId: string): Promise<ProductsResponse> => {
       try {
-        const response = await fetch(`https://www.hometexbd.ltd/api/products/${productId}/similar`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        });
+        const response = await fetchPublicWithFallback(
+          `/api/products/${productId}/similar`,
+          "https://www.hometexbd.ltd",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            cache: "no-store",
+          }
+        );
         
         const data = await response.json();
         
@@ -758,13 +880,17 @@ export const api = {
       try {
         // Fetch multiple products by their IDs
         const promises = productIds.map(id => 
-          fetch(`https://www.hometexbd.ltd/api/products/${id}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            cache: "no-store",
-          })
+          fetchPublicWithFallback(
+            `/api/products/${id}`,
+            "https://www.hometexbd.ltd",
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              cache: "no-store",
+            }
+          )
         );
         
         const responses = await Promise.all(promises);
@@ -804,8 +930,9 @@ export const api = {
       }
 
       try {
-        const response = await authenticatedFetch(
-          "https://htbapi.hometexbd.ltd/api/product/price-drop-list",
+        const response = await fetchWithFallback(
+          "/api/product/price-drop-list",
+          "https://htbapi.hometexbd.ltd",
           {
             method: "GET",
           }
@@ -849,8 +976,9 @@ export const api = {
       }
 
       try {
-        const response = await authenticatedFetch(
-          "https://htbapi.hometexbd.ltd/api/product/restock-request-list",
+        const response = await fetchWithFallback(
+          "/api/product/restock-request-list",
+          "https://htbapi.hometexbd.ltd",
           {
             method: "GET",
           }

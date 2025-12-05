@@ -117,3 +117,8 @@ All colors MUST be HSL.
   background: black !important;
 }
 
+/* Hover Effect Utility */
+.hoverEffect {
+  transition: all 0.3s ease-in-out;
+}
+
