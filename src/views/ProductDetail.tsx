@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Head from "next/head";
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { 
   ShoppingCart, Heart, Star, Truck, Shield, Package, 
   ArrowLeft, Loader2, MapPin, Clock, Award, Check,
-  ChevronRight, AlertTriangle, Info, Tag, TrendingUp, X
+  ChevronRight, AlertTriangle, Info, Tag, TrendingUp, X, ChevronLeft, ChevronDown
 } from "lucide-react";
 import {
   Dialog,
@@ -49,6 +49,9 @@ const ProductDetailNew = () => {
   const [similarProductsLoading, setSimilarProductsLoading] = useState(false);
   const [showBulkPricingModal, setShowBulkPricingModal] = useState(false);
   const [selectedBulkPrice, setSelectedBulkPrice] = useState<number | null>(null);
+  const [showStickySidebar, setShowStickySidebar] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const addToCartSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -70,6 +73,11 @@ const ProductDetailNew = () => {
         
         const productData = response.data;
         setProduct(productData);
+
+        // Initialize quantity to minimum order quantity
+        if (productData.minimum_order_quantity) {
+          setQuantity(productData.minimum_order_quantity);
+        }
 
         // Track product view
         trackEvent({
@@ -112,6 +120,45 @@ const ProductDetailNew = () => {
       setSimilarProductsLoading(false);
     }
   };
+
+  // Scroll detection for compact sticky sidebar - only shows after scrolling past Add to Cart
+  useEffect(() => {
+    if (!product || !addToCartSectionRef.current) {
+      setShowStickySidebar(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      const section = addToCartSectionRef.current;
+      if (!section) {
+        setShowStickySidebar(false);
+        return;
+      }
+
+      const rect = section.getBoundingClientRect();
+      // Only show when section has completely scrolled past the top of viewport
+      const isScrolledPast = rect.bottom < 0;
+      
+      // Don't auto-show if user manually minimized it
+      if (isScrolledPast && !isMinimized) {
+        setShowStickySidebar(true);
+      } else if (!isScrolledPast) {
+        setShowStickySidebar(false);
+        setIsMinimized(false); // Reset minimized state when section comes back into view
+      }
+    };
+
+    // Initial check
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [product, isMinimized]);
 
   if (loading) {
     return (
@@ -181,6 +228,12 @@ const ProductDetailNew = () => {
   const isInStock = currentStockStatus === "in_stock" && currentStock > 0;
   const isLowStock = product.inventory.is_low_stock || currentStock <= product.inventory.low_stock_threshold;
 
+  // Get product image URL - matches MediaGallery pattern
+  const productImages = product.media.gallery?.map((g: any) => g.url || g) || [];
+  const productImageUrl = productImages.length > 0 
+    ? productImages[0] 
+    : (product.brand?.logo || '/placeholder.svg');
+
   // Extract unique attribute keys from variations
   const attributeKeys = product.has_variations && product.variations && product.variations.length > 0
     ? Array.from(
@@ -237,26 +290,43 @@ const ProductDetailNew = () => {
     }
   };
 
+  // Calculate effective maximum quantity (handles null/undefined)
+  const getEffectiveMaxQuantity = () => {
+    const max = product.maximum_order_quantity;
+    if (max !== null && max !== undefined) {
+      return Math.min(max, currentStock);
+    }
+    return currentStock;
+  };
+
   // Handle quantity change with bulk pricing
   const handleQuantityChange = (newQuantity: number) => {
-    const min = product.minimum_order_quantity;
-    const max = product.maximum_order_quantity;
+    // Validate input
+    if (isNaN(newQuantity) || newQuantity < 1) {
+      return;
+    }
+
+    const min = product.minimum_order_quantity || 1;
+    const effectiveMax = getEffectiveMaxQuantity();
     
+    // Check minimum
     if (newQuantity < min) {
       toast.error(`Minimum order quantity is ${min}`);
       trackEvent({ event: "quantity_error", product_id: product.id.toString(), message: `Below minimum: ${min}` });
       return;
     }
     
-    if (newQuantity > max) {
-      toast.error(`Maximum order quantity is ${max}`);
-      trackEvent({ event: "quantity_error", product_id: product.id.toString(), message: `Above maximum: ${max}` });
-      return;
-    }
-    
-    if (newQuantity > currentStock) {
-      toast.error(`Only ${currentStock} items available`);
-      trackEvent({ event: "stock_error", product_id: product.id.toString(), message: `Insufficient stock: ${currentStock}` });
+    // Check maximum (effective max already considers stock and max order quantity)
+    if (newQuantity > effectiveMax) {
+      const max = product.maximum_order_quantity;
+      // Check if it's a maximum quantity limit (only if max is set and is the limiting factor)
+      if (max !== null && max !== undefined && max < currentStock && newQuantity > max) {
+        toast.error(`Maximum order quantity is ${max}`);
+        trackEvent({ event: "quantity_error", product_id: product.id.toString(), message: `Above maximum: ${max}` });
+      } else {
+        toast.error(`Only ${currentStock} items available`);
+        trackEvent({ event: "stock_error", product_id: product.id.toString(), message: `Insufficient stock: ${currentStock}` });
+      }
       return;
     }
     
@@ -696,9 +766,12 @@ const ProductDetailNew = () => {
 
               {/* Quantity */}
               <div>
-                <p className="text-sm font-medium mb-2">
-                  Quantity (Min: {product.minimum_order_quantity}, Max: {product.maximum_order_quantity})
-                </p>
+                  <p className="text-sm font-medium mb-2">
+                    Quantity (Min: {product.minimum_order_quantity}
+                    {product.maximum_order_quantity !== null && product.maximum_order_quantity !== undefined 
+                      ? `, Max: ${product.maximum_order_quantity}` 
+                      : ''})
+                  </p>
                 <div className="flex items-center space-x-3">
                   <Button
                     variant="outline"
@@ -714,13 +787,13 @@ const ProductDetailNew = () => {
                     onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
                     className="w-20 text-center border rounded px-2 py-2"
                     min={product.minimum_order_quantity}
-                    max={Math.min(product.maximum_order_quantity, currentStock)}
+                    max={getEffectiveMaxQuantity()}
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={quantity >= Math.min(product.maximum_order_quantity, currentStock)}
+                    disabled={quantity >= getEffectiveMaxQuantity()}
                   >
                     +
                   </Button>
@@ -733,7 +806,7 @@ const ProductDetailNew = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3">
+              <div ref={addToCartSectionRef} className="flex gap-3">
                 <Button
                   onClick={handleAddToCart}
                   size="lg"
@@ -1122,6 +1195,759 @@ const ProductDetailNew = () => {
             </div>
           )}
         </main>
+
+        {/* Compact Sticky Sidebar - Desktop */}
+        {product && (
+          <>
+            <style jsx>{`
+              @keyframes slideInLeft {
+                0% {
+                  transform: translateY(-50%) translateX(-120%) scale(0.9);
+                  opacity: 0;
+                }
+                60% {
+                  transform: translateY(-50%) translateX(5%) scale(1.02);
+                  opacity: 0.9;
+                }
+                100% {
+                  transform: translateY(-50%) translateX(0) scale(1);
+                  opacity: 1;
+                }
+              }
+
+              @keyframes slideOutLeft {
+                0% {
+                  transform: translateY(-50%) translateX(0) scale(1);
+                  opacity: 1;
+                }
+                100% {
+                  transform: translateY(-50%) translateX(-120%) scale(0.9);
+                  opacity: 0;
+                }
+              }
+
+              @keyframes fadeInUp {
+                0% {
+                  transform: translateY(10px);
+                  opacity: 0;
+                }
+                100% {
+                  transform: translateY(0);
+                  opacity: 1;
+                }
+              }
+
+              @keyframes scaleIn {
+                0% {
+                  transform: scale(0.95);
+                  opacity: 0;
+                }
+                100% {
+                  transform: scale(1);
+                  opacity: 1;
+                }
+              }
+
+              @keyframes pulse {
+                0%, 100% {
+                  box-shadow: 0 0 0 0 rgba(72, 85%, 58%, 0.4);
+                }
+                50% {
+                  box-shadow: 0 0 0 8px rgba(72, 85%, 58%, 0);
+                }
+              }
+
+              @keyframes minimizeCollapse {
+                0% {
+                  transform: translateY(-50%) translateX(0);
+                  opacity: 1;
+                }
+                100% {
+                  transform: translateY(-50%) translateX(-120%);
+                  opacity: 0;
+                }
+              }
+
+              .sidebar-container {
+                animation: ${showStickySidebar && !isMinimized ? 'slideInLeft' : isMinimized && showStickySidebar ? 'minimizeCollapse' : 'slideOutLeft'} 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+              }
+
+              .sidebar-container.minimized {
+                pointer-events: none;
+                opacity: 0;
+              }
+
+              @keyframes minimizeGlow {
+                0%, 100% {
+                  box-shadow: 
+                    4px 0 20px rgba(72, 85%, 58%, 0.4),
+                    0 0 0 0 rgba(72, 85%, 58%, 0.7),
+                    inset -2px 0 12px rgba(255, 255, 255, 0.15);
+                }
+                50% {
+                  box-shadow: 
+                    6px 0 30px rgba(72, 85%, 58%, 0.6),
+                    0 0 0 6px rgba(72, 85%, 58%, 0.3),
+                    inset -2px 0 12px rgba(255, 255, 255, 0.25);
+                }
+              }
+
+              @keyframes minimizeShimmer {
+                0% {
+                  transform: translateX(-100%) translateY(-50%);
+                }
+                100% {
+                  transform: translateX(200%) translateY(-50%);
+                }
+              }
+
+              @keyframes minimizeFloat {
+                0%, 100% {
+                  transform: translateY(-50%) translateX(0);
+                }
+                50% {
+                  transform: translateY(-52%) translateX(0);
+                }
+              }
+
+              @keyframes minimizeNeon {
+                0%, 100% {
+                  filter: drop-shadow(0 0 3px rgba(72, 85%, 58%, 0.8)) 
+                          drop-shadow(0 0 6px rgba(72, 85%, 58%, 0.6))
+                          drop-shadow(0 0 9px rgba(72, 85%, 58%, 0.4));
+                }
+                50% {
+                  filter: drop-shadow(0 0 5px rgba(72, 85%, 58%, 1)) 
+                          drop-shadow(0 0 10px rgba(72, 85%, 58%, 0.8))
+                          drop-shadow(0 0 15px rgba(72, 85%, 58%, 0.6));
+                }
+              }
+
+              .minimize-btn {
+                transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                position: absolute;
+                top: 50%;
+                right: -20px;
+                transform: translateY(-50%);
+                width: 40px;
+                height: 64px;
+                border-radius: 0 16px 16px 0;
+                background: linear-gradient(
+                  135deg,
+                  hsl(var(--primary)),
+                  hsl(var(--primary-light)),
+                  hsl(var(--primary))
+                );
+                background-size: 200% 200%;
+                border: 2px solid hsl(var(--primary));
+                border-left: none;
+                box-shadow: 
+                  4px 0 20px rgba(72, 85%, 58%, 0.4),
+                  0 0 0 0 rgba(72, 85%, 58%, 0.7),
+                  inset -3px 0 15px rgba(255, 255, 255, 0.2),
+                  inset 0 0 20px rgba(255, 255, 255, 0.1);
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                overflow: hidden;
+                animation: minimizeGlow 3s ease-in-out infinite, minimizeFloat 4s ease-in-out infinite;
+                perspective: 1000px;
+              }
+
+              .minimize-btn::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: -50%;
+                width: 50%;
+                height: 200%;
+                background: linear-gradient(
+                  90deg,
+                  transparent,
+                  rgba(255, 255, 255, 0.4),
+                  transparent
+                );
+                transform: translateY(-50%) rotate(45deg);
+                animation: minimizeShimmer 3s ease-in-out infinite;
+                z-index: 1;
+              }
+
+              .minimize-btn::after {
+                content: '';
+                position: absolute;
+                inset: -2px;
+                border-radius: 0 16px 16px 0;
+                padding: 2px;
+                background: linear-gradient(
+                  135deg,
+                  hsl(var(--primary-light)),
+                  hsl(var(--primary)),
+                  hsl(var(--primary-light))
+                );
+                background-size: 200% 200%;
+                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                mask-composite: exclude;
+                opacity: 0;
+                transition: opacity 0.5s;
+                animation: shimmer 3s linear infinite;
+                z-index: -1;
+              }
+
+              .minimize-btn:hover::after {
+                opacity: 1;
+              }
+
+              .minimize-btn:hover {
+                transform: translateY(-50%) translateX(4px) scale(1.05);
+                width: 44px;
+                height: 68px;
+                box-shadow: 
+                  8px 0 35px rgba(72, 85%, 58%, 0.7),
+                  0 0 0 4px rgba(72, 85%, 58%, 0.4),
+                  inset -3px 0 15px rgba(255, 255, 255, 0.3),
+                  inset 0 0 30px rgba(255, 255, 255, 0.15);
+                background-position: 100% 0;
+                animation: minimizeGlow 1.5s ease-in-out infinite, minimizeFloat 4s ease-in-out infinite;
+              }
+
+              .minimize-btn:hover::before {
+                animation: minimizeShimmer 1.5s ease-in-out infinite;
+              }
+
+              .minimize-btn:active {
+                transform: translateY(-50%) translateX(2px) scale(0.98);
+                box-shadow: 
+                  4px 0 20px rgba(72, 85%, 58%, 0.5),
+                  0 0 0 2px rgba(72, 85%, 58%, 0.3),
+                  inset -3px 0 15px rgba(255, 255, 255, 0.2);
+              }
+
+              .minimize-icon {
+                transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                color: white;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+                z-index: 2;
+                position: relative;
+                animation: minimizeNeon 2s ease-in-out infinite;
+              }
+
+              .minimize-btn:hover .minimize-icon {
+                transform: scale(1.4) rotate(-90deg);
+                filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))
+                        drop-shadow(0 0 12px rgba(72, 85%, 58%, 0.8));
+                animation: minimizeNeon 1s ease-in-out infinite;
+              }
+
+              .sidebar-card-wrapper {
+                position: relative;
+              }
+
+              .sidebar-content {
+                animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+              }
+
+              .sidebar-image {
+                animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+              }
+
+              .sidebar-image:hover {
+                transform: scale(1.1) rotate(2deg);
+              }
+
+              @keyframes cardGlow {
+                0%, 100% {
+                  box-shadow: 
+                    0 20px 60px rgba(0, 0, 0, 0.15),
+                    0 0 0 1px rgba(72, 85%, 58%, 0.1),
+                    inset 0 0 0 rgba(72, 85%, 58%, 0);
+                }
+                50% {
+                  box-shadow: 
+                    0 25px 70px rgba(0, 0, 0, 0.2),
+                    0 0 0 1px rgba(72, 85%, 58%, 0.15),
+                    inset 0 0 20px rgba(72, 85%, 58%, 0.05);
+                }
+              }
+
+              .sidebar-card {
+                transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                position: relative;
+                animation: cardGlow 4s ease-in-out infinite;
+              }
+
+              .sidebar-card::before {
+                content: '';
+                position: absolute;
+                inset: -1px;
+                border-radius: inherit;
+                padding: 1px;
+                background: linear-gradient(
+                  135deg,
+                  hsl(var(--primary) / 0.3),
+                  hsl(var(--primary-light) / 0.2),
+                  hsl(var(--secondary) / 0.1),
+                  transparent
+                );
+                background-size: 200% 200%;
+                -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                -webkit-mask-composite: xor;
+                mask-composite: exclude;
+                opacity: 0;
+                transition: opacity 0.4s;
+                animation: shimmer 4s linear infinite;
+                pointer-events: none;
+                z-index: -1;
+              }
+
+              .sidebar-card:hover {
+                transform: translateX(6px) scale(1.02);
+                animation: cardGlow 2s ease-in-out infinite;
+              }
+
+              .sidebar-card:hover::before {
+                opacity: 1;
+              }
+
+              .quantity-button {
+                transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                pointer-events: auto !important;
+                cursor: pointer;
+                z-index: 10;
+                position: relative;
+              }
+
+              .quantity-button:hover:not(:disabled) {
+                transform: scale(1.1);
+                background-color: hsl(var(--primary) / 0.1);
+              }
+
+              .quantity-button:active:not(:disabled) {
+                transform: scale(0.95);
+              }
+
+              .quantity-button:disabled {
+                pointer-events: none;
+                opacity: 0.5;
+                cursor: not-allowed;
+              }
+
+              .add-to-cart-btn {
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                position: relative;
+                overflow: hidden;
+              }
+
+              .add-to-cart-btn::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                transform: translate(-50%, -50%);
+                transition: width 0.6s, height 0.6s;
+              }
+
+              .add-to-cart-btn:hover:not(:disabled)::before {
+                width: 300px;
+                height: 300px;
+              }
+
+              .add-to-cart-btn:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(72, 85%, 58%, 0.4);
+              }
+
+              .add-to-cart-btn:active:not(:disabled) {
+                transform: translateY(0);
+              }
+
+              @keyframes shimmer {
+                0% {
+                  background-position: -1000px 0;
+                }
+                100% {
+                  background-position: 1000px 0;
+                }
+              }
+
+              .sidebar-border {
+                position: relative;
+                overflow: hidden;
+              }
+
+              @keyframes borderGlow {
+                0%, 100% {
+                  box-shadow: 
+                    -2px 0 8px rgba(72, 85%, 58%, 0.3),
+                    -4px 0 12px rgba(72, 85%, 58%, 0.2);
+                }
+                50% {
+                  box-shadow: 
+                    -2px 0 12px rgba(72, 85%, 58%, 0.5),
+                    -4px 0 16px rgba(72, 85%, 58%, 0.3),
+                    -6px 0 20px rgba(72, 85%, 58%, 0.15);
+                }
+              }
+
+              .sidebar-border::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 5px;
+                height: 100%;
+                background: linear-gradient(
+                  180deg,
+                  hsl(var(--primary)),
+                  hsl(var(--primary-light)),
+                  hsl(var(--primary-dark)),
+                  hsl(var(--primary-light)),
+                  hsl(var(--primary))
+                );
+                background-size: 100% 300%;
+                animation: shimmer 4s linear infinite;
+                box-shadow: 
+                  -2px 0 8px rgba(72, 85%, 58%, 0.3),
+                  -4px 0 12px rgba(72, 85%, 58%, 0.2);
+                animation: shimmer 4s linear infinite, borderGlow 3s ease-in-out infinite;
+              }
+            `}</style>
+            {!isMinimized && (
+              <div
+                className={`hidden lg:block fixed z-50 left-0 sidebar-container ${
+                  !showStickySidebar ? "pointer-events-none" : ""
+                }`}
+                style={{
+                  top: "50%",
+                }}
+              >
+              <div className="sidebar-card-wrapper" style={{ pointerEvents: 'auto' }}>
+                <Card className="w-72 sidebar-card shadow-2xl border-r-4 border-primary bg-gradient-to-br from-white via-primary/5 to-secondary/10 dark:from-gray-900 dark:via-primary/10 dark:to-secondary/20 backdrop-blur-md sidebar-border">
+                  <CardContent className="p-3 space-y-3 sidebar-content" style={{ pointerEvents: 'auto' }}>
+                  {/* Compact Product Image & Name */}
+                  <div className="flex gap-3">
+                    <div className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden bg-muted ring-2 ring-primary/20 sidebar-image">
+                      {productImageUrl && productImageUrl !== '/placeholder.svg' ? (
+                        <img
+                          src={productImageUrl}
+                          alt={product.name}
+                          className="w-full h-full object-cover transition-transform duration-300"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.src.includes('/placeholder.svg')) {
+                              target.src = '/placeholder.svg';
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-muted">
+                          <Package className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-xs line-clamp-2 leading-tight mb-1 transition-colors hover:text-primary">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-sm font-bold text-primary transition-transform hover:scale-110 inline-block">
+                          {product.pricing.currency_symbol}
+                          {displayPrice.toLocaleString()}
+                        </span>
+                        {(currentSalePrice || currentRegularPrice > currentPrice) && (
+                          <span className="text-xs text-muted-foreground line-through">
+                            {product.pricing.currency_symbol}
+                            {currentRegularPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Compact Quantity & Add to Cart */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-primary/20">
+                    <div className="flex items-center gap-1 border rounded-md overflow-hidden">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 quantity-button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleQuantityChange(quantity - 1);
+                        }}
+                        disabled={quantity <= product.minimum_order_quantity}
+                        type="button"
+                      >
+                        <span className="text-xs">−</span>
+                      </Button>
+                      <span className="text-xs font-medium w-6 text-center transition-all">
+                        {quantity}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 quantity-button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleQuantityChange(quantity + 1);
+                        }}
+                        disabled={quantity >= getEffectiveMaxQuantity()}
+                        type="button"
+                      >
+                        <span className="text-xs">+</span>
+                      </Button>
+                    </div>
+                    <Button
+                      onClick={handleAddToCart}
+                      size="sm"
+                      className="flex-1 h-8 text-xs font-semibold add-to-cart-btn"
+                      disabled={!isInStock || product.status !== "active"}
+                    >
+                      <ShoppingCart className="mr-1.5 h-3.5 w-3.5 transition-transform group-hover:scale-110" />
+                      Add to Cart
+                    </Button>
+                  </div>
+                </CardContent>
+                </Card>
+                
+                {/* Stylish Minimize Button - Right Side */}
+                {!isMinimized && showStickySidebar && (
+                  <button
+                    onClick={() => setIsMinimized(true)}
+                    className="minimize-btn"
+                    aria-label="Minimize sidebar"
+                  >
+                    <ChevronLeft className="h-4 w-4 minimize-icon" />
+                  </button>
+                )}
+              </div>
+            </div>
+            )}
+
+            {/* Premium Restore Button - When Minimized */}
+            {isMinimized && showStickySidebar && (
+              <div
+                className="hidden lg:block fixed z-50 left-0"
+                style={{
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                }}
+              >
+                <button
+                  onClick={() => setIsMinimized(false)}
+                  className="minimize-btn"
+                  style={{
+                    right: 'auto',
+                    left: '0',
+                    borderRadius: '0 16px 16px 0',
+                    borderLeft: '2px solid hsl(var(--primary))',
+                    borderRight: 'none',
+                  }}
+                  aria-label="Restore sidebar"
+                >
+                  <ChevronRight className="h-4 w-4 minimize-icon" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Compact Sticky Sidebar - Mobile */}
+        {product && (
+          <>
+            <style jsx>{`
+              @keyframes slideUpMobile {
+                0% {
+                  transform: translateY(100%) scale(0.95);
+                  opacity: 0;
+                }
+                60% {
+                  transform: translateY(-3%) scale(1.01);
+                  opacity: 0.9;
+                }
+                100% {
+                  transform: translateY(0) scale(1);
+                  opacity: 1;
+                }
+              }
+
+              @keyframes slideDownMobile {
+                0% {
+                  transform: translateY(0) scale(1);
+                  opacity: 1;
+                }
+                100% {
+                  transform: translateY(100%) scale(0.95);
+                  opacity: 0;
+                }
+              }
+
+              @keyframes fadeInScale {
+                0% {
+                  opacity: 0;
+                  transform: scale(0.9);
+                }
+                100% {
+                  opacity: 1;
+                  transform: scale(1);
+                }
+              }
+
+              .mobile-sidebar-container {
+                animation: ${showStickySidebar ? 'slideUpMobile' : 'slideDownMobile'} 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+              }
+
+              .mobile-sidebar-content {
+                animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+              }
+
+              .mobile-image {
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+              }
+
+              .mobile-image:active {
+                transform: scale(1.15);
+              }
+
+              .mobile-quantity-btn {
+                transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+              }
+
+              .mobile-quantity-btn:active:not(:disabled) {
+                transform: scale(1.2);
+                background-color: hsl(var(--primary) / 0.2);
+              }
+
+              .mobile-add-btn {
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                position: relative;
+                overflow: hidden;
+              }
+
+              .mobile-add-btn::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                transform: translate(-50%, -50%);
+                transition: width 0.5s, height 0.5s;
+              }
+
+              .mobile-add-btn:active:not(:disabled)::before {
+                width: 200px;
+                height: 200px;
+              }
+
+              .mobile-add-btn:active:not(:disabled) {
+                transform: scale(0.95);
+              }
+            `}</style>
+            <div
+              className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 mobile-sidebar-container ${
+                !showStickySidebar ? "pointer-events-none" : ""
+              }`}
+            >
+              <div className="bg-gradient-to-r from-white via-primary/5 to-secondary/10 dark:from-gray-900 dark:via-primary/10 dark:to-secondary/20 backdrop-blur-md border-t-4 border-primary shadow-2xl">
+                <div className="container mx-auto px-4 py-2.5 mobile-sidebar-content">
+                  <div className="flex items-center gap-2.5">
+                    {/* Compact Product Image */}
+                    <div className="relative w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-muted ring-2 ring-primary/20 mobile-image">
+                      {productImageUrl && productImageUrl !== '/placeholder.svg' ? (
+                        <img
+                          src={productImageUrl}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.src.includes('/placeholder.svg')) {
+                              target.src = '/placeholder.svg';
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-muted">
+                          <Package className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Compact Product Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-xs line-clamp-1 mb-0.5 transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-sm font-bold text-primary transition-transform inline-block">
+                          {product.pricing.currency_symbol}
+                          {displayPrice.toLocaleString()}
+                        </span>
+                        {(currentSalePrice ||
+                          currentRegularPrice > currentPrice) && (
+                          <span className="text-xs text-muted-foreground line-through">
+                            {product.pricing.currency_symbol}
+                            {currentRegularPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Compact Quantity & Add to Cart */}
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-0.5 border rounded-md overflow-hidden">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 mobile-quantity-btn"
+                          onClick={() => handleQuantityChange(quantity - 1)}
+                          disabled={quantity <= product.minimum_order_quantity}
+                        >
+                          <span className="text-xs">−</span>
+                        </Button>
+                        <span className="text-xs font-medium w-5 text-center transition-all">
+                          {quantity}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 mobile-quantity-btn"
+                          onClick={() => handleQuantityChange(quantity + 1)}
+                          disabled={
+                            quantity >=
+                            Math.min(product.maximum_order_quantity, currentStock)
+                          }
+                        >
+                          <span className="text-xs">+</span>
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={handleAddToCart}
+                        size="sm"
+                        className="h-8 px-3 text-xs font-semibold whitespace-nowrap mobile-add-btn"
+                        disabled={!isInStock || product.status !== "active"}
+                      >
+                        <ShoppingCart className="mr-1 h-3.5 w-3.5" />
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         <Footer />
 
