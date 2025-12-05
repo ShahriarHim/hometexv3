@@ -1,8 +1,5 @@
 {
-  "/[locale]/account/orderDash/page": "app/[locale]/account/orderDash/page.js",
   "/[locale]/account/page": "app/[locale]/account/page.js",
   "/[locale]/page": "app/[locale]/page.js",
-  "/[locale]/products/page": "app/[locale]/products/page.js",
-  "/[locale]/shop/page": "app/[locale]/shop/page.js",
   "/_not-found/page": "app/_not-found/page.js"
 }

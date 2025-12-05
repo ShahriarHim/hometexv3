@@ -7,7 +7,7 @@ export default function ProfileRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/account/orderDash");
+    router.replace("/account");
   }, [router]);
 
   return null;

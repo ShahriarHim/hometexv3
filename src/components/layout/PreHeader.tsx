@@ -148,12 +148,6 @@ const PreHeader = () => {
                                             <div className="font-medium text-sm">{user?.name || "User"}</div>
                                             <div className="text-xs text-gray-500">{tAccount("viewAccount")}</div>
                                         </Link>
-                                        <Link 
-                                            href="/account/orderDash"
-                                            className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                                        >
-                                            {t("orderTracking")}
-                                        </Link>
                                         <button
                                             onClick={handleLogout}
                                             className="block w-full text-left px-4 py-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50"
@@ -286,7 +280,7 @@ const PreHeader = () => {
                 <Ticket className="w-4 h-4 text-pink-500 mr-1" />
                 <span className="text-xs">
                     {isAuthenticated ? (
-                        <Link href="/account/orderDash">{t("orderTracking")}</Link>
+                        <Link href="/account">{t("orderTracking")}</Link>
                     ) : (
                         t("orderTracking")
                     )}
