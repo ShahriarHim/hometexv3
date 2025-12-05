@@ -1,5 +1,6 @@
 {
-  "/[locale]/account/page": "app/[locale]/account/page.js",
+  "/[locale]/cart/page": "app/[locale]/cart/page.js",
   "/[locale]/page": "app/[locale]/page.js",
+  "/[locale]/products/[category]/[childCategory]/[id]/page": "app/[locale]/products/[category]/[childCategory]/[id]/page.js",
   "/_not-found/page": "app/_not-found/page.js"
 }
