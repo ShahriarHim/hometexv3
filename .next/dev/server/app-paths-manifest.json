@@ -1,9 +1,8 @@
 {
   "/[locale]/account/orderDash/page": "app/[locale]/account/orderDash/page.js",
-  "/[locale]/account/profile/page": "app/[locale]/account/profile/page.js",
-  "/[locale]/auth/page": "app/[locale]/auth/page.js",
-  "/[locale]/cart/page": "app/[locale]/cart/page.js",
+  "/[locale]/account/page": "app/[locale]/account/page.js",
   "/[locale]/page": "app/[locale]/page.js",
-  "/[locale]/products/[category]/[childCategory]/[id]/page": "app/[locale]/products/[category]/[childCategory]/[id]/page.js",
+  "/[locale]/products/page": "app/[locale]/products/page.js",
+  "/[locale]/shop/page": "app/[locale]/shop/page.js",
   "/_not-found/page": "app/_not-found/page.js"
 }

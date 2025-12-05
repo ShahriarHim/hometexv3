@@ -125,11 +125,11 @@ const PreHeader = () => {
                 onMouseEnter={handleDropdownEnter}
                 onMouseLeave={handleDropdownLeave}
             >
-                <div className="flex items-center cursor-pointer hover:text-blue-500 pl-4">
+                <Link href="/account" className="flex items-center cursor-pointer hover:text-blue-500 pl-4">
                     <User className="w-4 h-4 text-pink-500 mr-1" />
                     <span className="text-xs whitespace-nowrap">{t("account")}</span>
                     <ChevronDown className="w-3 h-3 ml-1" />
-                </div>
+                </Link>
 
                 {isAccountDropdownOpen && (
                     <div className="absolute top-full left-0 bg-white text-black rounded-lg shadow-2xl z-[200] w-48 mt-1">
@@ -142,11 +142,17 @@ const PreHeader = () => {
                                 {isAuthenticated ? (
                                     <>
                                         <Link 
-                                            href="/account/orderDash"
+                                            href="/account"
                                             className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
                                         >
                                             <div className="font-medium text-sm">{user?.name || "User"}</div>
                                             <div className="text-xs text-gray-500">{tAccount("viewAccount")}</div>
+                                        </Link>
+                                        <Link 
+                                            href="/account/orderDash"
+                                            className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                                        >
+                                            {t("orderTracking")}
                                         </Link>
                                         <button
                                             onClick={handleLogout}

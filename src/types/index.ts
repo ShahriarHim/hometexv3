@@ -19,6 +19,7 @@ export interface Product {
   isFeatured?: boolean;
   isNew?: boolean;
   discount?: number;
+  stock?: number;
 }
 
 export interface ProductVariant {

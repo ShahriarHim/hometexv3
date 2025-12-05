@@ -6,6 +6,7 @@ import { Navigation, Autoplay } from "swiper/modules";
 import Link from "next/link";
 import { ShoppingCart, Eye, Heart, Clock } from "lucide-react";
 import styles from "./HotDeals.module.css";
+import { fetchPublicWithFallback } from "@/lib/api";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
@@ -42,8 +43,9 @@ const HotDeals = () => {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(
-          "https://www.hometexbd.ltd/api/products/trending"
+        const response = await fetchPublicWithFallback(
+          "/api/products/trending",
+          "https://www.hometexbd.ltd"
         );
         const data = await response.json();
 
