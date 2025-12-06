@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Head from "next/head";
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,9 @@ const ProductDetailNew = () => {
   const [similarProductsLoading, setSimilarProductsLoading] = useState(false);
   const [showBulkPricingModal, setShowBulkPricingModal] = useState(false);
   const [selectedBulkPrice, setSelectedBulkPrice] = useState<number | null>(null);
+  const [showStickySidebar, setShowStickySidebar] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const addToCartSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -80,6 +83,11 @@ const ProductDetailNew = () => {
 
         const productData = response.data;
         setProduct(productData);
+
+        // Initialize quantity to minimum order quantity
+        if (productData.minimum_order_quantity) {
+          setQuantity(productData.minimum_order_quantity);
+        }
 
         // Track product view
         trackEvent({
@@ -246,6 +254,15 @@ const ProductDetailNew = () => {
         attributes: newAttributes,
       });
     }
+  };
+
+  // Calculate effective maximum quantity (handles null/undefined)
+  const getEffectiveMaxQuantity = () => {
+    const max = product.maximum_order_quantity;
+    if (max !== null && max !== undefined) {
+      return Math.min(max, currentStock);
+    }
+    return currentStock;
   };
 
   // Handle quantity change with bulk pricing
@@ -472,7 +489,7 @@ const ProductDetailNew = () => {
             <ChevronRight className="h-4 w-4" />
             <span className="text-foreground">{product.name}</span>
           </nav>
-          {/* 
+          {/*
           <Button variant="ghost" asChild className="mb-6">
             <Link href="/shop">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -554,16 +571,16 @@ const ProductDetailNew = () => {
 
                 {/* Brand */}
                 {/* {product.brand && (
-                  <Link 
+                  <Link
                     href={`/brand/${product.brand.slug}` as any}
                     className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity group"
                   >
                     {product.brand.logo && (
                       <div className="h-8 w-auto overflow-hidden rounded">
-                        <img 
-                          src={product.brand.logo} 
-                          alt={product.brand.name} 
-                          className="h-8 object-contain group-hover:scale-110 transition-transform" 
+                        <img
+                          src={product.brand.logo}
+                          alt={product.brand.name}
+                          className="h-8 object-contain group-hover:scale-110 transition-transform"
                         />
                       </div>
                     )}
@@ -773,13 +790,13 @@ const ProductDetailNew = () => {
                     onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
                     className="w-20 text-center border rounded px-2 py-2"
                     min={product.minimum_order_quantity}
-                    max={Math.min(product.maximum_order_quantity, currentStock)}
+                    max={getEffectiveMaxQuantity()}
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={quantity >= Math.min(product.maximum_order_quantity, currentStock)}
+                    disabled={quantity >= getEffectiveMaxQuantity()}
                   >
                     +
                   </Button>
@@ -792,7 +809,7 @@ const ProductDetailNew = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3">
+              <div ref={addToCartSectionRef} className="flex gap-3">
                 <Button
                   onClick={handleAddToCart}
                   size="lg"
