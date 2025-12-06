@@ -3,7 +3,7 @@
 import PreHeader from "@/components/layout/PreHeader";
 import SearchPopup from "@/components/layout/SearchPopup";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
+import { productService } from "@/services/api";
 import { Menu, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
@@ -35,7 +35,7 @@ export const Header = () => {
     const fetchCategories = async () => {
       try {
         setCategoriesLoading(true);
-        const response = await api.menu.getAll();
+        const response = await productService.getMenu();
         if (response.success) {
           const transformedCategories = transformCategories(response.data);
           setCategories(transformedCategories);

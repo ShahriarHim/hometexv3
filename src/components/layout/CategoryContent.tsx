@@ -4,7 +4,8 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { categories, products } from "@/data/demo-data";
 import { Link } from "@/i18n/routing";
-import { api, type Category } from "@/lib/api";
+import { productService } from "@/services/api";
+import type { CategoryTree } from "@/types/api";
 import { useEffect, useState } from "react";
 import { CategoryPageSkeleton } from "./CategoryPageSkeleton";
 
@@ -15,7 +16,7 @@ interface CategoryContentProps {
 }
 
 export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) => {
-  const [apiCategories, setApiCategories] = useState<Category[]>([]);
+  const [apiCategories, setApiCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch categories from API
@@ -23,7 +24,7 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
     setLoading(true);
     const fetchCategories = async () => {
       try {
-        const response = await api.menu.getAll();
+        const response = await productService.getMenu();
         if (response.success) {
           setApiCategories(response.data);
         }
@@ -49,14 +50,14 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
   let pageDescription = demoCategory?.description || "Browse our collection";
 
   if (childId && apiCategory) {
-    const sub = apiCategory.sub_categories.find((s) => s.id === Number(childId));
-    const child = sub?.child_sub_categories.find((c) => c.id === Number(childId));
+    const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
+    const child = sub?.child_categories.find((c) => c.id === Number(childId));
     if (child) {
       pageTitle = child.name;
       pageDescription = `Browse our ${child.name} collection`;
     }
   } else if (subId && apiCategory) {
-    const sub = apiCategory.sub_categories.find((s) => s.id === Number(subId));
+    const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
     if (sub) {
       pageTitle = sub.name;
       pageDescription = `Browse our ${sub.name} collection`;
@@ -105,7 +106,7 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
         <div className="container mx-auto px-4 py-8">
           <h2 className="text-2xl font-semibold mb-4 text-center">Browse by Subcategory</h2>
           <div className="flex flex-wrap gap-2 justify-center">
-            {apiCategory.sub_categories.map((sub) => (
+            {apiCategory.subcategories.map((sub) => (
               <Link
                 key={sub.id}
                 href={{
@@ -130,9 +131,9 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
         <div className="container mx-auto px-4 py-8">
           <h2 className="text-2xl font-semibold mb-4 text-center">Browse by Type</h2>
           <div className="flex flex-wrap gap-2 justify-center">
-            {apiCategory.sub_categories
+            {apiCategory.subcategories
               .find((s) => s.id === Number(subId))
-              ?.child_sub_categories.map((child) => (
+              ?.child_categories.map((child) => (
                 <Link
                   key={child.id}
                   href={{

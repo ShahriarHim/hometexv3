@@ -1,8 +1,9 @@
-import { api, type Category } from "@/lib/api";
+import { productService } from "@/services/api";
+import type { CategoryTree } from "@/types/api";
 
 export async function getCategoryData() {
   try {
-    const response = await api.menu.getAll();
+    const response = await productService.getMenu();
     if (response.success) {
       return response.data;
     }
@@ -12,13 +13,13 @@ export async function getCategoryData() {
   return [];
 }
 
-export function findCategoryBySlug(categories: Category[], slug: string) {
+export function findCategoryBySlug(categories: CategoryTree[], slug: string) {
   const createSlug = (name: string) => name.toLowerCase().replace(/ & /g, "-").replace(/ /g, "-");
   return categories.find((c) => createSlug(c.name) === slug);
 }
 
 export function getCategoryTitle(
-  apiCategory: Category | undefined,
+  apiCategory: CategoryTree | undefined,
   subId: string | null,
   childId: string | null
 ) {
@@ -26,14 +27,14 @@ export function getCategoryTitle(
   let pageDescription = "Browse our collection";
 
   if (childId && apiCategory) {
-    const sub = apiCategory.sub_categories.find((s) => s.id === Number(subId));
-    const child = sub?.child_sub_categories.find((c) => c.id === Number(childId));
+    const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
+    const child = sub?.child_categories.find((c) => c.id === Number(childId));
     if (child) {
       pageTitle = child.name;
       pageDescription = `Browse our ${child.name} collection`;
     }
   } else if (subId && apiCategory) {
-    const sub = apiCategory.sub_categories.find((s) => s.id === Number(subId));
+    const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
     if (sub) {
       pageTitle = sub.name;
       pageDescription = `Browse our ${sub.name} collection`;

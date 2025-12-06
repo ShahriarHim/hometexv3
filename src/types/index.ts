@@ -55,16 +55,33 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
-  image: string;
+  image: string | null;
   description?: string;
   subcategories?: Subcategory[];
+  is_active?: boolean;
+  sort_order?: number;
+  has_children?: boolean;
 }
 
 export interface Subcategory {
   id: string;
   name: string;
   slug: string;
-  image?: string;
+  image?: string | null;
+  parent_id?: string;
+  is_active?: boolean;
+  sort_order?: number;
+  child_categories?: ChildCategory[];
+}
+
+export interface ChildCategory {
+  id: string;
+  name: string;
+  slug: string;
+  parent_id: string;
+  image?: string | null;
+  is_active?: boolean;
+  sort_order?: number;
 }
 
 export interface CartItem {
