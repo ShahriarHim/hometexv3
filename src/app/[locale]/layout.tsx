@@ -5,10 +5,12 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { env } from "@/lib/env";
 import "../globals.css";
 import { Providers } from "../providers";
 import FloatingBar from "@/components/FloatingBar";
 import CookiesManager from "@/components/CookiesManager";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -18,7 +20,7 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(env.siteUrl),
   title: "Hometex Bangladesh - Premium Textiles for Bedding, Bath & Home Décor",
   description:
     "Shop premium quality textiles at Hometex Bangladesh. Discover luxurious bedding, bath essentials, kitchen linens, and home décor. Free shipping on orders over BDT 3,000.",
@@ -59,16 +61,20 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={quicksand.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground antialiased font-sans" suppressHydrationWarning>
-        <NextIntlClientProvider messages={messages}>
-          <Providers>
-            {children}
-            <FloatingBar />
-            <CookiesManager />
-          </Providers>
-        </NextIntlClientProvider>
+      <body
+        className="min-h-screen bg-background text-foreground antialiased font-sans"
+        suppressHydrationWarning
+      >
+        <ErrorBoundary>
+          <NextIntlClientProvider messages={messages}>
+            <Providers>
+              {children}
+              <FloatingBar />
+              <CookiesManager />
+            </Providers>
+          </NextIntlClientProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
 }
-

@@ -19,7 +19,7 @@ const Wishlist = () => {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedItems(items.map(item => item.product.id));
+      setSelectedItems(items.map((item) => item.product.id));
     } else {
       setSelectedItems([]);
     }
@@ -27,9 +27,9 @@ const Wishlist = () => {
 
   const handleSelectItem = (productId: string, checked: boolean) => {
     if (checked) {
-      setSelectedItems(prev => [...prev, productId]);
+      setSelectedItems((prev) => [...prev, productId]);
     } else {
-      setSelectedItems(prev => prev.filter(id => id !== productId));
+      setSelectedItems((prev) => prev.filter((id) => id !== productId));
     }
   };
 
@@ -39,8 +39,8 @@ const Wishlist = () => {
       return;
     }
 
-    selectedItems.forEach(productId => {
-      const item = items.find(i => i.product.id === productId);
+    selectedItems.forEach((productId) => {
+      const item = items.find((i) => i.product.id === productId);
       if (item) {
         addToCart(item.product);
       }
@@ -51,7 +51,7 @@ const Wishlist = () => {
   };
 
   const handleAddAllToCart = () => {
-    items.forEach(item => {
+    items.forEach((item) => {
       addToCart(item.product);
     });
     toast.success(`Added all ${items.length} item(s) to cart`);
@@ -63,7 +63,7 @@ const Wishlist = () => {
       return;
     }
 
-    selectedItems.forEach(productId => {
+    selectedItems.forEach((productId) => {
       removeFromWishlist(productId);
     });
 
@@ -83,9 +83,7 @@ const Wishlist = () => {
             <CardContent className="pt-16 pb-16">
               <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
               <h2 className="text-2xl font-bold mb-2">Your wishlist is empty</h2>
-              <p className="text-muted-foreground mb-6">
-                Save items you love for later
-              </p>
+              <p className="text-muted-foreground mb-6">Save items you love for later</p>
               <Button asChild>
                 <Link href="/shop">Continue Shopping</Link>
               </Button>
@@ -137,11 +135,7 @@ const Wishlist = () => {
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Add Selected to Cart
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddAllToCart}
-                >
+                <Button variant="outline" size="sm" onClick={handleAddAllToCart}>
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Add All to Cart
                 </Button>
@@ -154,11 +148,7 @@ const Wishlist = () => {
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remove Selected
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={clearWishlist}
-                >
+                <Button variant="destructive" size="sm" onClick={clearWishlist}>
                   <X className="h-4 w-4 mr-2" />
                   Clear All
                 </Button>
@@ -170,96 +160,96 @@ const Wishlist = () => {
         {/* Wishlist Items */}
         <div className="space-y-4">
           {items.map((item) => {
-            const productUrl = `/products/${item.product.category}/${item.product.childSubcategory || item.product.subcategory || 'all'}/${item.product.id}`;
+            const productUrl = `/products/${item.product.category}/${item.product.childSubcategory || item.product.subcategory || "all"}/${item.product.id}`;
             return (
-            <Card key={item.product.id} className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  {/* Checkbox */}
-                  <Checkbox
-                    checked={selectedItems.includes(item.product.id)}
-                    onCheckedChange={(checked) =>
-                      handleSelectItem(item.product.id, checked as boolean)
-                    }
-                  />
-
-                  {/* Product Image */}
-                  <Link href={productUrl} className="flex-shrink-0">
-                    <img
-                      src={item.product.images[0] || '/placeholder.svg'}
-                      alt={item.product.name}
-                      className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg"
+              <Card key={item.product.id} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    {/* Checkbox */}
+                    <Checkbox
+                      checked={selectedItems.includes(item.product.id)}
+                      onCheckedChange={(checked) =>
+                        handleSelectItem(item.product.id, checked as boolean)
+                      }
                     />
-                  </Link>
 
-                  {/* Product Info */}
-                  <div className="flex-1 min-w-0">
-                    <Link href={productUrl}>
-                      <h3 className="font-semibold text-lg hover:text-primary transition-colors line-clamp-2">
-                        {item.product.name}
-                      </h3>
+                    {/* Product Image */}
+                    <Link href={productUrl as any} className="flex-shrink-0">
+                      <img
+                        src={item.product.images[0] || "/placeholder.svg"}
+                        alt={item.product.name}
+                        className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg"
+                      />
                     </Link>
-                    
-                    {item.product.description && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {item.product.description}
-                      </p>
-                    )}
 
-                    <div className="flex items-center gap-4 mt-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-foreground">
-                          ৳{item.product.price.toLocaleString()}
-                        </span>
-                        {item.product.originalPrice && (
-                          <span className="text-lg text-muted-foreground line-through">
-                            ৳{item.product.originalPrice.toLocaleString()}
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0">
+                      <Link href={productUrl as any}>
+                        <h3 className="font-semibold text-lg hover:text-primary transition-colors line-clamp-2">
+                          {item.product.name}
+                        </h3>
+                      </Link>
+
+                      {item.product.description && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {item.product.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-4 mt-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-foreground">
+                            ৳{item.product.price.toLocaleString()}
+                          </span>
+                          {item.product.originalPrice && (
+                            <span className="text-lg text-muted-foreground line-through">
+                              ৳{item.product.originalPrice.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+
+                        {item.product.discount && (
+                          <span className="px-2 py-1 bg-destructive text-destructive-foreground text-xs font-semibold rounded">
+                            {item.product.discount}% OFF
                           </span>
                         )}
                       </div>
-                      
-                      {item.product.discount && (
-                        <span className="px-2 py-1 bg-destructive text-destructive-foreground text-xs font-semibold rounded">
-                          {item.product.discount}% OFF
-                        </span>
-                      )}
+
+                      {/* Stock Status */}
+                      <div className="mt-2">
+                        {item.product.inStock ? (
+                          <span className="text-sm text-green-600 font-medium">In Stock</span>
+                        ) : (
+                          <span className="text-sm text-red-600 font-medium">Out of Stock</span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Stock Status */}
-                    <div className="mt-2">
-                      {item.product.inStock ? (
-                        <span className="text-sm text-green-600 font-medium">In Stock</span>
-                      ) : (
-                        <span className="text-sm text-red-600 font-medium">Out of Stock</span>
-                      )}
+                    {/* Actions */}
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          addToCart(item.product);
+                          toast.success("Added to cart");
+                        }}
+                        disabled={!item.product.inStock}
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Add to Cart
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => removeFromWishlist(item.product.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remove
+                      </Button>
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-col gap-2 flex-shrink-0">
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        addToCart(item.product);
-                        toast.success("Added to cart");
-                      }}
-                      disabled={!item.product.inStock}
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Add to Cart
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => removeFromWishlist(item.product.id)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
             );
           })}
         </div>

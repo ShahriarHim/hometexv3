@@ -27,9 +27,10 @@ const Products = () => {
 
   const filteredProducts = products.filter((p) => {
     const matchesCategory = selectedCategory === "all" || p.category === selectedCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     let matchesPrice = true;
     if (priceRange === "0-50") matchesPrice = p.price < 50;
     else if (priceRange === "50-100") matchesPrice = p.price >= 50 && p.price < 100;
@@ -56,7 +57,7 @@ const Products = () => {
   const gridClass = {
     "grid-5": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-5",
     "grid-3": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
-    "list": "grid-cols-1",
+    list: "grid-cols-1",
   }[viewMode];
 
   return (
@@ -122,9 +123,7 @@ const Products = () => {
           </div>
 
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground">
-              {sortedProducts.length} products found
-            </p>
+            <p className="text-sm text-muted-foreground">{sortedProducts.length} products found</p>
             <div className="flex gap-2">
               <Button
                 variant={viewMode === "grid-5" ? "default" : "outline"}

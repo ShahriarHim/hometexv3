@@ -37,34 +37,38 @@ const GiftSomeone = () => {
       name: "Luxury Towel Combo",
       price: "BDT 2,500",
       description: "Set of 4 premium quality towels",
-      image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80",
+      image:
+        "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80",
     },
     {
       id: 2,
       name: "Bedding Essentials Combo",
       price: "BDT 3,500",
       description: "Complete bedding set with pillow covers",
-      image: "https://images.unsplash.com/photo-1616628188859-7a11abb6fcc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80",
+      image:
+        "https://images.unsplash.com/photo-1616628188859-7a11abb6fcc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80",
     },
     {
       id: 3,
       name: "Bathroom Luxury Set",
       price: "BDT 4,000",
       description: "Premium bathroom accessories set",
-      image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80",
+      image:
+        "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80",
     },
     {
       id: 4,
       name: "Home Textile Bundle",
       price: "BDT 5,000",
       description: "Complete home textile collection",
-      image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80",
+      image:
+        "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80",
     },
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isGiftCard && !selectedAmount) {
       toast.error("Please select a gift card amount");
       return;
@@ -75,7 +79,7 @@ const GiftSomeone = () => {
         ? `Gift card of ${selectedAmount} BDT sent successfully!`
         : "Gift product sent successfully!"
     );
-    
+
     // Reset form
     setFormData({ recipientEmail: "", giftMessage: "", senderName: "" });
   };
@@ -119,14 +123,10 @@ const GiftSomeone = () => {
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
                 {isGiftCard ? (
                   <>
-                    <h1 className="text-3xl font-bold text-gray-800 mb-6">
-                      Digital Gift Card
-                    </h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Digital Gift Card</h1>
                     <div className="space-y-6">
                       <div>
-                        <h5 className="text-gray-700 font-semibold mb-3">
-                          Choose a design
-                        </h5>
+                        <h5 className="text-gray-700 font-semibold mb-3">Choose a design</h5>
                         <div className="flex gap-4">
                           {[0, 1, 2].map((index) => (
                             <div
@@ -151,14 +151,10 @@ const GiftSomeone = () => {
                   </>
                 ) : (
                   <>
-                    <h1 className="text-3xl font-bold text-gray-800 mb-6">
-                      Gift Products
-                    </h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Gift Products</h1>
                     <div className="space-y-6">
                       <div>
-                        <h5 className="text-gray-700 font-semibold mb-3">
-                          Choose a combo
-                        </h5>
+                        <h5 className="text-gray-700 font-semibold mb-3">Choose a combo</h5>
                         <div className="space-y-3">
                           {combos.map((combo) => (
                             <div
@@ -180,12 +176,8 @@ const GiftSomeone = () => {
                                 <h3 className="text-lg font-semibold text-gray-800">
                                   {combo.name}
                                 </h3>
-                                <p className="text-pink-600 font-medium mt-1">
-                                  {combo.price}
-                                </p>
-                                <p className="text-gray-600 text-sm mt-1">
-                                  {combo.description}
-                                </p>
+                                <p className="text-pink-600 font-medium mt-1">{combo.price}</p>
+                                <p className="text-gray-600 text-sm mt-1">{combo.description}</p>
                               </div>
                             </div>
                           ))}
@@ -207,9 +199,7 @@ const GiftSomeone = () => {
                       type="email"
                       placeholder="Recipient email"
                       value={formData.recipientEmail}
-                      onChange={(e) =>
-                        setFormData({ ...formData, recipientEmail: e.target.value })
-                      }
+                      onChange={(e) => setFormData({ ...formData, recipientEmail: e.target.value })}
                       className="h-12 bg-white/70 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
                       required
                     />
@@ -218,9 +208,7 @@ const GiftSomeone = () => {
                   {/* Gift Card Amount Selection */}
                   {isGiftCard && (
                     <div className="space-y-2">
-                      <Label className="text-gray-700 font-semibold">
-                        Choose a card value
-                      </Label>
+                      <Label className="text-gray-700 font-semibold">Choose a card value</Label>
                       <div className="flex flex-wrap gap-3">
                         {[500, 1000, 1500, 2000, 2500, 3000].map((amount) => (
                           <button
@@ -250,9 +238,7 @@ const GiftSomeone = () => {
                       rows={4}
                       placeholder="Add a personal note"
                       value={formData.giftMessage}
-                      onChange={(e) =>
-                        setFormData({ ...formData, giftMessage: e.target.value })
-                      }
+                      onChange={(e) => setFormData({ ...formData, giftMessage: e.target.value })}
                       className="bg-white/70 border-gray-200 focus:border-pink-500 focus:ring-pink-500 resize-none"
                     />
                   </div>
@@ -317,9 +303,7 @@ const GiftSomeone = () => {
                       type="text"
                       placeholder="Sender's name"
                       value={formData.senderName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, senderName: e.target.value })
-                      }
+                      onChange={(e) => setFormData({ ...formData, senderName: e.target.value })}
                       className="h-12 bg-white/70 border-gray-200 focus:border-pink-500 focus:ring-pink-500"
                       required
                     />

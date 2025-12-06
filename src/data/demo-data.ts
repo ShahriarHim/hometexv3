@@ -75,7 +75,8 @@ export const products: Product[] = [
     slug: "premium-egyptian-cotton-bed-sheet-set",
     price: 4500,
     originalPrice: 6000,
-    description: "Luxurious 1000 thread count Egyptian cotton bed sheet set. Includes fitted sheet, flat sheet, and 2 pillowcases. Soft, breathable, and durable.",
+    description:
+      "Luxurious 1000 thread count Egyptian cotton bed sheet set. Includes fitted sheet, flat sheet, and 2 pillowcases. Soft, breathable, and durable.",
     category: "bedding",
     subcategory: "bed-sheets",
     childSubcategory: "king",
@@ -97,7 +98,8 @@ export const products: Product[] = [
     slug: "luxury-down-comforter",
     price: 8900,
     originalPrice: 12000,
-    description: "Premium goose down comforter with 100% cotton shell. All-season warmth with exceptional softness.",
+    description:
+      "Premium goose down comforter with 100% cotton shell. All-season warmth with exceptional softness.",
     category: "bedding",
     subcategory: "comforters",
     childSubcategory: "queen",
@@ -139,7 +141,8 @@ export const products: Product[] = [
     slug: "memory-foam-pillow",
     price: 1500,
     originalPrice: 2000,
-    description: "Ergonomic memory foam pillow with cooling gel technology. Perfect for all sleeping positions.",
+    description:
+      "Ergonomic memory foam pillow with cooling gel technology. Perfect for all sleeping positions.",
     category: "bedding",
     subcategory: "pillows",
     childSubcategory: "standard",

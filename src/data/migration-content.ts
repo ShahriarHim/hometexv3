@@ -1,14 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  Compass,
-  Globe2,
-  Leaf,
-  Sparkles,
-  Star,
-  Sunrise,
-  Crown,
-  Diamond,
-} from "lucide-react";
+import { Compass, Globe2, Leaf, Sparkles, Star, Sunrise, Crown, Diamond } from "lucide-react";
 
 export type HeroSlide = {
   id: string;
@@ -398,4 +389,3 @@ export const floatingFacts = [
     icon: Diamond,
   },
 ];
-

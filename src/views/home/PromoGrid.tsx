@@ -14,8 +14,12 @@ export const PromoGrid = () => {
           />
         </div>
         <div className="w-1/2 mx-4 whitespace-nowrap text-center">
-          <h2 className="text-2xl font-bold mb-2 font-kaushan">{promoTiles[0]?.title || "Clothes"}</h2>
-          <p className="text-gray-700 bg-[#f3f30ad1] px-2">{promoTiles[0]?.badge || "save to 40% off"}</p>
+          <h2 className="text-2xl font-bold mb-2 font-kaushan">
+            {promoTiles[0]?.title || "Clothes"}
+          </h2>
+          <p className="text-gray-700 bg-[#f3f30ad1] px-2">
+            {promoTiles[0]?.badge || "save to 40% off"}
+          </p>
           <p className="text-gray-700 mt-2 text-3xl">{promoTiles[0]?.subtitle || "Big Discount"}</p>
           <Link
             href="/shop"
@@ -33,10 +37,7 @@ export const PromoGrid = () => {
           <p className="text-lg mb-4 border px-3 text-gray-300">
             {promoTiles[1]?.badge || "Save to 50% off on First Order"}
           </p>
-          <Link
-            href="/shop"
-            className="bg-blue-500 text-white py-2 px-4 rounded-lg inline-block"
-          >
+          <Link href="/shop" className="bg-blue-500 text-white py-2 px-4 rounded-lg inline-block">
             Shop Now
           </Link>
         </div>
@@ -44,8 +45,12 @@ export const PromoGrid = () => {
       {/* Third Grid */}
       <div className="bg-[#f3f30ad1] border border-solid border-gray-300 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 border bg-sky-blue flex items-center">
         <div className="w-1/2 mx-4 whitespace-nowrap text-center">
-          <h2 className="text-2xl font-bold mb-2 font-kaushan">{promoTiles[2]?.title || "Sunglasses"}</h2>
-          <p className="text-gray-700 bg-[#00ffffbf] px-2">{promoTiles[2]?.badge || "Buy 1 get 1 Free"}</p>
+          <h2 className="text-2xl font-bold mb-2 font-kaushan">
+            {promoTiles[2]?.title || "Sunglasses"}
+          </h2>
+          <p className="text-gray-700 bg-[#00ffffbf] px-2">
+            {promoTiles[2]?.badge || "Buy 1 get 1 Free"}
+          </p>
           <p className="text-gray-700 text-3xl mt-2">{promoTiles[2]?.subtitle || "New Arrivals"}</p>
           <Link
             href="/shop"

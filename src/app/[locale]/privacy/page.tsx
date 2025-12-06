@@ -8,8 +8,8 @@ export default function PrivacyPage() {
     >
       <div className="space-y-2 text-foreground">
         <p>
-          Personal data is encrypted at rest, never sold, and may be deleted upon request.
-          Analytics are aggregated and anonymized.
+          Personal data is encrypted at rest, never sold, and may be deleted upon request. Analytics
+          are aggregated and anonymized.
         </p>
         <p>
           For GDPR/DPDP compliance questions, email privacy@hometex.com and our data protection
@@ -19,4 +19,3 @@ export default function PrivacyPage() {
     </StaticPage>
   );
 }
-

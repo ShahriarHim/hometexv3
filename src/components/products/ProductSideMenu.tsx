@@ -4,23 +4,16 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
 import { useWishlist } from "@/context/WishlistContext";
 import { Heart } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast } from "sonner";
 
-const ProductSideMenu = ({
-  product,
-  className,
-}: {
-  product: Product;
-  className?: string;
-}) => {
+const ProductSideMenu = ({ product, className }: { product: Product; className?: string }) => {
   const { items, addToWishlist, removeFromWishlist } = useWishlist();
-  const [isInWishlist, setIsInWishlist] = useState(false);
 
-  useEffect(() => {
-    const inWishlist = items.some((item) => item.product.id === product.id);
-    setIsInWishlist(inWishlist);
-  }, [product, items]);
+  // Use useMemo to compute derived state instead of useEffect
+  const isInWishlist = useMemo(() => {
+    return items.some((item) => item.product.id === product.id);
+  }, [product.id, items]);
 
   const handleFavorite = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -34,9 +27,7 @@ const ProductSideMenu = ({
   };
 
   return (
-    <div
-      className={cn("absolute top-2 right-2 z-10 hover:cursor-pointer", className)}
-    >
+    <div className={cn("absolute top-2 right-2 z-10 hover:cursor-pointer", className)}>
       <div
         onClick={handleFavorite}
         className={`p-2 rounded-full transition-all duration-200 ${
@@ -45,9 +36,9 @@ const ProductSideMenu = ({
             : "bg-white text-gray-900 border border-gray-300 hover:bg-gray-50"
         }`}
       >
-        <Heart 
-          size={16} 
-          fill={isInWishlist ? "currentColor" : "none"} 
+        <Heart
+          size={16}
+          fill={isInWishlist ? "currentColor" : "none"}
           strokeWidth={2}
           className={isInWishlist ? "text-white" : "text-gray-900"}
         />
@@ -57,4 +48,3 @@ const ProductSideMenu = ({
 };
 
 export default ProductSideMenu;
-

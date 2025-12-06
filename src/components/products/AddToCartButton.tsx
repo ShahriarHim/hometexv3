@@ -15,19 +15,17 @@ interface Props {
 
 const AddToCartButton = ({ product, className }: Props) => {
   const { items, addToCart, updateQuantity } = useCart();
-  
+
   const cartItem = items.find((item) => item.product.id === product.id);
   const itemCount = cartItem?.quantity || 0;
   const isOutOfStock = !product.inStock;
 
   const handleAddToCart = () => {
     const productStock = product.stock ?? (product.inStock ? 100 : 0);
-    
+
     if (productStock > itemCount) {
       addToCart(product, 1);
-      toast.success(
-        `${product?.name?.substring(0, 12)}... added successfully!`
-      );
+      toast.success(`${product?.name?.substring(0, 12)}... added successfully!`);
     } else {
       toast.error("Can not add more than available stock");
     }
@@ -67,4 +65,3 @@ const AddToCartButton = ({ product, className }: Props) => {
 };
 
 export default AddToCartButton;
-

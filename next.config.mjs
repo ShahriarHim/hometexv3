@@ -37,6 +37,11 @@ const nextConfig = {
         hostname: "www.hometexbd.ltd",
         pathname: "/**",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/**",
+      },
     ],
   },
   headers: async () => [

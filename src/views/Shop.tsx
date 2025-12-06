@@ -33,7 +33,7 @@ const Shop = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await api.products.getAll({
           page: currentPage,
           per_page: perPage,
@@ -43,7 +43,7 @@ const Shop = () => {
 
         if (response.success && response.data.products) {
           const transformedProducts = response.data.products.map(transformAPIProductToProduct);
-          
+
           // Apply client-side sorting if needed
           const sortedProducts = [...transformedProducts].sort((a, b) => {
             switch (sortBy) {
@@ -57,7 +57,7 @@ const Shop = () => {
                 return 0;
             }
           });
-          
+
           setProducts(sortedProducts);
           setTotalProducts(response.data.pagination?.total || transformedProducts.length);
           setTotalPages(response.data.pagination?.last_page || 1);
@@ -87,7 +87,7 @@ const Shop = () => {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -169,7 +169,7 @@ const Shop = () => {
                 <p className="text-sm text-muted-foreground">
                   Page {currentPage} of {totalPages}
                 </p>
-                
+
                 <div className="flex gap-2">
                   <Button
                     variant="outline"

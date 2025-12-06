@@ -28,4 +28,3 @@ const StaticPage = ({ title, description, children }: StaticPageProps) => (
 );
 
 export default StaticPage;
-

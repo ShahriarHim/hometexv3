@@ -148,8 +148,8 @@ const Contact = () => {
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-4">Quick Response</h3>
                   <p className="text-muted-foreground">
-                    We typically respond to all inquiries within 24 hours during business days.
-                    For urgent matters, please call our customer service line.
+                    We typically respond to all inquiries within 24 hours during business days. For
+                    urgent matters, please call our customer service line.
                   </p>
                 </CardContent>
               </Card>

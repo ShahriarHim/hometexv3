@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
-import { FaEye, FaTrashAlt } from 'react-icons/fa';
-import { useWishlist } from '@/context/WishlistContext';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useRef } from "react";
+import { FaEye, FaTrashAlt } from "react-icons/fa";
+import { useWishlist } from "@/context/WishlistContext";
+import { useRouter } from "next/navigation";
 
 interface WishlistPopupProps {
   isOpen: boolean;
@@ -22,14 +22,14 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen, onClose]);
 
   const handleViewWishlistClick = () => {
-    router.push('/account/wishlist');
+    router.push("/account/wishlist" as any);
     onClose();
   };
 
@@ -49,7 +49,7 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
       />
 
       {/* Wishlist Panel */}
-      <div 
+      <div
         ref={wishRef}
         className="fixed inset-y-0 right-0 w-96 max-w-full z-[9999] shadow-2xl bg-[rgba(51,51,51,0.95)] backdrop-blur-sm text-white overflow-hidden animate-slide-in transform transition-all duration-300 ease-out"
       >
@@ -67,7 +67,12 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
               stroke="currentColor"
               className="w-6 h-6"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -78,26 +83,28 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
             <tbody>
               {items.length > 0 ? (
                 items.map((item, index) => (
-                  <tr 
+                  <tr
                     key={item.product.id}
                     className="border-b border-gray-600 animate-fade-in-up"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <td className="py-4 pl-4">
-                      <img 
-                        src={item.product.images[0] || '/placeholder.svg'} 
-                        alt={item.product.name} 
-                        className="w-20 h-20 object-cover rounded-lg shadow-md" 
+                      <img
+                        src={item.product.images[0] || "/placeholder.svg"}
+                        alt={item.product.name}
+                        className="w-20 h-20 object-cover rounded-lg shadow-md"
                       />
                     </td>
                     <td className="px-2 py-4">
                       <div>
                         <p className="font-medium">{item.product.name}</p>
-                        <p className="text-sm text-gray-400">৳{item.product.price.toLocaleString()}</p>
+                        <p className="text-sm text-gray-400">
+                          ৳{item.product.price.toLocaleString()}
+                        </p>
                       </div>
                     </td>
                     <td className="px-2 py-4">
-                      <button 
+                      <button
                         className="text-red-400 hover:text-red-600 transition-colors duration-200"
                         onClick={() => removeFromWishlist(item.product.id)}
                       >
@@ -129,8 +136,8 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
                 <FaTrashAlt className="text-white" />
                 Remove All
               </button>
-              <button 
-                onClick={handleViewWishlistClick} 
+              <button
+                onClick={handleViewWishlistClick}
                 className="inline-flex items-center gap-1 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm"
               >
                 <FaEye className="text-white" />
@@ -183,4 +190,3 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
 };
 
 export default WishlistPopup;
-

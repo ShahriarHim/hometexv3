@@ -137,7 +137,7 @@ const config: Config = {
             transform: "scale(1.08)",
           },
         },
-        "float": {
+        float: {
           "0%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-6px)" },
           "100%": { transform: "translateY(0px)" },

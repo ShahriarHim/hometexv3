@@ -19,7 +19,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const [imageLoaded, setImageLoaded] = useState(false);
-  
+
   const inWishlist = isInWishlist(product.id);
 
   const handleAddToCart = () => {
@@ -35,35 +35,32 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
   };
 
   if (viewMode === "list") {
-    const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || 'all'}/${product.id}`;
+    const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || "all"}/${product.id}`;
     return (
       <div className="group relative bg-card rounded-lg border border-border hover:shadow-lg transition-shadow p-4">
         <div className="flex gap-6">
-          <Link href={productUrl} className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg">
+          <Link
+            href={productUrl as any}
+            className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg"
+          >
             <img
               src={product.images[0] || "/placeholder.svg"}
               alt={product.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            {product.isNew && (
-              <Badge className="absolute top-2 left-2 bg-primary">New</Badge>
-            )}
+            {product.isNew && <Badge className="absolute top-2 left-2 bg-primary">New</Badge>}
             {product.discount && (
-              <Badge className="absolute top-2 right-2 bg-destructive">
-                -{product.discount}%
-              </Badge>
+              <Badge className="absolute top-2 right-2 bg-destructive">-{product.discount}%</Badge>
             )}
           </Link>
 
           <div className="flex-1 flex flex-col">
-            <Link href={productUrl}>
+            <Link href={productUrl as any}>
               <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
                 {product.name}
               </h3>
             </Link>
-            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-              {product.description}
-            </p>
+            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
 
             <div className="flex items-center gap-2 mb-4">
               <div className="flex">
@@ -78,9 +75,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
                   />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">
-                ({product.reviewCount})
-              </span>
+              <span className="text-sm text-muted-foreground">({product.reviewCount})</span>
             </div>
 
             <div className="mt-auto flex items-center justify-between">
@@ -105,9 +100,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
                   variant={inWishlist ? "default" : "outline"}
                   onClick={handleWishlistToggle}
                 >
-                  <Heart
-                    className={`h-4 w-4 ${inWishlist ? "fill-current" : ""}`}
-                  />
+                  <Heart className={`h-4 w-4 ${inWishlist ? "fill-current" : ""}`} />
                 </Button>
               </div>
             </div>
@@ -117,11 +110,11 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
     );
   }
 
-  const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || 'all'}/${product.id}`;
-  
+  const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || "all"}/${product.id}`;
+
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-      <Link href={productUrl}>
+      <Link href={productUrl as any}>
         <div className="relative aspect-square overflow-hidden bg-muted">
           <img
             src={product.images[0] || "/placeholder.svg"}
@@ -131,23 +124,19 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
             }`}
             onLoad={() => setImageLoaded(true)}
           />
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-muted animate-pulse" />
-          )}
+          {!imageLoaded && <div className="absolute inset-0 bg-muted animate-pulse" />}
           {product.discount && (
             <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground">
               {product.discount}% OFF
             </Badge>
           )}
           {product.isNew && (
-            <Badge className="absolute top-2 right-2 bg-sage text-white">
-              New
-            </Badge>
+            <Badge className="absolute top-2 right-2 bg-sage text-white">New</Badge>
           )}
         </div>
       </Link>
       <CardContent className="p-4">
-        <Link href={productUrl}>
+        <Link href={productUrl as any}>
           <h3 className="font-medium text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
             {product.name}
           </h3>
@@ -158,7 +147,9 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
           <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-lg font-bold text-foreground">৳{product.price.toLocaleString()}</span>
+          <span className="text-lg font-bold text-foreground">
+            ৳{product.price.toLocaleString()}
+          </span>
           {product.originalPrice && (
             <span className="text-sm text-muted-foreground line-through">
               ৳{product.originalPrice.toLocaleString()}
@@ -167,11 +158,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex space-x-2">
-        <Button
-          onClick={handleAddToCart}
-          className="flex-1"
-          size="sm"
-        >
+        <Button onClick={handleAddToCart} className="flex-1" size="sm">
           <ShoppingCart className="h-4 w-4 mr-1" />
           Add to Cart
         </Button>

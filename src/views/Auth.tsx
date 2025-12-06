@@ -17,22 +17,22 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const [signupData, setSignupData] = useState({ 
-    first_name: "", 
-    last_name: "", 
-    email: "", 
-    phone: "", 
-    password: "", 
-    conf_password: "" 
+  const [signupData, setSignupData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    password: "",
+    conf_password: "",
   });
-  
+
   // State for field-specific errors
   const [signupErrors, setSignupErrors] = useState<Record<string, string[]>>({});
   const [loginErrors, setLoginErrors] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/");
+      router.replace("/" as any);
     }
   }, [isAuthenticated, router]);
 
@@ -46,7 +46,7 @@ const Auth = () => {
     setLoginErrors({}); // Clear previous errors
     try {
       await login(loginData.email, loginData.password);
-      router.push("/");
+      router.push("/" as any);
     } catch (error: any) {
       console.error(error);
       // Extract field errors from the error object
@@ -60,20 +60,20 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Clear previous errors
     setSignupErrors({});
-    
+
     // Validate password match
     if (signupData.password !== signupData.conf_password) {
       setSignupErrors({ conf_password: ["Passwords do not match!"] });
       return;
     }
-    
+
     setLoading(true);
     try {
       await signup(signupData);
-      router.push("/");
+      router.push("/" as any);
     } catch (error: any) {
       console.error(error);
       // Extract field errors from the error object
@@ -90,7 +90,7 @@ const Auth = () => {
     setLoading(true);
     try {
       await socialLogin(provider);
-      router.push("/");
+      router.push("/" as any);
     } catch (error) {
       console.error(error);
     } finally {
@@ -134,7 +134,9 @@ const Auth = () => {
                       className={loginErrors.email?.length ? "border-red-500" : ""}
                     />
                     {loginErrors.email?.map((error, index) => (
-                      <p key={index} className="text-sm text-red-500">{error}</p>
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
                     ))}
                   </div>
                   <div className="space-y-2">
@@ -154,7 +156,9 @@ const Auth = () => {
                       className={loginErrors.password?.length ? "border-red-500" : ""}
                     />
                     {loginErrors.password?.map((error, index) => (
-                      <p key={index} className="text-sm text-red-500">{error}</p>
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
                     ))}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
@@ -184,7 +188,9 @@ const Auth = () => {
                         className={signupErrors.first_name?.length ? "border-red-500" : ""}
                       />
                       {signupErrors.first_name?.map((error, index) => (
-                        <p key={index} className="text-sm text-red-500">{error}</p>
+                        <p key={index} className="text-sm text-red-500">
+                          {error}
+                        </p>
                       ))}
                     </div>
                     <div className="space-y-2">
@@ -205,7 +211,9 @@ const Auth = () => {
                         className={signupErrors.last_name?.length ? "border-red-500" : ""}
                       />
                       {signupErrors.last_name?.map((error, index) => (
-                        <p key={index} className="text-sm text-red-500">{error}</p>
+                        <p key={index} className="text-sm text-red-500">
+                          {error}
+                        </p>
                       ))}
                     </div>
                   </div>
@@ -227,7 +235,9 @@ const Auth = () => {
                       className={signupErrors.email?.length ? "border-red-500" : ""}
                     />
                     {signupErrors.email?.map((error, index) => (
-                      <p key={index} className="text-sm text-red-500">{error}</p>
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
                     ))}
                   </div>
                   <div className="space-y-2">
@@ -248,7 +258,9 @@ const Auth = () => {
                       className={signupErrors.phone?.length ? "border-red-500" : ""}
                     />
                     {signupErrors.phone?.map((error, index) => (
-                      <p key={index} className="text-sm text-red-500">{error}</p>
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
                     ))}
                   </div>
                   <div className="space-y-2">
@@ -269,7 +281,9 @@ const Auth = () => {
                       className={signupErrors.password?.length ? "border-red-500" : ""}
                     />
                     {signupErrors.password?.map((error, index) => (
-                      <p key={index} className="text-sm text-red-500">{error}</p>
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
                     ))}
                   </div>
                   <div className="space-y-2">
@@ -290,7 +304,9 @@ const Auth = () => {
                       className={signupErrors.conf_password?.length ? "border-red-500" : ""}
                     />
                     {signupErrors.conf_password?.map((error, index) => (
-                      <p key={index} className="text-sm text-red-500">{error}</p>
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
                     ))}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>

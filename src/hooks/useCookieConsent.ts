@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export interface CookiePreferences {
   necessary: boolean;
@@ -19,12 +19,12 @@ export const useCookieConsent = () => {
 
   useEffect(() => {
     const loadPreferences = () => {
-      const saved = localStorage.getItem('cookiePreferences');
+      const saved = localStorage.getItem("cookiePreferences");
       if (saved) {
         try {
           setPreferences(JSON.parse(saved));
         } catch (error) {
-          console.error('Failed to parse cookie preferences:', error);
+          console.error("Failed to parse cookie preferences:", error);
           setPreferences(null);
         }
       }
@@ -35,17 +35,17 @@ export const useCookieConsent = () => {
 
     // Listen for storage changes (if user updates preferences in another tab)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'cookiePreferences' && e.newValue) {
+      if (e.key === "cookiePreferences" && e.newValue) {
         try {
           setPreferences(JSON.parse(e.newValue));
         } catch (error) {
-          console.error('Failed to parse cookie preferences from storage event:', error);
+          console.error("Failed to parse cookie preferences from storage event:", error);
         }
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   /**
@@ -66,7 +66,7 @@ export const useCookieConsent = () => {
    * Reset cookie preferences (clears localStorage)
    */
   const resetPreferences = () => {
-    localStorage.removeItem('cookiePreferences');
+    localStorage.removeItem("cookiePreferences");
     setPreferences(null);
   };
 
@@ -78,4 +78,3 @@ export const useCookieConsent = () => {
     resetPreferences,
   };
 };
-

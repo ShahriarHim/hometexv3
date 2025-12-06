@@ -12,7 +12,7 @@ interface Props {
 
 const QuantityButtons = ({ product }: Props) => {
   const { items, updateQuantity } = useCart();
-  
+
   const cartItem = items.find((item) => item.product.id === product.id);
   const quantity = cartItem?.quantity || 0;
   const productStock = product.stock ?? (product.inStock ? 100 : 0);
@@ -55,4 +55,3 @@ const QuantityButtons = ({ product }: Props) => {
 };
 
 export default QuantityButtons;
-

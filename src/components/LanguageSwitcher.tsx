@@ -29,11 +29,7 @@ export default function LanguageSwitcher() {
   return (
     <div className="flex items-center gap-2">
       <Globe className="h-4 w-4 text-muted-foreground" />
-      <Select
-        value={locale}
-        onValueChange={handleLocaleChange}
-        disabled={isPending}
-      >
+      <Select value={locale} onValueChange={handleLocaleChange} disabled={isPending}>
         <SelectTrigger className="w-[120px]">
           <SelectValue placeholder={t("language")} />
         </SelectTrigger>
@@ -48,4 +44,3 @@ export default function LanguageSwitcher() {
     </div>
   );
 }
-

@@ -15,7 +15,7 @@ export const DealHighlights = () => {
         {dealHighlights.map((item) => (
           <div
             key={item.id}
-            className={`relative group rounded-xl overflow-hidden h-[180px] ${item.gradient} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+            className={`relative group rounded-xl overflow-hidden h-[180px] bg-gradient-to-r ${item.gradient} transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
           >
             {/* Content Layout */}
             <div className="absolute inset-0 p-6 flex flex-col justify-between z-20">
