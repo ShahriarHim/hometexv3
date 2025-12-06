@@ -3,8 +3,8 @@
  * Helper functions to transform API responses to frontend data structures
  */
 
-import type { HeroBanner } from "@/types/api/product";
 import type { HeroSlide } from "@/data/migration-content";
+import type { HeroBanner } from "@/types/api/product";
 
 // Types for API data structures
 interface HeroBannerSliderData {
