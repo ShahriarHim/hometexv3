@@ -1,44 +1,38 @@
 "use client";
 
-import Link from "next/link";
-import Head from "next/head";
-import { useParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductCard } from "@/components/products/ProductCard";
+import { Header } from "@/components/layout/Header";
 import { MediaGallery } from "@/components/products/MediaGallery";
 import PriceDropNotification from "@/components/products/PriceDropNotification";
+import { ProductCard } from "@/components/products/ProductCard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { trackEvent } from "@/lib/analytics";
+import { api, type APIProduct } from "@/lib/api";
 import {
-  ShoppingCart,
-  Heart,
-  Star,
-  Truck,
-  Shield,
-  Package,
-  ArrowLeft,
-  Loader2,
-  MapPin,
-  Clock,
-  Award,
+  AlertTriangle,
   Check,
   ChevronRight,
-  AlertTriangle,
-  Info,
+  Heart,
+  Loader2,
+  MapPin,
+  Package,
+  Shield,
+  ShoppingCart,
+  Star,
   Tag,
   TrendingUp,
-  X,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { api, type APIProduct } from "@/lib/api";
-import { trackEvent } from "@/lib/analytics";
+import Head from "next/head";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const ProductDetailNew = () => {
