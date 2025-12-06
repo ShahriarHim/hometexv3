@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Trophy } from "lucide-react";
 import type { Product } from "@/types";
 import { fetchPublicWithFallback } from "@/lib/api";
+import { env } from "@/lib/env";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
@@ -58,11 +59,8 @@ export const BestSellers = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetchPublicWithFallback(
-          "/api/products/bestsellers",
-          "https://www.hometexbd.ltd"
-        );
-        
+        const response = await fetchPublicWithFallback("/api/products/bestsellers", env.apiBaseUrl);
+
         if (!response.ok) {
           throw new Error("Failed to fetch best sellers");
         }
@@ -70,35 +68,31 @@ export const BestSellers = () => {
         const data: APIResponse = await response.json();
 
         if (data.success && data.data.products) {
-          const transformedProducts: Product[] = data.data.products.map(
-            (product) => {
-              const discountPercent = product.sell_price.discount || 0;
-              const originalPrice = product.original_price || product.sell_price.price;
-              const salePrice = product.sell_price.price;
+          const transformedProducts: Product[] = data.data.products.map((product) => {
+            const discountPercent = product.sell_price.discount || 0;
+            const originalPrice = product.original_price || product.sell_price.price;
+            const salePrice = product.sell_price.price;
 
-              return {
-                id: product.id.toString(),
-                name: product.name,
-                slug: product.slug,
-                price: salePrice,
-                originalPrice: discountPercent > 0 ? originalPrice : undefined,
-                description: "",
-                category: product.category?.slug || "general",
-                subcategory: product.sub_category?.slug,
-                childSubcategory: product.child_sub_category?.slug,
-                images: product.primary_photo
-                  ? [product.primary_photo]
-                  : ["/placeholder.svg"],
-                inStock: product.stock > 0,
-                rating: 4.0,
-                reviewCount: 5,
-                discount: discountPercent > 0 ? discountPercent : undefined,
-                isNew: false,
-                isFeatured: false,
-                stock: product.stock,
-              };
-            }
-          );
+            return {
+              id: product.id.toString(),
+              name: product.name,
+              slug: product.slug,
+              price: salePrice,
+              originalPrice: discountPercent > 0 ? originalPrice : undefined,
+              description: "",
+              category: product.category?.slug || "general",
+              subcategory: product.sub_category?.slug,
+              childSubcategory: product.child_sub_category?.slug,
+              images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
+              inStock: product.stock > 0,
+              rating: 4.0,
+              reviewCount: 5,
+              discount: discountPercent > 0 ? discountPercent : undefined,
+              isNew: false,
+              isFeatured: false,
+              stock: product.stock,
+            };
+          });
 
           setProducts(transformedProducts);
         }
@@ -120,13 +114,9 @@ export const BestSellers = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Trophy className="h-6 w-6 text-yellow-500" />
-              <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-                Top Picks
-              </p>
+              <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Top Picks</p>
             </div>
-            <h2 className="text-3xl md:text-4xl font-semibold text-foreground">
-              Best Sellers
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-semibold text-foreground">Best Sellers</h2>
             <p className="text-muted-foreground max-w-2xl">
               Discover our most popular products loved by thousands of customers.
             </p>
@@ -204,4 +194,3 @@ export const BestSellers = () => {
     </section>
   );
 };
-

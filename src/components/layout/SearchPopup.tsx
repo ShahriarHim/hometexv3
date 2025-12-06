@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "../../styles/SearchPopup.module.css";
@@ -22,7 +22,7 @@ const DUMMY_PRODUCTS = Array.from({ length: 20 }).map((_, i) => ({
   primary_photo: `https://placehold.co/150x150?text=Product+${i + 1}`,
   category: { name: "Bedding" },
   sub_category: { name: "Sheets" },
-  child_sub_category: { name: "Cotton" }
+  child_sub_category: { name: "Cotton" },
 }));
 
 interface SearchPopupProps {
@@ -60,7 +60,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ onClose }) => {
     // Wait for animation to complete before navigation
     setTimeout(() => {
       onClose();
-      router.push(`/categories/${categoryName.toLowerCase().replace(/ /g, '-')}`);
+      router.push(`/categories/${categoryName.toLowerCase().replace(/ /g, "-")}` as any);
     }, 300);
   };
 
@@ -78,41 +78,50 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ onClose }) => {
 
   // Simulated API call
   const fetchProducts = async () => {
-     setIsLoading(true);
-     // Simulate network delay
-     setTimeout(() => {
-         setProducts(DUMMY_PRODUCTS);
-         setIsLoading(false);
-     }, 1000);
+    setIsLoading(true);
+    // Simulate network delay
+    setTimeout(() => {
+      setProducts(DUMMY_PRODUCTS);
+      setIsLoading(false);
+    }, 1000);
   };
 
   const searchProducts = async (query: string) => {
-      setIsLoading(true);
-      // Simulate search
-       setTimeout(() => {
-         const filtered = DUMMY_PRODUCTS.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
-         setProducts(filtered);
-         setVisibleProducts(8);
-         setIsLoading(false);
-     }, 800);
+    setIsLoading(true);
+    // Simulate search
+    setTimeout(() => {
+      const filtered = DUMMY_PRODUCTS.filter((p) =>
+        p.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setProducts(filtered);
+      setVisibleProducts(8);
+      setIsLoading(false);
+    }, 800);
   };
-    
+
+  const loadMoreProducts = useCallback(async () => {
+    if (visibleProducts >= products.length) return;
+    setIsLoadingMore(true);
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    setVisibleProducts((prev) => prev + 8);
+    setIsLoadingMore(false);
+  }, [visibleProducts, products.length]);
+
   // Debounce search
   useEffect(() => {
-      const delayDebounceFn = setTimeout(() => {
-        if (searchTerm) {
-          searchProducts(searchTerm);
-        } else {
-          // If search cleared, maybe show empty or trending?
-          // For now mimicking v2 behavior of not auto-fetching everything on clear unless intended
-          // but let's just keep products empty or show initial state
-          setProducts([]); 
-        }
-      }, 500);
-  
-      return () => clearTimeout(delayDebounceFn);
-    }, [searchTerm]);
+    const delayDebounceFn = setTimeout(() => {
+      if (searchTerm) {
+        searchProducts(searchTerm);
+      } else {
+        // If search cleared, maybe show empty or trending?
+        // For now mimicking v2 behavior of not auto-fetching everything on clear unless intended
+        // but let's just keep products empty or show initial state
+        setProducts([]);
+      }
+    }, 500);
 
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
 
   // Scroll listener for infinite scroll on products
   useEffect(() => {
@@ -134,15 +143,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ onClose }) => {
         productsSection.removeEventListener("scroll", handleScroll);
       }
     };
-  }, [isLoadingMore, products.length, visibleProducts]);
-
-  const loadMoreProducts = async () => {
-    if (visibleProducts >= products.length) return;
-    setIsLoadingMore(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setVisibleProducts((prev) => prev + 8);
-    setIsLoadingMore(false);
-  };
+  }, [isLoadingMore, products.length, visibleProducts, loadMoreProducts]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -178,10 +179,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ onClose }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button
-              className={styles.searchButton}
-              onClick={() => searchProducts(searchTerm)}
-            >
+            <button className={styles.searchButton} onClick={() => searchProducts(searchTerm)}>
               SEARCH
             </button>
           </div>
@@ -233,19 +231,17 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ onClose }) => {
                   {/* Pagination */}
                   {totalPages > 1 && (
                     <div className={styles.pagination}>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => (
-                          <button
-                            key={page}
-                            onClick={() => handlePageChange(page)}
-                            className={`${styles.pageButton} ${
-                              currentPage === page ? styles.activePage : ""
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        )
-                      )}
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`${styles.pageButton} ${
+                            currentPage === page ? styles.activePage : ""
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </>
@@ -288,7 +284,7 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ onClose }) => {
                 </>
               ) : (
                 <div className={styles.loadingContainer}>
-                  <p>No products found for "{searchTerm}"</p>
+                  <p>No products found for &quot;{searchTerm}&quot;</p>
                 </div>
               )}
             </>
@@ -300,4 +296,3 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ onClose }) => {
 };
 
 export default SearchPopup;
-

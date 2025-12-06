@@ -22,10 +22,15 @@ export const PrefooterShowcase = () => {
                   <img src={blogHighlight.image || "/images/blog/b1.jpg"} alt="Hometex Blog" />
                 </div>
                 <div className="relative justify-center items-center text-center">
-                  <h3 className="text-xl font-extrabold p-3">{blogHighlight.title || "DAILY OUTFITS"}</h3>
-                  <p className="text-sm p-3">{blogHighlight.excerpt || "Hey guys, many of you ask us about the details on everyday outfits, so we thought we would collect them here with a few bonus pics. We hope you will like the idea! There are so many e..."}</p>
+                  <h3 className="text-xl font-extrabold p-3">
+                    {blogHighlight.title || "DAILY OUTFITS"}
+                  </h3>
+                  <p className="text-sm p-3">
+                    {blogHighlight.excerpt ||
+                      "Hey guys, many of you ask us about the details on everyday outfits, so we thought we would collect them here with a few bonus pics. We hope you will like the idea! There are so many e..."}
+                  </p>
                   <Link
-                    href={blogHighlight.href || "#"}
+                    href={(blogHighlight.href || "#") as any}
                     className="bg-yellow-500 mt-5 text-black px-5 py-2 rounded-sm justify-items-center inline-block"
                   >
                     Read More
@@ -52,12 +57,14 @@ export const PrefooterShowcase = () => {
               <div className="text-justify py-3">
                 {storeSummary.summary || (
                   <>
-                    Our store is more than just another average online retailer. We sell not only top quality products,
-                    but give our customer a positive online shopping experience. <br />
-                    <br /> Forget about struggling to do everything at once: taking care of the family, running your
-                    business, walking you dog, cleaning the house, doing the shopping, etc. Purchase the goods you need
-                    every day or just like in a few clicks or taps, depending on the device you use to access the
-                    internet. We work to make your life more enjoyable.
+                    Our store is more than just another average online retailer. We sell not only
+                    top quality products, but give our customer a positive online shopping
+                    experience. <br />
+                    <br /> Forget about struggling to do everything at once: taking care of the
+                    family, running your business, walking you dog, cleaning the house, doing the
+                    shopping, etc. Purchase the goods you need every day or just like in a few
+                    clicks or taps, depending on the device you use to access the internet. We work
+                    to make your life more enjoyable.
                   </>
                 )}
               </div>
@@ -69,7 +76,7 @@ export const PrefooterShowcase = () => {
                     {storeSummary.socials.map((social) => (
                       <Link
                         key={social.id}
-                        href={social.href}
+                        href={social.href as any}
                         className="w-5 h-5 hover:text-[#0000ff]"
                         target="_blank"
                         rel="noopener noreferrer"

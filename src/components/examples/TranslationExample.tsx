@@ -2,17 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
  * Example component demonstrating how to use translations with next-intl
- * 
+ *
  * This component shows:
  * 1. Basic translation usage with useTranslations hook
  * 2. Accessing nested translation keys
@@ -59,20 +53,20 @@ export default function TranslationExample() {
 
 /**
  * USAGE IN SERVER COMPONENTS:
- * 
+ *
  * For server components, use getTranslations instead:
- * 
+ *
  * import { getTranslations } from 'next-intl/server';
- * 
+ *
  * export default async function ServerComponent() {
  *   const t = await getTranslations('common');
  *   return <h1>{t('welcome')}</h1>;
  * }
- * 
+ *
  * USAGE IN METADATA:
- * 
+ *
  * import { getTranslations } from 'next-intl/server';
- * 
+ *
  * export async function generateMetadata() {
  *   const t = await getTranslations('metadata');
  *   return {
@@ -81,4 +75,3 @@ export default function TranslationExample() {
  *   };
  * }
  */
-

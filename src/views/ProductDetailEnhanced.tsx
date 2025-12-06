@@ -13,7 +13,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { api, transformAPIProductToProduct } from "@/lib/api";
+import { api, transformAPIProductToProduct, type APIProduct } from "@/lib/api";
 import type { Product } from "@/types";
 
 const ProductDetailEnhanced = () => {
@@ -40,20 +40,21 @@ const ProductDetailEnhanced = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await api.products.getById(id);
-        
+
         // Check if the API returned an error
         if (response.success === false) {
           setError(response.message || "Failed to load product");
           return;
         }
-        
+
         // Handle both response formats: { success: true, data: product } or direct product
         const productData = response.data || response;
-        
-        if (productData && productData.id) {
-          const transformedProduct = transformAPIProductToProduct(productData);
+
+        // Type guard to check if productData is APIProduct
+        if (productData && "id" in productData && productData.id) {
+          const transformedProduct = transformAPIProductToProduct(productData as APIProduct);
           setProduct(transformedProduct);
           setSelectedColor(transformedProduct.colors?.[0]);
           setSelectedSize(transformedProduct.sizes?.[0]);
@@ -63,9 +64,11 @@ const ProductDetailEnhanced = () => {
       } catch (err) {
         console.error("Error fetching product:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load product";
-        setError(errorMessage.includes("500") 
-          ? "The server is temporarily unavailable. Please try again later." 
-          : "Failed to load product. Please check your connection.");
+        setError(
+          errorMessage.includes("500")
+            ? "The server is temporarily unavailable. Please try again later."
+            : "Failed to load product. Please check your connection."
+        );
       } finally {
         setLoading(false);
       }
@@ -100,9 +103,7 @@ const ProductDetailEnhanced = () => {
               <p className="text-muted-foreground mb-4">{error}</p>
             </div>
             <div className="flex gap-4 justify-center">
-              <Button onClick={() => window.location.reload()}>
-                Try Again
-              </Button>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
               <Button variant="outline" onClick={() => window.history.back()}>
                 Go Back
               </Button>
@@ -249,9 +250,7 @@ const ProductDetailEnhanced = () => {
                         key={color}
                         onClick={() => setSelectedColor(color)}
                         className={`px-4 py-2 border-2 rounded-md ${
-                          selectedColor === color
-                            ? "border-primary bg-primary/10"
-                            : "border-border"
+                          selectedColor === color ? "border-primary bg-primary/10" : "border-border"
                         }`}
                       >
                         {color}
@@ -270,9 +269,7 @@ const ProductDetailEnhanced = () => {
                         key={size}
                         onClick={() => setSelectedSize(size)}
                         className={`px-4 py-2 border-2 rounded-md ${
-                          selectedSize === size
-                            ? "border-primary bg-primary/10"
-                            : "border-border"
+                          selectedSize === size ? "border-primary bg-primary/10" : "border-border"
                         }`}
                       >
                         {size}
@@ -293,11 +290,7 @@ const ProductDetailEnhanced = () => {
                     -
                   </Button>
                   <span className="text-lg font-medium w-12 text-center">{quantity}</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuantity(quantity + 1)}
-                  >
+                  <Button variant="outline" size="icon" onClick={() => setQuantity(quantity + 1)}>
                     +
                   </Button>
                 </div>

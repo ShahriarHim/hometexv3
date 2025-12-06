@@ -80,11 +80,9 @@ const Account = () => {
                 <CardTitle>My Wishlist</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  View and manage your saved items
-                </p>
+                <p className="text-muted-foreground mb-4">View and manage your saved items</p>
                 <Button asChild>
-                  <Link href="/account/wishlist">View Wishlist</Link>
+                  <Link href={"/account/wishlist" as any}>View Wishlist</Link>
                 </Button>
               </CardContent>
             </Card>

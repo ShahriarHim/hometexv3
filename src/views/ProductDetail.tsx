@@ -16,17 +16,27 @@ import { MediaGallery } from "@/components/products/MediaGallery";
 import PriceDropNotification from "@/components/products/PriceDropNotification";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { 
-  ShoppingCart, Heart, Star, Truck, Shield, Package, 
-  ArrowLeft, Loader2, MapPin, Clock, Award, Check,
-  ChevronRight, AlertTriangle, Info, Tag, TrendingUp, X
-} from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ShoppingCart,
+  Heart,
+  Star,
+  Truck,
+  Shield,
+  Package,
+  ArrowLeft,
+  Loader2,
+  MapPin,
+  Clock,
+  Award,
+  Check,
+  ChevronRight,
+  AlertTriangle,
+  Info,
+  Tag,
+  TrendingUp,
+  X,
+} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { api, type APIProduct } from "@/lib/api";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
@@ -60,14 +70,14 @@ const ProductDetailNew = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await api.products.getById(id);
-        
+
         if (response.success === false || !response.data) {
           setError(response.message || "Failed to load product");
           return;
         }
-        
+
         const productData = response.data;
         setProduct(productData);
 
@@ -78,7 +88,7 @@ const ProductDetailNew = () => {
           sku: productData.sku,
           name: productData.name,
           price: productData.pricing.final_price,
-          currency: productData.pricing.currency
+          currency: productData.pricing.currency,
         });
 
         // Fetch similar products
@@ -86,9 +96,11 @@ const ProductDetailNew = () => {
       } catch (err) {
         console.error("Error fetching product:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load product";
-        setError(errorMessage.includes("500") 
-          ? "The server is temporarily unavailable. Please try again later." 
-          : "Failed to load product. Please check your connection.");
+        setError(
+          errorMessage.includes("500")
+            ? "The server is temporarily unavailable. Please try again later."
+            : "Failed to load product. Please check your connection."
+        );
       } finally {
         setLoading(false);
       }
@@ -102,7 +114,7 @@ const ProductDetailNew = () => {
     try {
       setSimilarProductsLoading(true);
       const response = await api.products.getSimilar(productId);
-      
+
       if (response.success && response.data?.products) {
         setSimilarProducts(response.data.products);
       }
@@ -152,23 +164,24 @@ const ProductDetailNew = () => {
   }
 
   // Get current variant or use product defaults
-  const currentVariant = selectedVariant !== null 
-    ? product.variations.find(v => v.id === selectedVariant)
-    : null;
+  const currentVariant =
+    selectedVariant !== null ? product.variations.find((v) => v.id === selectedVariant) : null;
 
   const currentPrice = currentVariant?.pricing.final_price ?? product.pricing.final_price;
-  const currentRegularPrice = currentVariant?.pricing.regular_price ?? product.pricing.regular_price;
+  const currentRegularPrice =
+    currentVariant?.pricing.regular_price ?? product.pricing.regular_price;
   const currentSalePrice = currentVariant?.pricing.sale_price ?? product.pricing.sale_price;
   const currentStock = currentVariant?.inventory.stock_quantity ?? product.inventory.stock_quantity;
-  const currentStockStatus = currentVariant?.inventory.stock_status ?? product.inventory.stock_status;
+  const currentStockStatus =
+    currentVariant?.inventory.stock_status ?? product.inventory.stock_status;
   const currentSku = currentVariant?.sku ?? product.sku;
 
   // Calculate effective price based on selected bulk price or current price
   const effectiveBasePrice = selectedBulkPrice !== null ? selectedBulkPrice : currentPrice;
 
   // Calculate price with/without tax
-  const taxAmount = product.pricing.tax.included 
-    ? 0 
+  const taxAmount = product.pricing.tax.included
+    ? 0
     : (effectiveBasePrice * product.pricing.tax.rate) / 100;
   const priceWithTax = effectiveBasePrice + taxAmount;
   const displayPrice = showTaxIncluded ? priceWithTax : effectiveBasePrice;
@@ -179,16 +192,14 @@ const ProductDetailNew = () => {
 
   // Stock availability
   const isInStock = currentStockStatus === "in_stock" && currentStock > 0;
-  const isLowStock = product.inventory.is_low_stock || currentStock <= product.inventory.low_stock_threshold;
+  const isLowStock =
+    product.inventory.is_low_stock || currentStock <= product.inventory.low_stock_threshold;
 
   // Extract unique attribute keys from variations
-  const attributeKeys = product.has_variations && product.variations && product.variations.length > 0
-    ? Array.from(
-        new Set(
-          product.variations.flatMap(v => Object.keys(v.attributes || {}))
-        )
-      )
-    : [];
+  const attributeKeys =
+    product.has_variations && product.variations && product.variations.length > 0
+      ? Array.from(new Set(product.variations.flatMap((v) => Object.keys(v.attributes || {}))))
+      : [];
 
   // Get available values for each attribute (deduplicated)
   const getAvailableAttributeValues = (attrKey: string) => {
@@ -196,8 +207,8 @@ const ProductDetailNew = () => {
     return Array.from(
       new Set(
         product.variations
-          .filter(v => v.attributes && v.attributes[attrKey])
-          .map(v => v.attributes[attrKey])
+          .filter((v) => v.attributes && v.attributes[attrKey])
+          .map((v) => v.attributes[attrKey])
       )
     );
   };
@@ -206,7 +217,7 @@ const ProductDetailNew = () => {
   const isAttributeCombinationAvailable = (attrKey: string, value: string) => {
     if (!product.variations) return false;
     const testAttributes = { ...selectedAttributes, [attrKey]: value };
-    return product.variations.some(v => {
+    return product.variations.some((v) => {
       const match = Object.entries(testAttributes).every(
         ([k, val]) => v.attributes && v.attributes[k] === val
       );
@@ -221,8 +232,8 @@ const ProductDetailNew = () => {
 
     // Find matching variant
     if (!product.variations) return;
-    
-    const matchingVariant = product.variations.find(v =>
+
+    const matchingVariant = product.variations.find((v) =>
       Object.entries(newAttributes).every(([k, val]) => v.attributes && v.attributes[k] === val)
     );
 
@@ -232,7 +243,7 @@ const ProductDetailNew = () => {
         event: "variant_select",
         product_id: product.id.toString(),
         variant_id: matchingVariant.id,
-        attributes: newAttributes
+        attributes: newAttributes,
       });
     }
   };
@@ -241,32 +252,44 @@ const ProductDetailNew = () => {
   const handleQuantityChange = (newQuantity: number) => {
     const min = product.minimum_order_quantity;
     const max = product.maximum_order_quantity;
-    
+
     if (newQuantity < min) {
       toast.error(`Minimum order quantity is ${min}`);
-      trackEvent({ event: "quantity_error", product_id: product.id.toString(), message: `Below minimum: ${min}` });
+      trackEvent({
+        event: "quantity_error",
+        product_id: product.id.toString(),
+        message: `Below minimum: ${min}`,
+      });
       return;
     }
-    
+
     if (newQuantity > max) {
       toast.error(`Maximum order quantity is ${max}`);
-      trackEvent({ event: "quantity_error", product_id: product.id.toString(), message: `Above maximum: ${max}` });
+      trackEvent({
+        event: "quantity_error",
+        product_id: product.id.toString(),
+        message: `Above maximum: ${max}`,
+      });
       return;
     }
-    
+
     if (newQuantity > currentStock) {
       toast.error(`Only ${currentStock} items available`);
-      trackEvent({ event: "stock_error", product_id: product.id.toString(), message: `Insufficient stock: ${currentStock}` });
+      trackEvent({
+        event: "stock_error",
+        product_id: product.id.toString(),
+        message: `Insufficient stock: ${currentStock}`,
+      });
       return;
     }
-    
+
     setQuantity(newQuantity);
   };
 
   // Get bulk pricing for current quantity
   const getBulkPrice = () => {
     const tier = product.bulk_pricing.find(
-      bp => quantity >= bp.min_quantity && (!bp.max_quantity || quantity <= bp.max_quantity)
+      (bp) => quantity >= bp.min_quantity && (!bp.max_quantity || quantity <= bp.max_quantity)
     );
     return tier;
   };
@@ -312,14 +335,14 @@ const ProductDetailNew = () => {
     };
 
     addToCart(cartProduct as any, quantity, selectedAttributes.Color, selectedAttributes.Size);
-    
+
     trackEvent({
       event: "add_to_cart",
       product_id: product.id.toString(),
       variant_id: selectedVariant || undefined,
       sku: currentSku,
       price: effectiveBasePrice,
-      quantity
+      quantity,
     });
 
     toast.success("Added to cart");
@@ -358,7 +381,7 @@ const ProductDetailNew = () => {
       product_id: product.id.toString(),
       variant_id: selectedVariant || undefined,
       price: effectiveBasePrice,
-      quantity
+      quantity,
     });
     // Redirect to checkout
     window.location.href = "/checkout";
@@ -369,29 +392,30 @@ const ProductDetailNew = () => {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description.replace(/<[^>]*>/g, ''),
+    description: product.description.replace(/<[^>]*>/g, ""),
     sku: product.sku,
     brand: {
       "@type": "Brand",
       name: product.brand.name,
-      logo: product.brand.logo
+      logo: product.brand.logo,
     },
-    offers: product.variations.map(v => ({
+    offers: product.variations.map((v) => ({
       "@type": "Offer",
       price: v.pricing.final_price,
       priceCurrency: product.pricing.currency,
-      availability: v.inventory.stock_status === "in_stock" 
-        ? "https://schema.org/InStock" 
-        : "https://schema.org/OutOfStock",
-      url: `${typeof window !== 'undefined' ? window.location.origin : ''}/product/${product.id}`,
-      sku: v.sku
+      availability:
+        v.inventory.stock_status === "in_stock"
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      url: `${typeof window !== "undefined" ? window.location.origin : ""}/product/${product.id}`,
+      sku: v.sku,
     })),
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: product.reviews.average_rating,
-      reviewCount: product.reviews.review_count
+      reviewCount: product.reviews.review_count,
     },
-    image: product.media.gallery?.map((g: any) => g.url || g) || [product.seo.og_image]
+    image: product.media.gallery?.map((g: any) => g.url || g) || [product.seo.og_image],
   };
 
   return (
@@ -399,21 +423,21 @@ const ProductDetailNew = () => {
       <Head>
         <title>{product.seo.meta_title || product.name}</title>
         <meta name="description" content={product.seo.meta_description} />
-        <meta name="keywords" content={product.seo.meta_keywords.join(', ')} />
+        <meta name="keywords" content={product.seo.meta_keywords.join(", ")} />
         {product.seo.canonical_url && <link rel="canonical" href={product.seo.canonical_url} />}
-        
+
         {/* OpenGraph */}
         <meta property="og:title" content={product.seo.og_title} />
         <meta property="og:description" content={product.seo.og_description} />
         <meta property="og:image" content={product.seo.og_image} />
         <meta property="og:type" content="product" />
-        
+
         {/* Twitter Card */}
         <meta name="twitter:card" content={product.seo.twitter_card} />
         <meta name="twitter:title" content={product.seo.og_title} />
         <meta name="twitter:description" content={product.seo.og_description} />
         <meta name="twitter:image" content={product.seo.og_image} />
-        
+
         {/* JSON-LD */}
         <script
           type="application/ld+json"
@@ -423,16 +447,21 @@ const ProductDetailNew = () => {
 
       <div className="min-h-screen flex flex-col">
         <Header />
-        
+
         <main className="flex-1 container mx-auto px-4 py-6">
           {/* Breadcrumb */}
-          <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
-            <Link href={"/" as const} className="hover:text-foreground">Home</Link>
+          <nav
+            className="flex items-center space-x-2 text-sm text-muted-foreground mb-6"
+            aria-label="Breadcrumb"
+          >
+            <Link href={"/" as any} className="hover:text-foreground">
+              Home
+            </Link>
             <ChevronRight className="h-4 w-4" />
             {product.breadcrumb.map((crumb, idx) => (
               <div key={`${crumb.slug}-${idx}`} className="flex items-center space-x-2">
-                <Link 
-                  href={`/shop?category=${crumb.slug}`}
+                <Link
+                  href={`/shop?category=${crumb.slug}` as any}
                   className="hover:text-foreground"
                 >
                   {crumb.name}
@@ -443,7 +472,7 @@ const ProductDetailNew = () => {
             <ChevronRight className="h-4 w-4" />
             <span className="text-foreground">{product.name}</span>
           </nav>
-{/* 
+          {/* 
           <Button variant="ghost" asChild className="mb-6">
             <Link href="/shop">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -469,35 +498,51 @@ const ProductDetailNew = () => {
                 {/* Badges */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {product.badges.is_featured && (
-                    <Badge variant="default" className="animate-pulse">Featured</Badge>
+                    <Badge variant="default" className="animate-pulse">
+                      Featured
+                    </Badge>
                   )}
                   {product.badges.is_new && (
-                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">✨ New</Badge>
+                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
+                      ✨ New
+                    </Badge>
                   )}
                   {product.badges.is_trending && (
                     <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
-                      <TrendingUp className="w-3 h-3 mr-1" />Trending
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Trending
                     </Badge>
                   )}
                   {product.badges.is_bestseller && (
                     <Badge className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0">
                       🏆 Bestseller
-                      {product.inventory.sold_count > 0 && ` • ${product.inventory.sold_count} sold`}
+                      {product.inventory.sold_count > 0 &&
+                        ` • ${product.inventory.sold_count} sold`}
                     </Badge>
                   )}
                   {product.badges.is_on_sale && (
-                    <Badge variant="destructive" className="animate-pulse">🔥 On Sale</Badge>
+                    <Badge variant="destructive" className="animate-pulse">
+                      🔥 On Sale
+                    </Badge>
                   )}
                   {product.status === "active" && isInStock ? (
-                    <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                      <Check className="w-3 h-3 mr-1" />In Stock
+                    <Badge
+                      variant="outline"
+                      className="bg-green-50 border-green-200 text-green-700"
+                    >
+                      <Check className="w-3 h-3 mr-1" />
+                      In Stock
                     </Badge>
                   ) : (
                     <Badge variant="destructive">Out of Stock</Badge>
                   )}
                   {isLowStock && isInStock && (
-                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 animate-pulse">
-                      <AlertTriangle className="w-3 h-3 mr-1" />Low Stock
+                    <Badge
+                      variant="outline"
+                      className="bg-orange-50 text-orange-700 border-orange-200 animate-pulse"
+                    >
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      Low Stock
                     </Badge>
                   )}
                 </div>
@@ -510,7 +555,7 @@ const ProductDetailNew = () => {
                 {/* Brand */}
                 {/* {product.brand && (
                   <Link 
-                    href={`/brand/${product.brand.slug}`}
+                    href={`/brand/${product.brand.slug}` as any}
                     className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity group"
                   >
                     {product.brand.logo && (
@@ -560,11 +605,13 @@ const ProductDetailNew = () => {
               <div className="space-y-3">
                 <div className="flex items-baseline gap-3 flex-wrap">
                   <span className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                    {product.pricing.currency_symbol}{displayPrice.toLocaleString()}
+                    {product.pricing.currency_symbol}
+                    {displayPrice.toLocaleString()}
                   </span>
                   {(currentSalePrice || currentRegularPrice > currentPrice) && (
                     <span className="text-2xl text-muted-foreground line-through decoration-2">
-                      {product.pricing.currency_symbol}{currentRegularPrice.toLocaleString()}
+                      {product.pricing.currency_symbol}
+                      {currentRegularPrice.toLocaleString()}
                     </span>
                   )}
                   {isDiscountActive && discountValue > 0 && (
@@ -572,7 +619,10 @@ const ProductDetailNew = () => {
                       {discountValue}% OFF
                     </Badge>
                   )}
-                  <Badge variant="outline" className="text-base px-3 py-1.5 bg-green-50 border-green-300 text-green-700 font-medium">
+                  <Badge
+                    variant="outline"
+                    className="text-base px-3 py-1.5 bg-green-50 border-green-300 text-green-700 font-medium"
+                  >
                     <Package className="w-4 h-4 mr-1.5" />
                     {currentStock} available
                   </Badge>
@@ -587,7 +637,8 @@ const ProductDetailNew = () => {
                     className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     {showTaxIncluded ? "Incl." : "Excl."} {product.pricing.tax.rate}% tax
-                    {!product.pricing.tax.included && ` (+${product.pricing.currency_symbol}${taxAmount.toFixed(2)})`}
+                    {!product.pricing.tax.included &&
+                      ` (+${product.pricing.currency_symbol}${taxAmount.toFixed(2)})`}
                   </Button>
                 </div>
 
@@ -599,7 +650,9 @@ const ProductDetailNew = () => {
                         <Tag className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
                           <div className="flex items-center justify-between gap-2 mb-2">
-                            <p className="text-sm font-medium text-blue-900">Bulk Pricing Available</p>
+                            <p className="text-sm font-medium text-blue-900">
+                              Bulk Pricing Available
+                            </p>
                             <Button
                               variant="link"
                               size="sm"
@@ -613,9 +666,11 @@ const ProductDetailNew = () => {
                             {product.bulk_pricing.slice(0, 3).map((tier, idx) => (
                               <div key={idx} className="text-xs text-blue-700">
                                 Buy {tier.min_quantity}
-                                {tier.max_quantity && `-${tier.max_quantity}`}: {product.pricing.currency_symbol}
+                                {tier.max_quantity && `-${tier.max_quantity}`}:{" "}
+                                {product.pricing.currency_symbol}
                                 {tier.price} each
-                                {tier.discount_percentage && ` (${tier.discount_percentage.toFixed(1)}% off)`}
+                                {tier.discount_percentage &&
+                                  ` (${tier.discount_percentage.toFixed(1)}% off)`}
                               </div>
                             ))}
                             {product.bulk_pricing.length > 3 && (
@@ -639,65 +694,69 @@ const ProductDetailNew = () => {
               </div> */}
 
               {/* Variant Selection */}
-              {product.has_variations && product.variations && product.variations.length > 0 && attributeKeys.length > 0 && (
-                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                  <CardContent className="p-4 space-y-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-blue-900">
-                      <Package className="w-4 h-4" />
-                      <span>Product Options</span>
-                    </div>
-                    {attributeKeys.map(attrKey => {
-                      const uniqueValues = getAvailableAttributeValues(attrKey);
-                      
-                      return (
-                        <div key={attrKey}>
-                          <p className="text-sm font-medium mb-2 text-gray-700">
-                            Select {attrKey}:
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {uniqueValues.map(value => {
-                              const isAvailable = isAttributeCombinationAvailable(attrKey, value);
-                              const isSelected = selectedAttributes[attrKey] === value;
-                              
-                              return (
-                                <Button
-                                  key={value}
-                                  variant={isSelected ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => handleAttributeSelect(attrKey, value)}
-                                  disabled={!isAvailable}
-                                  className={`min-w-[70px] transition-all ${
-                                    isSelected 
-                                      ? "bg-primary shadow-lg scale-105" 
-                                      : "hover:scale-105 hover:border-primary"
-                                  } ${!isAvailable && "opacity-40 cursor-not-allowed"}`}
-                                >
-                                  {value}
-                                  {isSelected && <Check className="ml-1 w-3 h-3" />}
-                                </Button>
-                              );
-                            })}
+              {product.has_variations &&
+                product.variations &&
+                product.variations.length > 0 &&
+                attributeKeys.length > 0 && (
+                  <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                    <CardContent className="p-4 space-y-4">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-blue-900">
+                        <Package className="w-4 h-4" />
+                        <span>Product Options</span>
+                      </div>
+                      {attributeKeys.map((attrKey) => {
+                        const uniqueValues = getAvailableAttributeValues(attrKey);
+
+                        return (
+                          <div key={attrKey}>
+                            <p className="text-sm font-medium mb-2 text-gray-700">
+                              Select {attrKey}:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {uniqueValues.map((value) => {
+                                const isAvailable = isAttributeCombinationAvailable(attrKey, value);
+                                const isSelected = selectedAttributes[attrKey] === value;
+
+                                return (
+                                  <Button
+                                    key={value}
+                                    variant={isSelected ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => handleAttributeSelect(attrKey, value)}
+                                    disabled={!isAvailable}
+                                    className={`min-w-[70px] transition-all ${
+                                      isSelected
+                                        ? "bg-primary shadow-lg scale-105"
+                                        : "hover:scale-105 hover:border-primary"
+                                    } ${!isAvailable && "opacity-40 cursor-not-allowed"}`}
+                                  >
+                                    {value}
+                                    {isSelected && <Check className="ml-1 w-3 h-3" />}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {selectedVariant && (
+                        <div className="pt-3 border-t border-blue-200">
+                          <div className="flex items-center justify-between text-xs text-blue-900">
+                            <span>Selected: {currentSku}</span>
+                            <span className="font-semibold">{currentStock} in stock</span>
                           </div>
                         </div>
-                      );
-                    })}
-                    
-                    {selectedVariant && (
-                      <div className="pt-3 border-t border-blue-200">
-                        <div className="flex items-center justify-between text-xs text-blue-900">
-                          <span>Selected: {currentSku}</span>
-                          <span className="font-semibold">{currentStock} in stock</span>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* Quantity */}
               <div>
                 <p className="text-sm font-medium mb-2">
-                  Quantity (Min: {product.minimum_order_quantity}, Max: {product.maximum_order_quantity})
+                  Quantity (Min: {product.minimum_order_quantity}, Max:{" "}
+                  {product.maximum_order_quantity})
                 </p>
                 <div className="flex items-center space-x-3">
                   <Button
@@ -758,32 +817,40 @@ const ProductDetailNew = () => {
                   size="lg"
                   className="shadow-md hover:shadow-lg transition-all hover:scale-110"
                 >
-                  <Heart className={`h-5 w-5 transition-all ${inWishlist ? "fill-current animate-pulse" : ""}`} />
+                  <Heart
+                    className={`h-5 w-5 transition-all ${inWishlist ? "fill-current animate-pulse" : ""}`}
+                  />
                 </Button>
               </div>
 
               {/* Stock Locations */}
-              {product.inventory.stock_by_location && product.inventory.stock_by_location.length > 0 && (
-                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="h-4 w-4 text-purple-600" />
-                      <p className="text-sm font-semibold text-purple-900">Available at Locations</p>
-                    </div>
-                    <div className="space-y-2">
-                      {product.inventory.stock_by_location.map(loc => (
-                        <div key={loc.shop_id} className="flex justify-between text-sm bg-white/50 rounded p-2">
-                          <span className="font-medium">{loc.shop_name}</span>
-                          <span className="text-purple-700 font-bold">
-                            {loc.quantity} units
-                            {loc.reserved > 0 && ` (${loc.reserved} reserved)`}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {product.inventory.stock_by_location &&
+                product.inventory.stock_by_location.length > 0 && (
+                  <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="h-4 w-4 text-purple-600" />
+                        <p className="text-sm font-semibold text-purple-900">
+                          Available at Locations
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        {product.inventory.stock_by_location.map((loc) => (
+                          <div
+                            key={loc.shop_id}
+                            className="flex justify-between text-sm bg-white/50 rounded p-2"
+                          >
+                            <span className="font-medium">{loc.shop_name}</span>
+                            <span className="text-purple-700 font-bold">
+                              {loc.quantity} units
+                              {loc.reserved > 0 && ` (${loc.reserved} reserved)`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* Shipping Info */}
               {/* <Card className="bg-gradient-to-br from-green-50 to-teal-50 border-green-200">
@@ -870,7 +937,7 @@ const ProductDetailNew = () => {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Product Details</h3>
                   <div dangerouslySetInnerHTML={{ __html: product.description }} />
-                  
+
                   {product.short_description && (
                     <div className="mt-4">
                       <h4 className="font-medium mb-2">Summary</h4>
@@ -885,7 +952,7 @@ const ProductDetailNew = () => {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Specifications</h3>
-                  
+
                   <div className="grid gap-4">
                     <div className="grid grid-cols-2 gap-4 pb-3 border-b">
                       <span className="font-medium">Brand</span>
@@ -901,22 +968,25 @@ const ProductDetailNew = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4 pb-3 border-b">
                       <span className="font-medium">Weight</span>
-                      <span>{product.shipping.weight} {product.shipping.weight_unit}</span>
+                      <span>
+                        {product.shipping.weight} {product.shipping.weight_unit}
+                      </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4 pb-3 border-b">
                       <span className="font-medium">Dimensions</span>
                       <span>
-                        {product.shipping.dimensions.length} × {product.shipping.dimensions.width} × {product.shipping.dimensions.height} {product.shipping.dimensions.unit}
+                        {product.shipping.dimensions.length} × {product.shipping.dimensions.width} ×{" "}
+                        {product.shipping.dimensions.height} {product.shipping.dimensions.unit}
                       </span>
                     </div>
-                    {product.specifications && product.specifications.length > 0 && (
+                    {product.specifications &&
+                      product.specifications.length > 0 &&
                       product.specifications.map((spec: any, idx: number) => (
                         <div key={idx} className="grid grid-cols-2 gap-4 pb-3 border-b">
                           <span className="font-medium">{spec.name || spec.key}</span>
                           <span>{spec.value}</span>
                         </div>
-                      ))
-                    )}
+                      ))}
                   </div>
                 </CardContent>
               </Card>
@@ -948,10 +1018,13 @@ const ProductDetailNew = () => {
                     </div>
 
                     <div className="space-y-2">
-                      {[5, 4, 3, 2, 1].map(rating => {
-                        const count = product.reviews.rating_distribution[`${rating}_star` as keyof typeof product.reviews.rating_distribution];
+                      {[5, 4, 3, 2, 1].map((rating) => {
+                        const count =
+                          product.reviews.rating_distribution[
+                            `${rating}_star` as keyof typeof product.reviews.rating_distribution
+                          ];
                         const percentage = (count / product.reviews.review_count) * 100;
-                        
+
                         return (
                           <div key={rating} className="flex items-center gap-2">
                             <span className="text-sm w-8">{rating}★</span>
@@ -994,11 +1067,13 @@ const ProductDetailNew = () => {
                     <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
                     <div className="space-y-3 text-sm">
                       <p>
-                        <strong>Delivery Time:</strong> {product.shipping.estimated_delivery.min_days}-
+                        <strong>Delivery Time:</strong>{" "}
+                        {product.shipping.estimated_delivery.min_days}-
                         {product.shipping.estimated_delivery.max_days} business days
                       </p>
                       <p>
-                        <strong>Ships From:</strong> {product.shipping.ships_from.city}, {product.shipping.ships_from.country}
+                        <strong>Ships From:</strong> {product.shipping.ships_from.city},{" "}
+                        {product.shipping.ships_from.country}
                       </p>
                       <p>
                         <strong>Shipping Class:</strong> {product.shipping.shipping_class}
@@ -1007,7 +1082,9 @@ const ProductDetailNew = () => {
                         <p className="text-green-600 font-medium">✓ Free Shipping Available</p>
                       )}
                       {product.shipping.estimated_delivery.express_available && (
-                        <p className="text-blue-600">Express shipping available for faster delivery</p>
+                        <p className="text-blue-600">
+                          Express shipping available for faster delivery
+                        </p>
                       )}
                     </div>
                   </div>
@@ -1020,7 +1097,8 @@ const ProductDetailNew = () => {
                       {product.return_policy.returnable ? (
                         <>
                           <p>
-                            <strong>Return Window:</strong> {product.return_policy.return_window_days} days from delivery
+                            <strong>Return Window:</strong>{" "}
+                            {product.return_policy.return_window_days} days from delivery
                           </p>
                           <p>
                             <strong>Conditions:</strong> {product.return_policy.conditions}
@@ -1039,7 +1117,8 @@ const ProductDetailNew = () => {
                         <h3 className="text-lg font-semibold mb-4">Warranty</h3>
                         <div className="space-y-2 text-sm">
                           <p>
-                            <strong>Duration:</strong> {product.warranty.duration} {product.warranty.duration_unit}
+                            <strong>Duration:</strong> {product.warranty.duration}{" "}
+                            {product.warranty.duration_unit}
                           </p>
                           <p>
                             <strong>Type:</strong> {product.warranty.type}
@@ -1066,28 +1145,35 @@ const ProductDetailNew = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {similarProducts.map((similarProduct: any) => {
                   // Similar products API returns a different structure than single product API
-                  const finalPrice = similarProduct.sell_price?.price || similarProduct.original_price || 0;
+                  const finalPrice =
+                    similarProduct.sell_price?.price || similarProduct.original_price || 0;
                   const regularPrice = similarProduct.original_price || finalPrice;
                   const hasDiscount = regularPrice > finalPrice;
-                  
+
                   // Parse discount from string format (e.g., "10%")
                   let discountPercent = 0;
-                  if (similarProduct.discount_percent && typeof similarProduct.discount_percent === 'string') {
-                    discountPercent = parseInt(similarProduct.discount_percent.replace('%', '')) || 0;
+                  if (
+                    similarProduct.discount_percent &&
+                    typeof similarProduct.discount_percent === "string"
+                  ) {
+                    discountPercent =
+                      parseInt(similarProduct.discount_percent.replace("%", "")) || 0;
                   }
-                  
+
                   const transformedProduct = {
                     id: similarProduct.id.toString(),
-                    name: similarProduct.name || 'Unnamed Product',
-                    slug: similarProduct.slug || '',
+                    name: similarProduct.name || "Unnamed Product",
+                    slug: similarProduct.slug || "",
                     price: finalPrice,
                     originalPrice: hasDiscount ? regularPrice : undefined,
-                    description: similarProduct.description || '',
-                    category: similarProduct.category?.slug || '',
+                    description: similarProduct.description || "",
+                    category: similarProduct.category?.slug || "",
                     subcategory: similarProduct.sub_category?.slug,
-                    images: similarProduct.primary_photo 
+                    images: similarProduct.primary_photo
                       ? [similarProduct.primary_photo]
-                      : (similarProduct.brand?.logo ? [similarProduct.brand.logo] : []),
+                      : similarProduct.brand?.logo
+                        ? [similarProduct.brand.logo]
+                        : [],
                     inStock: similarProduct.stock > 0 && similarProduct.status === "Active",
                     rating: 4.5, // Similar products API doesn't include full review data
                     reviewCount: 0,
@@ -1096,29 +1182,25 @@ const ProductDetailNew = () => {
                     isNew: similarProduct.isNew === 1,
                     discount: discountPercent > 0 ? discountPercent : undefined,
                   };
-                  
-                  return (
-                    <ProductCard 
-                      key={similarProduct.id} 
-                      product={transformedProduct} 
-                    />
-                  );
+
+                  return <ProductCard key={similarProduct.id} product={transformedProduct} />;
                 })}
               </div>
             </div>
           )}
-          
+
           {/* Legacy Related Products Section - Keep for compatibility */}
           {product.related_products && (
             <div className="space-y-8 mt-12">
-              {product.related_products.frequently_bought_together && product.related_products.frequently_bought_together.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">Frequently Bought Together</h2>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Product IDs: {product.related_products.frequently_bought_together.join(", ")}
-                  </p>
-                </div>
-              )}
+              {product.related_products.frequently_bought_together &&
+                product.related_products.frequently_bought_together.length > 0 && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6">Frequently Bought Together</h2>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Product IDs: {product.related_products.frequently_bought_together.join(", ")}
+                    </p>
+                  </div>
+                )}
             </div>
           )}
         </main>
@@ -1127,7 +1209,7 @@ const ProductDetailNew = () => {
 
         {/* Price Drop Notification */}
         {product && (
-          <PriceDropNotification 
+          <PriceDropNotification
             product={{
               id: product.id,
               name: product.name,
@@ -1144,45 +1226,47 @@ const ProductDetailNew = () => {
             </DialogHeader>
             <div className="flex-1 overflow-y-auto pr-2">
               <div className="space-y-3">
-                {product && product.bulk_pricing.map((tier, idx) => (
-                  <Card 
-                    key={idx}
-                    className={`cursor-pointer transition-all hover:shadow-md hover:border-blue-400 ${
-                      selectedBulkPrice === tier.price ? 'border-blue-600 bg-blue-50' : ''
-                    }`}
-                    onClick={() => handleBulkPricingSelect(tier.price)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Tag className="h-4 w-4 text-blue-600" />
-                            <span className="font-semibold text-gray-900">
-                              {tier.min_quantity}
-                              {tier.max_quantity && ` - ${tier.max_quantity}`}
-                              {!tier.max_quantity && '+'} units
-                            </span>
+                {product &&
+                  product.bulk_pricing.map((tier, idx) => (
+                    <Card
+                      key={idx}
+                      className={`cursor-pointer transition-all hover:shadow-md hover:border-blue-400 ${
+                        selectedBulkPrice === tier.price ? "border-blue-600 bg-blue-50" : ""
+                      }`}
+                      onClick={() => handleBulkPricingSelect(tier.price)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Tag className="h-4 w-4 text-blue-600" />
+                              <span className="font-semibold text-gray-900">
+                                {tier.min_quantity}
+                                {tier.max_quantity && ` - ${tier.max_quantity}`}
+                                {!tier.max_quantity && "+"} units
+                              </span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              Minimum quantity: {tier.min_quantity}
+                              {tier.max_quantity && ` | Maximum: ${tier.max_quantity}`}
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            Minimum quantity: {tier.min_quantity}
-                            {tier.max_quantity && ` | Maximum: ${tier.max_quantity}`}
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-blue-600">
+                              {product.pricing.currency_symbol}
+                              {tier.price.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-muted-foreground">per unit</div>
+                            {tier.discount_percentage && (
+                              <Badge variant="destructive" className="mt-1">
+                                {tier.discount_percentage.toFixed(1)}% OFF
+                              </Badge>
+                            )}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-600">
-                            {product.pricing.currency_symbol}{tier.price.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-muted-foreground">per unit</div>
-                          {tier.discount_percentage && (
-                            <Badge variant="destructive" className="mt-1">
-                              {tier.discount_percentage.toFixed(1)}% OFF
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
               </div>
             </div>
             <div className="pt-4 border-t">
@@ -1198,4 +1282,3 @@ const ProductDetailNew = () => {
 };
 
 export default ProductDetailNew;
-

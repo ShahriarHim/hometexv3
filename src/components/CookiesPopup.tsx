@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import styles from '@/styles/CookiesPopup.module.css';
+import React, { useState, useEffect, startTransition } from "react";
+import styles from "@/styles/CookiesPopup.module.css";
 
 interface CookiePreferences {
   necessary: boolean;
@@ -25,12 +25,16 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
   const [preferences, setPreferences] = useState<CookiePreferences>(defaultPreferences);
 
   useEffect(() => {
-    const savedPreferences = localStorage.getItem('cookiePreferences');
+    const savedPreferences = localStorage.getItem("cookiePreferences");
     if (savedPreferences) {
       try {
-        setPreferences(JSON.parse(savedPreferences));
+        const parsed = JSON.parse(savedPreferences);
+        // Use startTransition to avoid synchronous setState in effect
+        startTransition(() => {
+          setPreferences(parsed);
+        });
       } catch (error) {
-        console.error('Failed to parse cookie preferences:', error);
+        console.error("Failed to parse cookie preferences:", error);
       }
     }
   }, []);
@@ -38,9 +42,9 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
   const handleToggle = (type: keyof CookiePreferences) => {
     setPreferences((prev) => {
       // "Necessary" is always true, so skip toggling it
-      if (type === 'necessary') return prev;
+      if (type === "necessary") return prev;
       const newPreferences = { ...prev, [type]: !prev[type] };
-      localStorage.setItem('cookiePreferences', JSON.stringify(newPreferences));
+      localStorage.setItem("cookiePreferences", JSON.stringify(newPreferences));
       return newPreferences;
     });
   };
@@ -53,12 +57,12 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
       marketing: true,
     };
     setPreferences(allAccepted);
-    localStorage.setItem('cookiePreferences', JSON.stringify(allAccepted));
+    localStorage.setItem("cookiePreferences", JSON.stringify(allAccepted));
     onClose();
   };
 
   const handleAllowSelection = () => {
-    localStorage.setItem('cookiePreferences', JSON.stringify(preferences));
+    localStorage.setItem("cookiePreferences", JSON.stringify(preferences));
     onClose();
   };
 
@@ -70,7 +74,7 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
       marketing: false,
     };
     setPreferences(allDenied);
-    localStorage.setItem('cookiePreferences', JSON.stringify(allDenied));
+    localStorage.setItem("cookiePreferences", JSON.stringify(allDenied));
     onClose();
   };
 
@@ -79,13 +83,9 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
       <div className={styles.popup}>
         {/* Left section: Logo & short text */}
         <div className={styles.leftSection}>
-          <img
-            src="/images/hometex-logo.png"
-            alt="Cookie Logo"
-            className={styles.logo}
-          />
+          <img src="/images/hometex-logo.png" alt="Cookie Logo" className={styles.logo} />
           <p className={styles.description}>
-            We use cookies to enhance your shopping experience.{' '}
+            We use cookies to enhance your shopping experience.{" "}
             <a
               href="/privacy"
               target="_blank"
@@ -103,12 +103,7 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
             <label className={styles.toggleLabel}>
               Necessary
               <div className={styles.toggleSwitch}>
-                <input
-                  type="checkbox"
-                  checked={preferences.necessary}
-                  disabled
-                  readOnly
-                />
+                <input type="checkbox" checked={preferences.necessary} disabled readOnly />
                 <span className={`${styles.slider} ${styles.disabled}`}></span>
               </div>
             </label>
@@ -119,7 +114,7 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
                 <input
                   type="checkbox"
                   checked={preferences.preferences}
-                  onChange={() => handleToggle('preferences')}
+                  onChange={() => handleToggle("preferences")}
                 />
                 <span className={styles.slider}></span>
               </div>
@@ -131,7 +126,7 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
                 <input
                   type="checkbox"
                   checked={preferences.statistics}
-                  onChange={() => handleToggle('statistics')}
+                  onChange={() => handleToggle("statistics")}
                 />
                 <span className={styles.slider}></span>
               </div>
@@ -143,7 +138,7 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
                 <input
                   type="checkbox"
                   checked={preferences.marketing}
-                  onChange={() => handleToggle('marketing')}
+                  onChange={() => handleToggle("marketing")}
                 />
                 <span className={styles.slider}></span>
               </div>
@@ -181,4 +176,3 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
 };
 
 export default CookiesPopup;
-

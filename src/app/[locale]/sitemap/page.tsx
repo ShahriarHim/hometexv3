@@ -2,16 +2,16 @@ import Link from "next/link";
 import type { Route } from "next";
 import StaticPage from "@/views/StaticPage";
 
-const links: Array<{ label: string; href: Route }> = [
-  { label: "Home", href: "/" },
-  { label: "Shop", href: "/shop" },
-  { label: "Products", href: "/products" },
-  { label: "Corporate", href: "/corporate" },
-  { label: "Contact", href: "/contact" },
-  { label: "Gift Someone", href: "/gift-someone" },
-  { label: "FAQ", href: "/faq" },
-  { label: "Account", href: "/account" },
-  { label: "Cart", href: "/cart" },
+const links: Array<{ label: string; href: Route | string }> = [
+  { label: "Home", href: "/" as Route },
+  { label: "Shop", href: "/shop" as Route },
+  { label: "Products", href: "/products" as Route },
+  { label: "Corporate", href: "/corporate" as Route },
+  { label: "Contact", href: "/contact" as Route },
+  { label: "Gift Someone", href: "/gift-someone" as Route },
+  { label: "FAQ", href: "/faq" as Route },
+  { label: "Account", href: "/account" as Route },
+  { label: "Cart", href: "/cart" as Route },
 ];
 
 export default function SitemapPage() {
@@ -23,7 +23,7 @@ export default function SitemapPage() {
       <ul className="grid grid-cols-2 gap-3 text-foreground">
         {links.map((link) => (
           <li key={link.href}>
-            <Link href={link.href} className="hover:text-primary transition-colors">
+            <Link href={link.href as any} className="hover:text-primary transition-colors">
               {link.label}
             </Link>
           </li>
@@ -32,4 +32,3 @@ export default function SitemapPage() {
     </StaticPage>
   );
 }
-

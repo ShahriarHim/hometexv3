@@ -1,9 +1,9 @@
 // API Integration utilities
-// TODO: Replace these placeholder functions with actual API calls
+import { env } from "./env";
 
 // Helper function to get the auth token
 export const getAuthToken = (): string | null => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     return localStorage.getItem("hometex-auth-token");
   }
   return null;
@@ -16,11 +16,11 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
     ...options.headers,
     "Content-Type": "application/json",
   };
-  
+
   if (token) {
     Object.assign(headers, { Authorization: `Bearer ${token}` });
   }
-  
+
   return fetch(url, {
     ...options,
     headers,
@@ -33,36 +33,36 @@ export const fetchWithFallback = async (
   productionBaseUrl: string,
   options: RequestInit = {}
 ) => {
-  const localhostUrl = `http://localhost:8000${endpoint}`;
+  const localhostUrl = `${env.apiLocalUrl}${endpoint}`;
   const productionUrl = `${productionBaseUrl}${endpoint}`;
-  
+
   try {
     // Try localhost first with a short timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-    
+
     const localResponse = await authenticatedFetch(localhostUrl, {
       ...options,
       signal: controller.signal,
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     // If localhost responds successfully, use it
     if (localResponse.ok) {
       return localResponse;
     }
-    
+
     // If localhost returns an error status, still try production
     // (fall through to production)
   } catch (error: any) {
     // Network error, timeout, or CORS issue - try production
-    if (error.name !== 'AbortError') {
+    if (error.name !== "AbortError") {
       // Only log non-timeout errors
-      console.debug('Localhost request failed, trying production:', error.message);
+      console.debug("Localhost request failed, trying production:", error.message);
     }
   }
-  
+
   // Fallback to production
   return authenticatedFetch(productionUrl, options);
 };
@@ -73,36 +73,36 @@ export const fetchPublicWithFallback = async (
   productionBaseUrl: string,
   options: RequestInit = {}
 ) => {
-  const localhostUrl = `http://localhost:8000${endpoint}`;
+  const localhostUrl = `${env.apiLocalUrl}${endpoint}`;
   const productionUrl = `${productionBaseUrl}${endpoint}`;
-  
+
   try {
     // Try localhost first with a short timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-    
+
     const localResponse = await fetch(localhostUrl, {
       ...options,
       signal: controller.signal,
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     // If localhost responds successfully, use it
     if (localResponse.ok) {
       return localResponse;
     }
-    
+
     // If localhost returns an error status, still try production
     // (fall through to production)
   } catch (error: any) {
     // Network error, timeout, or CORS issue - try production
-    if (error.name !== 'AbortError') {
+    if (error.name !== "AbortError") {
       // Only log non-timeout errors
-      console.debug('Localhost request failed, trying production:', error.message);
+      console.debug("Localhost request failed, trying production:", error.message);
     }
   }
-  
+
   // Fallback to production
   return fetch(productionUrl, options);
 };
@@ -506,22 +506,18 @@ export const api = {
   // Hero Banners
   heroBanners: {
     getAll: async (): Promise<HeroBannersResponse> => {
-      const response = await fetchPublicWithFallback(
-        "/api/hero-banners",
-        "https://www.hometexbd.ltd",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store", // Disable caching to get fresh data
-        }
-      );
-      
+      const response = await fetchPublicWithFallback("/api/hero-banners", env.apiBaseUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store", // Disable caching to get fresh data
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to fetch hero banners: ${response.statusText}`);
       }
-      
+
       return response.json();
     },
   },
@@ -529,22 +525,18 @@ export const api = {
   // Menu/Categories
   menu: {
     getAll: async (): Promise<MenuResponse> => {
-      const response = await fetchPublicWithFallback(
-        "/api/product/menu",
-        "https://www.hometexbd.ltd",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store", // Disable caching to get fresh data
-        }
-      );
-      
+      const response = await fetchPublicWithFallback("/api/product/menu", env.apiBaseUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store", // Disable caching to get fresh data
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to fetch menu: ${response.statusText}`);
       }
-      
+
       return response.json();
     },
   },
@@ -552,49 +544,41 @@ export const api = {
   // User Profile
   profile: {
     getMyProfile: async (): Promise<ProfileResponse> => {
-      const response = await fetchWithFallback(
-        "/api/my-profile",
-        "https://www.hometexbd.ltd",
-        {
-          method: "GET",
-          headers: {
-            "Accept": "application/json",
-          },
-        }
-      );
-      
+      const response = await fetchWithFallback("/api/my-profile", env.apiBaseUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch profile");
       }
-      
+
       return response.json();
     },
-    
+
     updateProfile: async (profileData: {
       first_name?: string;
       last_name?: string;
       phone?: string;
       address?: string;
     }): Promise<ProfileResponse> => {
-      const response = await fetchWithFallback(
-        "/api/update-profile",
-        "https://www.hometexbd.ltd",
-        {
-          method: "POST",
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(profileData),
-        }
-      );
-      
+      const response = await fetchWithFallback("/api/update-profile", env.apiBaseUrl, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(profileData),
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update profile");
       }
-      
+
       return response.json();
     },
   },
@@ -602,30 +586,26 @@ export const api = {
   // Authentication
   auth: {
     login: async (email: string, password: string): Promise<LoginResponse> => {
-      const response = await fetchPublicWithFallback(
-        "/api/customer-login",
-        "https://www.hometexbd.ltd",
-        {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ 
-            email, 
-            password, 
-            user_type: 3 
-          }),
-        }
-      );
-      
+      const response = await fetchPublicWithFallback("/api/customer-login", env.apiBaseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          user_type: 3,
+        }),
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Login failed");
       }
-      
+
       return response.json();
     },
-    
+
     signup: async (signupData: {
       first_name: string;
       last_name: string;
@@ -634,41 +614,33 @@ export const api = {
       password: string;
       conf_password: string;
     }): Promise<SignupResponse> => {
-      const response = await fetchPublicWithFallback(
-        "/api/customer-signup",
-        "https://www.hometexbd.ltd",
-        {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify(signupData),
-        }
-      );
-      
+      const response = await fetchPublicWithFallback("/api/customer-signup", env.apiBaseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(signupData),
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Signup failed");
       }
-      
+
       return response.json();
     },
-    
+
     logout: async () => {
-      const response = await fetchWithFallback(
-        "/api/customer-logout",
-        "https://www.hometexbd.ltd",
-        {
-          method: "POST",
-        }
-      );
-      
+      const response = await fetchWithFallback("/api/customer-logout", env.apiBaseUrl, {
+        method: "POST",
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Logout failed");
       }
-      
+
       return response.json();
     },
   },
@@ -684,7 +656,7 @@ export const api = {
       });
       return response.json();
     },
-    
+
     getAll: async () => {
       const token = getAuthToken();
       if (!token) {
@@ -705,7 +677,7 @@ export const api = {
         );
 
         const data = await response.json();
-        
+
         if (data.success) {
           return {
             success: true,
@@ -727,13 +699,13 @@ export const api = {
         };
       }
     },
-    
+
     getById: async (orderId: string) => {
       // TODO: Replace with actual API endpoint
       const response = await fetch(`/api/orders/${orderId}`);
       return response.json();
     },
-    
+
     updateStatus: async (orderId: string, status: string) => {
       // TODO: Replace with actual API endpoint
       const response = await fetch(`/api/orders/${orderId}/status`, {
@@ -756,7 +728,7 @@ export const api = {
       });
       return response.json();
     },
-    
+
     verify: async (transactionId: string) => {
       // TODO: Replace with actual SSL Commerz verification endpoint
       const response = await fetch(`/api/payment/verify/${transactionId}`);
@@ -773,38 +745,34 @@ export const api = {
       sort?: string;
     }) => {
       const queryParams = new URLSearchParams();
-      if (params?.page) queryParams.append('page', params.page.toString());
-      if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
-      if (params?.category) queryParams.append('category', params.category);
-      if (params?.sort) queryParams.append('sort', params.sort);
-      
-      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.per_page) queryParams.append("per_page", params.per_page.toString());
+      if (params?.category) queryParams.append("category", params.category);
+      if (params?.sort) queryParams.append("sort", params.sort);
+
+      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
       const endpoint = `/api/products${queryString}`;
-      
-      const response = await fetchPublicWithFallback(
-        endpoint,
-        "https://www.hometexbd.ltd",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          cache: "no-store",
-        }
-      );
-      
+
+      const response = await fetchPublicWithFallback(endpoint, env.apiBaseUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to fetch products: ${response.statusText}`);
       }
-      
+
       return response.json();
     },
-    
+
     getById: async (productId: string): Promise<ProductResponse> => {
       try {
         const response = await fetchPublicWithFallback(
           `/api/products/${productId}`,
-          "https://www.hometexbd.ltd",
+          env.apiBaseUrl,
           {
             method: "GET",
             headers: {
@@ -813,9 +781,9 @@ export const api = {
             cache: "no-store",
           }
         );
-        
+
         const data = await response.json();
-        
+
         // If the response is not ok but we got JSON, return it so we can access the error message
         if (!response.ok) {
           return {
@@ -824,7 +792,7 @@ export const api = {
             data: null as any,
           };
         }
-        
+
         return data;
       } catch (error) {
         // Network error or JSON parse error
@@ -835,18 +803,18 @@ export const api = {
         };
       }
     },
-    
+
     getReviews: async (productId: string) => {
       // TODO: Replace with actual API endpoint when available
       const response = await fetch(`/api/products/${productId}/reviews`);
       return response.json();
     },
-    
+
     getSimilar: async (productId: string): Promise<ProductsResponse> => {
       try {
         const response = await fetchPublicWithFallback(
           `/api/products/${productId}/similar`,
-          "https://www.hometexbd.ltd",
+          env.apiBaseUrl,
           {
             method: "GET",
             headers: {
@@ -855,9 +823,9 @@ export const api = {
             cache: "no-store",
           }
         );
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
           return {
             success: false,
@@ -865,7 +833,7 @@ export const api = {
             data: { products: [] },
           };
         }
-        
+
         return data;
       } catch (error) {
         return {
@@ -875,33 +843,29 @@ export const api = {
         };
       }
     },
-    
+
     getByIds: async (productIds: number[]): Promise<ProductsResponse> => {
       try {
         // Fetch multiple products by their IDs
-        const promises = productIds.map(id => 
-          fetchPublicWithFallback(
-            `/api/products/${id}`,
-            "https://www.hometexbd.ltd",
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              cache: "no-store",
-            }
-          )
+        const promises = productIds.map((id) =>
+          fetchPublicWithFallback(`/api/products/${id}`, env.apiBaseUrl, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            cache: "no-store",
+          })
         );
-        
+
         const responses = await Promise.all(promises);
-        const dataPromises = responses.map(r => r.json());
+        const dataPromises = responses.map((r) => r.json());
         const results = await Promise.all(dataPromises);
-        
+
         // Filter successful responses and extract product data
         const products = results
-          .filter(result => result.success && result.data)
-          .map(result => result.data);
-        
+          .filter((result) => result.success && result.data)
+          .map((result) => result.data);
+
         return {
           success: true,
           message: "Products retrieved successfully",
@@ -939,7 +903,7 @@ export const api = {
         );
 
         const data = await response.json();
-        
+
         if (data.success) {
           return {
             success: true,
@@ -985,7 +949,7 @@ export const api = {
         );
 
         const data = await response.json();
-        
+
         if (data.success) {
           return {
             success: true,
@@ -1016,7 +980,7 @@ export const api = {
       const response = await fetch(`/api/delivery/track/${trackingNumber}`);
       return response.json();
     },
-    
+
     updateLocation: async (trackingNumber: string, location: any) => {
       // TODO: Replace with actual API endpoint
       const response = await fetch(`/api/delivery/${trackingNumber}/location`, {
@@ -1133,7 +1097,7 @@ export const transformHeroBannerToSlide = (banner: HeroBannerItem) => {
         value: "",
       },
       accentPalette: {
-        left: sliderData.left.background_color 
+        left: sliderData.left.background_color
           ? generatePalette(sliderData.left.background_color)
           : [],
         right: sliderData.right.background_color
@@ -1177,7 +1141,7 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct) => {
   const finalPrice = pricing.final_price || pricing.regular_price || 0;
   const regularPrice = pricing.regular_price || finalPrice;
   const salePrice = pricing.sale_price;
-  
+
   // Calculate discount percentage
   let discountPercent = 0;
   if (pricing.discount && pricing.discount.is_active) {
@@ -1190,52 +1154,64 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct) => {
 
   // Strip HTML tags from description
   const stripHtml = (html: string) => {
-    if (!html) return '';
-    return html.replace(/<[^>]*>/g, '').trim();
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").trim();
   };
 
   // Extract unique colors and sizes from variations
-  const colors = apiProduct.has_variations && apiProduct.variations
-    ? Array.from(new Set(apiProduct.variations
-        .map(v => v.attributes?.Color)
-        .filter(Boolean))) as string[]
-    : [];
+  const colors =
+    apiProduct.has_variations && apiProduct.variations
+      ? (Array.from(
+          new Set(apiProduct.variations.map((v) => v.attributes?.Color).filter(Boolean))
+        ) as string[])
+      : [];
 
-  const sizes = apiProduct.has_variations && apiProduct.variations
-    ? Array.from(new Set(apiProduct.variations
-        .map(v => v.attributes?.Size)
-        .filter(Boolean))) as string[]
-    : [];
+  const sizes =
+    apiProduct.has_variations && apiProduct.variations
+      ? (Array.from(
+          new Set(apiProduct.variations.map((v) => v.attributes?.Size).filter(Boolean))
+        ) as string[])
+      : [];
 
   // Get images from media gallery, fallback to brand logo or empty array
-  const images = apiProduct.media?.gallery && apiProduct.media.gallery.length > 0
-    ? apiProduct.media.gallery.map((img: any) => img.url || img)
-    : apiProduct.brand?.logo
-    ? [apiProduct.brand.logo]
-    : [];
+  const images =
+    apiProduct.media?.gallery && apiProduct.media.gallery.length > 0
+      ? apiProduct.media.gallery.map((img: any) => img.url || img)
+      : apiProduct.brand?.logo
+        ? [apiProduct.brand.logo]
+        : [];
 
   // Extract features from specifications or attributes
   const features: string[] = [];
   if (apiProduct.specifications && Array.isArray(apiProduct.specifications)) {
     apiProduct.specifications.forEach((spec: any) => {
       if (spec.value) {
-        features.push(`${spec.name || spec.key || ''}: ${spec.value}`);
+        features.push(`${spec.name || spec.key || ""}: ${spec.value}`);
       }
     });
   }
 
   return {
     id: apiProduct.id.toString(),
-    name: apiProduct.name || 'Unnamed Product',
-    slug: apiProduct.slug || '',
+    name: apiProduct.name || "Unnamed Product",
+    slug: apiProduct.slug || "",
     price: finalPrice,
     originalPrice: regularPrice > finalPrice ? regularPrice : undefined,
-    description: stripHtml(apiProduct.description || apiProduct.short_description || ''),
-    category: apiProduct.category?.slug || apiProduct.category?.name?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized',
-    subcategory: apiProduct.sub_category?.slug || apiProduct.sub_category?.name?.toLowerCase().replace(/\s+/g, '-'),
-    childSubcategory: apiProduct.child_sub_category?.slug || apiProduct.child_sub_category?.name?.toLowerCase().replace(/\s+/g, '-'),
+    description: stripHtml(apiProduct.description || apiProduct.short_description || ""),
+    category:
+      apiProduct.category?.slug ||
+      apiProduct.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+      "uncategorized",
+    subcategory:
+      apiProduct.sub_category?.slug ||
+      apiProduct.sub_category?.name?.toLowerCase().replace(/\s+/g, "-"),
+    childSubcategory:
+      apiProduct.child_sub_category?.slug ||
+      apiProduct.child_sub_category?.name?.toLowerCase().replace(/\s+/g, "-"),
     images: images,
-    inStock: apiProduct.inventory?.stock_status === 'in_stock' && (apiProduct.inventory?.stock_quantity ?? 0) > 0,
+    inStock:
+      apiProduct.inventory?.stock_status === "in_stock" &&
+      (apiProduct.inventory?.stock_quantity ?? 0) > 0,
     rating: apiProduct.reviews?.average_rating || 4.5,
     reviewCount: apiProduct.reviews?.review_count || 0,
     material: apiProduct.brand?.name,

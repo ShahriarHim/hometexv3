@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
 import { toast } from "sonner";
 import { fetchPublicWithFallback, fetchWithFallback } from "@/lib/api";
+import { env } from "@/lib/env";
 
 interface User {
   id: string;
@@ -51,30 +52,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetchPublicWithFallback(
-        "/api/customer-login",
-        "https://www.hometexbd.ltd",
-        {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ 
-            email, 
-            password, 
-            user_type: 3 
-          }),
-        }
-      );
-      
+      const response = await fetchPublicWithFallback("/api/customer-login", env.apiBaseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          user_type: 3,
+        }),
+      });
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         // Handle validation errors with field-specific messages
-        if (data.error && typeof data.error === 'object') {
+        if (data.error && typeof data.error === "object") {
           const errorMessages: string[] = [];
           const fieldErrors: Record<string, string[]> = {};
-          
+
           // Extract all field errors
           Object.keys(data.error).forEach((field) => {
             const fieldErrorArray = data.error[field];
@@ -86,24 +83,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               });
             }
           });
-          
+
           // Throw error with field errors attached
           if (errorMessages.length > 0) {
-            const error: any = new Error(errorMessages.join(', '));
+            const error: any = new Error(errorMessages.join(", "));
             error.fieldErrors = fieldErrors;
             throw error;
           }
         }
-        
+
         // Fallback to generic error message
         const errorMessage = data.message || "Login failed";
         toast.error(errorMessage);
         throw new Error(errorMessage);
       }
-      
+
       // Extract token from response
       const token = data.success?.authorisation?.token || data.authorisation?.token;
-      
+
       // Create user object from response
       const loggedInUser = {
         id: data.customer?.id || data.user?.id || data.success?.id || "user-" + Date.now(),
@@ -111,15 +108,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: data.success?.name || data.customer?.name || data.user?.name || email.split("@")[0],
         token: token,
       };
-      
+
       setUser(loggedInUser);
       localStorage.setItem("hometex-user", JSON.stringify(loggedInUser));
-      
+
       // Store token separately for easy access
       if (token) {
         localStorage.setItem("hometex-auth-token", token);
       }
-      
+
       toast.success(data.success?.message || "Logged in successfully!");
     } catch (error) {
       // Error already shown via toast in the try block
@@ -129,27 +126,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (signupData: SignupData) => {
     try {
-      const response = await fetchPublicWithFallback(
-        "/api/customer-signup",
-        "https://www.hometexbd.ltd",
-        {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify(signupData),
-        }
-      );
-      
+      const response = await fetchPublicWithFallback("/api/customer-signup", env.apiBaseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(signupData),
+      });
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         // Handle validation errors with field-specific messages
-        if (data.error && typeof data.error === 'object') {
+        if (data.error && typeof data.error === "object") {
           const errorMessages: string[] = [];
           const fieldErrors: Record<string, string[]> = {};
-          
+
           // Extract all field errors
           Object.keys(data.error).forEach((field) => {
             const fieldErrorArray = data.error[field];
@@ -161,24 +154,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               });
             }
           });
-          
+
           // Throw error with field errors attached
           if (errorMessages.length > 0) {
-            const error: any = new Error(errorMessages.join(', '));
+            const error: any = new Error(errorMessages.join(", "));
             error.fieldErrors = fieldErrors;
             throw error;
           }
         }
-        
+
         // Fallback to generic error message
         const errorMessage = data.message || "Signup failed";
         toast.error(errorMessage);
         throw new Error(errorMessage);
       }
-      
+
       // Extract token from response
       const token = data.success?.authorisation?.token || data.authorisation?.token;
-      
+
       // Create user object from response
       const newUser = {
         id: data.customer?.id || data.success?.id || "user-" + Date.now(),
@@ -186,15 +179,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: data.success?.name || `${signupData.first_name} ${signupData.last_name}`,
         token: token,
       };
-      
+
       setUser(newUser);
       localStorage.setItem("hometex-user", JSON.stringify(newUser));
-      
+
       // Store token separately for easy access
       if (token) {
         localStorage.setItem("hometex-auth-token", token);
       }
-      
+
       toast.success(data.success?.message || "Account created successfully!");
     } catch (error) {
       // Error already shown via toast in the try block
@@ -205,13 +198,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const socialLogin = async (provider: "google" | "facebook") => {
     // TODO: Replace with actual OAuth flow
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    
+
     const mockUser = {
       id: "user-" + Date.now(),
       email: `user@${provider}.com`,
       name: `${provider} User`,
     };
-    
+
     setUser(mockUser);
     localStorage.setItem("hometex-user", JSON.stringify(mockUser));
     toast.success(`Logged in with ${provider}`);
@@ -220,17 +213,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       const token = localStorage.getItem("hometex-auth-token");
-      await fetchWithFallback(
-        "/api/customer-logout",
-        "https://www.hometexbd.ltd",
-        {
-          method: "POST",
-          headers: token ? {
-            "Authorization": `Bearer ${token}`
-          } : {},
-        }
-      );
-      
+      await fetchWithFallback("/api/customer-logout", env.apiBaseUrl, {
+        method: "POST",
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {},
+      });
+
       setUser(null);
       localStorage.removeItem("hometex-user");
       localStorage.removeItem("hometex-auth-token");

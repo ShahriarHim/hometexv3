@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp } from "lucide-react";
 import type { Product } from "@/types";
 import { fetchPublicWithFallback } from "@/lib/api";
+import { env } from "@/lib/env";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
@@ -58,11 +59,8 @@ export const TrendingProducts = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetchPublicWithFallback(
-          "/api/products/trending",
-          "https://www.hometexbd.ltd"
-        );
-        
+        const response = await fetchPublicWithFallback("/api/products/trending", env.apiBaseUrl);
+
         if (!response.ok) {
           throw new Error("Failed to fetch trending products");
         }
@@ -70,35 +68,31 @@ export const TrendingProducts = () => {
         const data: APIResponse = await response.json();
 
         if (data.success && data.data.products) {
-          const transformedProducts: Product[] = data.data.products.map(
-            (product) => {
-              const discountPercent = product.sell_price.discount || 0;
-              const originalPrice = product.original_price || product.sell_price.price;
-              const salePrice = product.sell_price.price;
+          const transformedProducts: Product[] = data.data.products.map((product) => {
+            const discountPercent = product.sell_price.discount || 0;
+            const originalPrice = product.original_price || product.sell_price.price;
+            const salePrice = product.sell_price.price;
 
-              return {
-                id: product.id.toString(),
-                name: product.name,
-                slug: product.slug,
-                price: salePrice,
-                originalPrice: discountPercent > 0 ? originalPrice : undefined,
-                description: "",
-                category: product.category?.slug || "general",
-                subcategory: product.sub_category?.slug,
-                childSubcategory: product.child_sub_category?.slug,
-                images: product.primary_photo
-                  ? [product.primary_photo]
-                  : ["/placeholder.svg"],
-                inStock: product.stock > 0,
-                rating: 4.0,
-                reviewCount: 5,
-                discount: discountPercent > 0 ? discountPercent : undefined,
-                isNew: false,
-                isFeatured: false,
-                stock: product.stock,
-              };
-            }
-          );
+            return {
+              id: product.id.toString(),
+              name: product.name,
+              slug: product.slug,
+              price: salePrice,
+              originalPrice: discountPercent > 0 ? originalPrice : undefined,
+              description: "",
+              category: product.category?.slug || "general",
+              subcategory: product.sub_category?.slug,
+              childSubcategory: product.child_sub_category?.slug,
+              images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
+              inStock: product.stock > 0,
+              rating: 4.0,
+              reviewCount: 5,
+              discount: discountPercent > 0 ? discountPercent : undefined,
+              isNew: false,
+              isFeatured: false,
+              stock: product.stock,
+            };
+          });
 
           setProducts(transformedProducts);
         }
@@ -204,6 +198,3 @@ export const TrendingProducts = () => {
     </section>
   );
 };
-
-
-

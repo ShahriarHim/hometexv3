@@ -45,16 +45,9 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div
-        className={cn(
-          "relative bg-card rounded-lg shadow-lg w-full",
-          sizeClasses[size],
-          className
-        )}
+        className={cn("relative bg-card rounded-lg shadow-lg w-full", sizeClasses[size], className)}
       >
         {title && (
           <div className="flex items-center justify-between p-6 border-b border-border">

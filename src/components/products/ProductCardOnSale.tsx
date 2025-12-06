@@ -19,7 +19,11 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
     <div className="text-sm border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden">
       <div className="relative overflow-hidden bg-gray-50 rounded-t-lg">
         {product?.images && product.images.length > 0 && (
-          <Link href={`/products/${product.category}/${product.subcategory || 'all'}/${product.id}`}>
+          <Link
+            href={
+              `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any
+            }
+          >
             <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center">
               <Image
                 src={product.images[0]}
@@ -60,11 +64,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
             href={"/deal"}
             className="absolute top-2 left-2 z-10 border-2 border-[#fb6c08] bg-white/95 backdrop-blur-sm p-2 rounded-full hover:bg-[#fb6c08]/10 transition-colors shadow-md"
           >
-            <Flame
-              size={20}
-              fill="#fb6c08"
-              className="text-[#fb6c08]"
-            />
+            <Flame size={20} fill="#fb6c08" className="text-[#fb6c08]" />
           </Link>
         )}
       </div>
@@ -74,11 +74,15 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
             {product.category}
           </p>
         )}
-        <Link 
-          href={`/products/${product.category}/${product.subcategory || 'all'}/${product.id}`}
+        <Link
+          href={
+            `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any
+          }
           className="hover:text-[#2d8659] transition-colors"
         >
-          <Title className="text-base line-clamp-2 font-bold text-gray-900 leading-snug">{product?.name}</Title>
+          <Title className="text-base line-clamp-2 font-bold text-gray-900 leading-snug">
+            {product?.name}
+          </Title>
         </Link>
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1">
@@ -93,9 +97,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
               />
             ))}
           </div>
-          <p className="text-gray-600 text-sm font-medium">
-            {product.reviewCount || 5} Reviews
-          </p>
+          <p className="text-gray-600 text-sm font-medium">{product.reviewCount || 5} Reviews</p>
         </div>
         <PriceView
           price={product?.price}
@@ -110,4 +112,3 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
 };
 
 export default ProductCardOnSale;
-

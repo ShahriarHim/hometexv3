@@ -25,7 +25,9 @@
   bottom: 5px;
   left: 44px;
   z-index: 2;
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  transition:
+    opacity 0.3s ease-in-out,
+    transform 0.3s ease-in-out;
   pointer-events: none;
 }
 
@@ -51,7 +53,9 @@
   background-color: #303f9f;
   color: #fff;
   cursor: pointer;
-  transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+  transition:
+    background-color 0.3s ease-in-out,
+    transform 0.2s ease-in-out;
   font-size: 0.875rem;
   font-weight: 500;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -111,7 +115,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -130,9 +135,8 @@
     padding: 0.4rem 0.8rem;
     max-width: calc(100vw - 60px);
   }
-  
+
   .container {
     left: 40px;
   }
 }
-

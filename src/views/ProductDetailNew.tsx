@@ -15,10 +15,24 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { MediaGallery } from "@/components/products/MediaGallery";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { 
-  ShoppingCart, Heart, Star, Truck, Shield, Package, 
-  ArrowLeft, Loader2, MapPin, Clock, Award, Check,
-  ChevronRight, AlertTriangle, Info, Tag, TrendingUp
+import {
+  ShoppingCart,
+  Heart,
+  Star,
+  Truck,
+  Shield,
+  Package,
+  ArrowLeft,
+  Loader2,
+  MapPin,
+  Clock,
+  Award,
+  Check,
+  ChevronRight,
+  AlertTriangle,
+  Info,
+  Tag,
+  TrendingUp,
 } from "lucide-react";
 import { api, type APIProduct } from "@/lib/api";
 import { trackEvent } from "@/lib/analytics";
@@ -49,14 +63,14 @@ const ProductDetailNew = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await api.products.getById(id);
-        
+
         if (response.success === false || !response.data) {
           setError(response.message || "Failed to load product");
           return;
         }
-        
+
         const productData = response.data;
         setProduct(productData);
 
@@ -67,7 +81,7 @@ const ProductDetailNew = () => {
           sku: productData.sku,
           name: productData.name,
           price: productData.pricing.final_price,
-          currency: productData.pricing.currency
+          currency: productData.pricing.currency,
         });
 
         // Fetch related products if IDs are available
@@ -78,9 +92,11 @@ const ProductDetailNew = () => {
       } catch (err) {
         console.error("Error fetching product:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load product";
-        setError(errorMessage.includes("500") 
-          ? "The server is temporarily unavailable. Please try again later." 
-          : "Failed to load product. Please check your connection.");
+        setError(
+          errorMessage.includes("500")
+            ? "The server is temporarily unavailable. Please try again later."
+            : "Failed to load product. Please check your connection."
+        );
       } finally {
         setLoading(false);
       }
@@ -128,20 +144,21 @@ const ProductDetailNew = () => {
   }
 
   // Get current variant or use product defaults
-  const currentVariant = selectedVariant !== null 
-    ? product.variations.find(v => v.id === selectedVariant)
-    : null;
+  const currentVariant =
+    selectedVariant !== null ? product.variations.find((v) => v.id === selectedVariant) : null;
 
   const currentPrice = currentVariant?.pricing.final_price ?? product.pricing.final_price;
-  const currentRegularPrice = currentVariant?.pricing.regular_price ?? product.pricing.regular_price;
+  const currentRegularPrice =
+    currentVariant?.pricing.regular_price ?? product.pricing.regular_price;
   const currentSalePrice = currentVariant?.pricing.sale_price ?? product.pricing.sale_price;
   const currentStock = currentVariant?.inventory.stock_quantity ?? product.inventory.stock_quantity;
-  const currentStockStatus = currentVariant?.inventory.stock_status ?? product.inventory.stock_status;
+  const currentStockStatus =
+    currentVariant?.inventory.stock_status ?? product.inventory.stock_status;
   const currentSku = currentVariant?.sku ?? product.sku;
 
   // Calculate price with/without tax
-  const taxAmount = product.pricing.tax.included 
-    ? 0 
+  const taxAmount = product.pricing.tax.included
+    ? 0
     : (currentPrice * product.pricing.tax.rate) / 100;
   const priceWithTax = currentPrice + taxAmount;
   const displayPrice = showTaxIncluded ? priceWithTax : currentPrice;
@@ -152,22 +169,19 @@ const ProductDetailNew = () => {
 
   // Stock availability
   const isInStock = currentStockStatus === "in_stock" && currentStock > 0;
-  const isLowStock = product.inventory.is_low_stock || currentStock <= product.inventory.low_stock_threshold;
+  const isLowStock =
+    product.inventory.is_low_stock || currentStock <= product.inventory.low_stock_threshold;
 
   // Extract unique attribute keys from variations
   const attributeKeys = Array.from(
-    new Set(
-      product.variations.flatMap(v => Object.keys(v.attributes || {}))
-    )
+    new Set(product.variations.flatMap((v) => Object.keys(v.attributes || {})))
   );
 
   // Get available values for each attribute
   const getAvailableAttributeValues = (attrKey: string) => {
     return Array.from(
       new Set(
-        product.variations
-          .filter(v => v.attributes[attrKey])
-          .map(v => v.attributes[attrKey])
+        product.variations.filter((v) => v.attributes[attrKey]).map((v) => v.attributes[attrKey])
       )
     );
   };
@@ -175,10 +189,8 @@ const ProductDetailNew = () => {
   // Check if a specific combination is available
   const isAttributeCombinationAvailable = (attrKey: string, value: string) => {
     const testAttributes = { ...selectedAttributes, [attrKey]: value };
-    return product.variations.some(v => {
-      const match = Object.entries(testAttributes).every(
-        ([k, val]) => v.attributes[k] === val
-      );
+    return product.variations.some((v) => {
+      const match = Object.entries(testAttributes).every(([k, val]) => v.attributes[k] === val);
       return match && v.inventory.stock_status === "in_stock" && v.inventory.stock_quantity > 0;
     });
   };
@@ -189,7 +201,7 @@ const ProductDetailNew = () => {
     setSelectedAttributes(newAttributes);
 
     // Find matching variant
-    const matchingVariant = product.variations.find(v =>
+    const matchingVariant = product.variations.find((v) =>
       Object.entries(newAttributes).every(([k, val]) => v.attributes[k] === val)
     );
 
@@ -199,7 +211,7 @@ const ProductDetailNew = () => {
         event: "variant_select",
         product_id: product.id.toString(),
         variant_id: matchingVariant.id,
-        attributes: newAttributes
+        attributes: newAttributes,
       });
     }
   };
@@ -208,32 +220,44 @@ const ProductDetailNew = () => {
   const handleQuantityChange = (newQuantity: number) => {
     const min = product.minimum_order_quantity;
     const max = product.maximum_order_quantity;
-    
+
     if (newQuantity < min) {
       toast.error(`Minimum order quantity is ${min}`);
-      trackEvent({ event: "quantity_error", product_id: product.id.toString(), message: `Below minimum: ${min}` });
+      trackEvent({
+        event: "quantity_error",
+        product_id: product.id.toString(),
+        message: `Below minimum: ${min}`,
+      });
       return;
     }
-    
+
     if (newQuantity > max) {
       toast.error(`Maximum order quantity is ${max}`);
-      trackEvent({ event: "quantity_error", product_id: product.id.toString(), message: `Above maximum: ${max}` });
+      trackEvent({
+        event: "quantity_error",
+        product_id: product.id.toString(),
+        message: `Above maximum: ${max}`,
+      });
       return;
     }
-    
+
     if (newQuantity > currentStock) {
       toast.error(`Only ${currentStock} items available`);
-      trackEvent({ event: "stock_error", product_id: product.id.toString(), message: `Insufficient stock: ${currentStock}` });
+      trackEvent({
+        event: "stock_error",
+        product_id: product.id.toString(),
+        message: `Insufficient stock: ${currentStock}`,
+      });
       return;
     }
-    
+
     setQuantity(newQuantity);
   };
 
   // Get bulk pricing for current quantity
   const getBulkPrice = () => {
     const tier = product.bulk_pricing.find(
-      bp => quantity >= bp.min_quantity && (!bp.max_quantity || quantity <= bp.max_quantity)
+      (bp) => quantity >= bp.min_quantity && (!bp.max_quantity || quantity <= bp.max_quantity)
     );
     return tier;
   };
@@ -273,14 +297,14 @@ const ProductDetailNew = () => {
     };
 
     addToCart(cartProduct as any, quantity, selectedAttributes.Color, selectedAttributes.Size);
-    
+
     trackEvent({
       event: "add_to_cart",
       product_id: product.id.toString(),
       variant_id: selectedVariant || undefined,
       sku: currentSku,
       price: effectivePrice,
-      quantity
+      quantity,
     });
 
     toast.success("Added to cart");
@@ -319,7 +343,7 @@ const ProductDetailNew = () => {
       product_id: product.id.toString(),
       variant_id: selectedVariant || undefined,
       price: effectivePrice,
-      quantity
+      quantity,
     });
     // Redirect to checkout
     window.location.href = "/checkout";
@@ -330,29 +354,30 @@ const ProductDetailNew = () => {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
-    description: product.description.replace(/<[^>]*>/g, ''),
+    description: product.description.replace(/<[^>]*>/g, ""),
     sku: product.sku,
     brand: {
       "@type": "Brand",
       name: product.brand.name,
-      logo: product.brand.logo
+      logo: product.brand.logo,
     },
-    offers: product.variations.map(v => ({
+    offers: product.variations.map((v) => ({
       "@type": "Offer",
       price: v.pricing.final_price,
       priceCurrency: product.pricing.currency,
-      availability: v.inventory.stock_status === "in_stock" 
-        ? "https://schema.org/InStock" 
-        : "https://schema.org/OutOfStock",
-      url: `${typeof window !== 'undefined' ? window.location.origin : ''}/product/${product.id}`,
-      sku: v.sku
+      availability:
+        v.inventory.stock_status === "in_stock"
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      url: `${typeof window !== "undefined" ? window.location.origin : ""}/product/${product.id}`,
+      sku: v.sku,
     })),
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: product.reviews.average_rating,
-      reviewCount: product.reviews.review_count
+      reviewCount: product.reviews.review_count,
     },
-    image: product.media.gallery?.map((g: any) => g.url || g) || [product.seo.og_image]
+    image: product.media.gallery?.map((g: any) => g.url || g) || [product.seo.og_image],
   };
 
   return (
@@ -360,21 +385,21 @@ const ProductDetailNew = () => {
       <Head>
         <title>{product.seo.meta_title || product.name}</title>
         <meta name="description" content={product.seo.meta_description} />
-        <meta name="keywords" content={product.seo.meta_keywords.join(', ')} />
+        <meta name="keywords" content={product.seo.meta_keywords.join(", ")} />
         {product.seo.canonical_url && <link rel="canonical" href={product.seo.canonical_url} />}
-        
+
         {/* OpenGraph */}
         <meta property="og:title" content={product.seo.og_title} />
         <meta property="og:description" content={product.seo.og_description} />
         <meta property="og:image" content={product.seo.og_image} />
         <meta property="og:type" content="product" />
-        
+
         {/* Twitter Card */}
         <meta name="twitter:card" content={product.seo.twitter_card} />
         <meta name="twitter:title" content={product.seo.og_title} />
         <meta name="twitter:description" content={product.seo.og_description} />
         <meta name="twitter:image" content={product.seo.og_image} />
-        
+
         {/* JSON-LD */}
         <script
           type="application/ld+json"
@@ -384,16 +409,21 @@ const ProductDetailNew = () => {
 
       <div className="min-h-screen flex flex-col">
         <Header />
-        
+
         <main className="flex-1 container mx-auto px-4 py-6">
           {/* Breadcrumb */}
-          <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-foreground">Home</Link>
+          <nav
+            className="flex items-center space-x-2 text-sm text-muted-foreground mb-6"
+            aria-label="Breadcrumb"
+          >
+            <Link href={"/" as any} className="hover:text-foreground">
+              Home
+            </Link>
             <ChevronRight className="h-4 w-4" />
             {product.breadcrumb.map((crumb, idx) => (
               <div key={`${crumb.slug}-${idx}`} className="flex items-center space-x-2">
-                <Link 
-                  href={`/shop?category=${crumb.slug}`}
+                <Link
+                  href={`/shop?category=${crumb.slug}` as any}
                   className="hover:text-foreground"
                 >
                   {crumb.name}
@@ -429,31 +459,30 @@ const ProductDetailNew = () => {
               <div>
                 {/* Badges */}
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {product.badges.is_featured && (
-                    <Badge variant="default">Featured</Badge>
-                  )}
-                  {product.badges.is_new && (
-                    <Badge className="bg-green-500">New</Badge>
-                  )}
+                  {product.badges.is_featured && <Badge variant="default">Featured</Badge>}
+                  {product.badges.is_new && <Badge className="bg-green-500">New</Badge>}
                   {product.badges.is_trending && (
-                    <Badge className="bg-orange-500"><TrendingUp className="w-3 h-3 mr-1" />Trending</Badge>
+                    <Badge className="bg-orange-500">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      Trending
+                    </Badge>
                   )}
                   {product.badges.is_bestseller && (
                     <Badge className="bg-yellow-500">Bestseller</Badge>
                   )}
-                  {product.badges.is_on_sale && (
-                    <Badge variant="destructive">On Sale</Badge>
-                  )}
+                  {product.badges.is_on_sale && <Badge variant="destructive">On Sale</Badge>}
                   {product.status === "active" && isInStock ? (
                     <Badge variant="outline" className="bg-green-50">
-                      <Check className="w-3 h-3 mr-1" />In Stock
+                      <Check className="w-3 h-3 mr-1" />
+                      In Stock
                     </Badge>
                   ) : (
                     <Badge variant="destructive">Out of Stock</Badge>
                   )}
                   {isLowStock && isInStock && (
                     <Badge variant="outline" className="bg-orange-50 text-orange-700">
-                      <AlertTriangle className="w-3 h-3 mr-1" />Low Stock
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      Low Stock
                     </Badge>
                   )}
                 </div>
@@ -463,12 +492,16 @@ const ProductDetailNew = () => {
 
                 {/* Brand */}
                 {product.brand && (
-                  <Link 
-                    href={`/brand/${product.brand.slug}`}
+                  <Link
+                    href={`/brand/${product.brand.slug}` as any}
                     className="inline-flex items-center gap-2 mb-4 hover:opacity-80"
                   >
                     {product.brand.logo && (
-                      <img src={product.brand.logo} alt={product.brand.name} className="h-8 object-contain" />
+                      <img
+                        src={product.brand.logo}
+                        alt={product.brand.name}
+                        className="h-8 object-contain"
+                      />
                     )}
                     <span className="text-sm font-medium">{product.brand.name}</span>
                   </Link>
@@ -489,7 +522,8 @@ const ProductDetailNew = () => {
                     ))}
                   </div>
                   <span className="text-sm">
-                    {product.reviews.average_rating.toFixed(1)} ({product.reviews.review_count} reviews)
+                    {product.reviews.average_rating.toFixed(1)} ({product.reviews.review_count}{" "}
+                    reviews)
                   </span>
                   <span className="text-sm text-muted-foreground">
                     • {product.reviews.verified_purchase_percentage.toFixed(0)}% verified
@@ -503,11 +537,13 @@ const ProductDetailNew = () => {
               <div className="space-y-3">
                 <div className="flex items-baseline gap-3 flex-wrap">
                   <span className="text-4xl font-bold text-primary">
-                    {product.pricing.currency_symbol}{displayPrice.toLocaleString()}
+                    {product.pricing.currency_symbol}
+                    {displayPrice.toLocaleString()}
                   </span>
                   {(currentSalePrice || currentRegularPrice > currentPrice) && (
                     <span className="text-2xl text-muted-foreground line-through">
-                      {product.pricing.currency_symbol}{currentRegularPrice.toLocaleString()}
+                      {product.pricing.currency_symbol}
+                      {currentRegularPrice.toLocaleString()}
                     </span>
                   )}
                   {isDiscountActive && discountValue > 0 && (
@@ -526,7 +562,8 @@ const ProductDetailNew = () => {
                     className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     {showTaxIncluded ? "Incl." : "Excl."} {product.pricing.tax.rate}% tax
-                    {!product.pricing.tax.included && ` (+${product.pricing.currency_symbol}${taxAmount.toFixed(2)})`}
+                    {!product.pricing.tax.included &&
+                      ` (+${product.pricing.currency_symbol}${taxAmount.toFixed(2)})`}
                   </Button>
                 </div>
 
@@ -537,14 +574,18 @@ const ProductDetailNew = () => {
                       <div className="flex items-start gap-2 mb-2">
                         <Tag className="h-4 w-4 text-blue-600 mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-blue-900">Bulk Pricing Available</p>
+                          <p className="text-sm font-medium text-blue-900">
+                            Bulk Pricing Available
+                          </p>
                           <div className="mt-2 space-y-1">
                             {product.bulk_pricing.map((tier, idx) => (
                               <div key={idx} className="text-xs text-blue-700">
                                 Buy {tier.min_quantity}
-                                {tier.max_quantity && `-${tier.max_quantity}`}: {product.pricing.currency_symbol}
+                                {tier.max_quantity && `-${tier.max_quantity}`}:{" "}
+                                {product.pricing.currency_symbol}
                                 {tier.price} each
-                                {tier.discount_percentage && ` (${tier.discount_percentage.toFixed(1)}% off)`}
+                                {tier.discount_percentage &&
+                                  ` (${tier.discount_percentage.toFixed(1)}% off)`}
                               </div>
                             ))}
                           </div>
@@ -559,20 +600,23 @@ const ProductDetailNew = () => {
 
               {/* Description */}
               <div>
-                <p className="text-muted-foreground" dangerouslySetInnerHTML={{ __html: product.description }} />
+                <p
+                  className="text-muted-foreground"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
               </div>
 
               {/* Variant Selection */}
               {product.has_variations && attributeKeys.length > 0 && (
                 <div className="space-y-4">
-                  {attributeKeys.map(attrKey => (
+                  {attributeKeys.map((attrKey) => (
                     <div key={attrKey}>
                       <p className="text-sm font-medium mb-2">{attrKey}</p>
                       <div className="flex flex-wrap gap-2">
-                        {getAvailableAttributeValues(attrKey).map(value => {
+                        {getAvailableAttributeValues(attrKey).map((value) => {
                           const isAvailable = isAttributeCombinationAvailable(attrKey, value);
                           const isSelected = selectedAttributes[attrKey] === value;
-                          
+
                           return (
                             <Button
                               key={value}
@@ -595,7 +639,8 @@ const ProductDetailNew = () => {
               {/* Quantity */}
               <div>
                 <p className="text-sm font-medium mb-2">
-                  Quantity (Min: {product.minimum_order_quantity}, Max: {product.maximum_order_quantity})
+                  Quantity (Min: {product.minimum_order_quantity}, Max:{" "}
+                  {product.maximum_order_quantity})
                 </p>
                 <div className="flex items-center space-x-3">
                   <Button
@@ -622,9 +667,7 @@ const ProductDetailNew = () => {
                   >
                     +
                   </Button>
-                  <span className="text-sm text-muted-foreground">
-                    {currentStock} available
-                  </span>
+                  <span className="text-sm text-muted-foreground">{currentStock} available</span>
                 </div>
                 {bulkTier && bulkTier.discount_percentage && (
                   <p className="text-sm text-green-600 mt-2">
@@ -663,27 +706,28 @@ const ProductDetailNew = () => {
               </div>
 
               {/* Stock Locations */}
-              {product.inventory.stock_by_location && product.inventory.stock_by_location.length > 0 && (
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="h-4 w-4" />
-                      <p className="text-sm font-medium">Available at Locations</p>
-                    </div>
-                    <div className="space-y-2">
-                      {product.inventory.stock_by_location.map(loc => (
-                        <div key={loc.shop_id} className="flex justify-between text-sm">
-                          <span>{loc.shop_name}</span>
-                          <span className="font-medium">
-                            {loc.quantity} in stock
-                            {loc.reserved > 0 && ` (${loc.reserved} reserved)`}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {product.inventory.stock_by_location &&
+                product.inventory.stock_by_location.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="h-4 w-4" />
+                        <p className="text-sm font-medium">Available at Locations</p>
+                      </div>
+                      <div className="space-y-2">
+                        {product.inventory.stock_by_location.map((loc) => (
+                          <div key={loc.shop_id} className="flex justify-between text-sm">
+                            <span>{loc.shop_name}</span>
+                            <span className="font-medium">
+                              {loc.quantity} in stock
+                              {loc.reserved > 0 && ` (${loc.reserved} reserved)`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* Shipping Info */}
               <Card>
@@ -693,8 +737,10 @@ const ProductDetailNew = () => {
                     <div className="flex-1">
                       <p className="text-sm font-medium">Delivery</p>
                       <p className="text-xs text-muted-foreground">
-                        {product.shipping.estimated_delivery.min_days}-{product.shipping.estimated_delivery.max_days} days
-                        {product.shipping.estimated_delivery.express_available && " • Express available"}
+                        {product.shipping.estimated_delivery.min_days}-
+                        {product.shipping.estimated_delivery.max_days} days
+                        {product.shipping.estimated_delivery.express_available &&
+                          " • Express available"}
                       </p>
                     </div>
                   </div>
@@ -705,7 +751,8 @@ const ProductDetailNew = () => {
                         {product.shipping.free_shipping ? "Free Shipping" : "Standard Shipping"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Ships from {product.shipping.ships_from.city}, {product.shipping.ships_from.country}
+                        Ships from {product.shipping.ships_from.city},{" "}
+                        {product.shipping.ships_from.country}
                       </p>
                     </div>
                   </div>
@@ -728,7 +775,8 @@ const ProductDetailNew = () => {
                       <div className="flex-1">
                         <p className="text-sm font-medium">Warranty</p>
                         <p className="text-xs text-muted-foreground">
-                          {product.warranty.duration} {product.warranty.duration_unit} {product.warranty.type} warranty
+                          {product.warranty.duration} {product.warranty.duration_unit}{" "}
+                          {product.warranty.type} warranty
                         </p>
                       </div>
                     </div>
@@ -760,7 +808,7 @@ const ProductDetailNew = () => {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Product Details</h3>
                   <div dangerouslySetInnerHTML={{ __html: product.description }} />
-                  
+
                   {product.short_description && (
                     <div className="mt-4">
                       <h4 className="font-medium mb-2">Summary</h4>
@@ -775,7 +823,7 @@ const ProductDetailNew = () => {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Specifications</h3>
-                  
+
                   <div className="grid gap-4">
                     <div className="grid grid-cols-2 gap-4 pb-3 border-b">
                       <span className="font-medium">Brand</span>
@@ -791,22 +839,25 @@ const ProductDetailNew = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4 pb-3 border-b">
                       <span className="font-medium">Weight</span>
-                      <span>{product.shipping.weight} {product.shipping.weight_unit}</span>
+                      <span>
+                        {product.shipping.weight} {product.shipping.weight_unit}
+                      </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4 pb-3 border-b">
                       <span className="font-medium">Dimensions</span>
                       <span>
-                        {product.shipping.dimensions.length} × {product.shipping.dimensions.width} × {product.shipping.dimensions.height} {product.shipping.dimensions.unit}
+                        {product.shipping.dimensions.length} × {product.shipping.dimensions.width} ×{" "}
+                        {product.shipping.dimensions.height} {product.shipping.dimensions.unit}
                       </span>
                     </div>
-                    {product.specifications && product.specifications.length > 0 && (
+                    {product.specifications &&
+                      product.specifications.length > 0 &&
                       product.specifications.map((spec: any, idx: number) => (
                         <div key={idx} className="grid grid-cols-2 gap-4 pb-3 border-b">
                           <span className="font-medium">{spec.name || spec.key}</span>
                           <span>{spec.value}</span>
                         </div>
-                      ))
-                    )}
+                      ))}
                   </div>
                 </CardContent>
               </Card>
@@ -838,10 +889,13 @@ const ProductDetailNew = () => {
                     </div>
 
                     <div className="space-y-2">
-                      {[5, 4, 3, 2, 1].map(rating => {
-                        const count = product.reviews.rating_distribution[`${rating}_star` as keyof typeof product.reviews.rating_distribution];
+                      {[5, 4, 3, 2, 1].map((rating) => {
+                        const count =
+                          product.reviews.rating_distribution[
+                            `${rating}_star` as keyof typeof product.reviews.rating_distribution
+                          ];
                         const percentage = (count / product.reviews.review_count) * 100;
-                        
+
                         return (
                           <div key={rating} className="flex items-center gap-2">
                             <span className="text-sm w-8">{rating}★</span>
@@ -884,11 +938,13 @@ const ProductDetailNew = () => {
                     <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
                     <div className="space-y-3 text-sm">
                       <p>
-                        <strong>Delivery Time:</strong> {product.shipping.estimated_delivery.min_days}-
+                        <strong>Delivery Time:</strong>{" "}
+                        {product.shipping.estimated_delivery.min_days}-
                         {product.shipping.estimated_delivery.max_days} business days
                       </p>
                       <p>
-                        <strong>Ships From:</strong> {product.shipping.ships_from.city}, {product.shipping.ships_from.country}
+                        <strong>Ships From:</strong> {product.shipping.ships_from.city},{" "}
+                        {product.shipping.ships_from.country}
                       </p>
                       <p>
                         <strong>Shipping Class:</strong> {product.shipping.shipping_class}
@@ -897,7 +953,9 @@ const ProductDetailNew = () => {
                         <p className="text-green-600 font-medium">✓ Free Shipping Available</p>
                       )}
                       {product.shipping.estimated_delivery.express_available && (
-                        <p className="text-blue-600">Express shipping available for faster delivery</p>
+                        <p className="text-blue-600">
+                          Express shipping available for faster delivery
+                        </p>
                       )}
                     </div>
                   </div>
@@ -910,7 +968,8 @@ const ProductDetailNew = () => {
                       {product.return_policy.returnable ? (
                         <>
                           <p>
-                            <strong>Return Window:</strong> {product.return_policy.return_window_days} days from delivery
+                            <strong>Return Window:</strong>{" "}
+                            {product.return_policy.return_window_days} days from delivery
                           </p>
                           <p>
                             <strong>Conditions:</strong> {product.return_policy.conditions}
@@ -929,7 +988,8 @@ const ProductDetailNew = () => {
                         <h3 className="text-lg font-semibold mb-4">Warranty</h3>
                         <div className="space-y-2 text-sm">
                           <p>
-                            <strong>Duration:</strong> {product.warranty.duration} {product.warranty.duration_unit}
+                            <strong>Duration:</strong> {product.warranty.duration}{" "}
+                            {product.warranty.duration_unit}
                           </p>
                           <p>
                             <strong>Type:</strong> {product.warranty.type}
@@ -947,23 +1007,25 @@ const ProductDetailNew = () => {
           {/* Related Products */}
           {product.related_products && (
             <div className="space-y-8">
-              {product.related_products.frequently_bought_together && product.related_products.frequently_bought_together.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">Frequently Bought Together</h2>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Product IDs: {product.related_products.frequently_bought_together.join(", ")}
-                  </p>
-                </div>
-              )}
+              {product.related_products.frequently_bought_together &&
+                product.related_products.frequently_bought_together.length > 0 && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6">Frequently Bought Together</h2>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Product IDs: {product.related_products.frequently_bought_together.join(", ")}
+                    </p>
+                  </div>
+                )}
 
-              {product.related_products.similar_products && product.related_products.similar_products.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">Similar Products</h2>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Product IDs: {product.related_products.similar_products.join(", ")}
-                  </p>
-                </div>
-              )}
+              {product.related_products.similar_products &&
+                product.related_products.similar_products.length > 0 && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-6">Similar Products</h2>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Product IDs: {product.related_products.similar_products.join(", ")}
+                    </p>
+                  </div>
+                )}
             </div>
           )}
         </main>
@@ -975,4 +1037,3 @@ const ProductDetailNew = () => {
 };
 
 export default ProductDetailNew;
-

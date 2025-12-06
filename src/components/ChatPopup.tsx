@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Home, Mail, HelpCircle } from 'lucide-react';
+import { X, Home, Mail, HelpCircle } from "lucide-react";
 import styles from "@/styles/ChatPopup.module.css";
 
 interface ChatPopupProps {
@@ -33,11 +33,7 @@ const ChatPopup: React.FC<ChatPopupProps> = ({ onClose }) => {
       case "help":
         return (
           <div>
-            <input
-              type="text"
-              placeholder="Search for help"
-              className={styles.popupInput}
-            />
+            <input type="text" placeholder="Search for help" className={styles.popupInput} />
             <ul className={styles.popupList}>
               <li className={styles.popupListItem}>All About Sizes</li>
               <li className={styles.popupListItem}>Discounts and Promotional Codes</li>
@@ -51,7 +47,10 @@ const ChatPopup: React.FC<ChatPopupProps> = ({ onClose }) => {
         return (
           <div>
             <p>Welcome to our help center. How can we assist you today?</p>
-            <button className={styles.sendMessageButton} onClick={() => setActiveSection("messages")}>
+            <button
+              className={styles.sendMessageButton}
+              onClick={() => setActiveSection("messages")}
+            >
               Click to Send us a message
             </button>
           </div>
@@ -67,9 +66,7 @@ const ChatPopup: React.FC<ChatPopupProps> = ({ onClose }) => {
           <X size={18} />
         </button>
       </div>
-      <div className={styles.popupBody}>
-        {renderContent()}
-      </div>
+      <div className={styles.popupBody}>{renderContent()}</div>
       <div className={styles.popupFooter}>
         <div
           className={`${styles.footerItem} ${activeSection === "home" ? styles.footerItemActive : ""}`}
@@ -98,4 +95,3 @@ const ChatPopup: React.FC<ChatPopupProps> = ({ onClose }) => {
 };
 
 export default ChatPopup;
-

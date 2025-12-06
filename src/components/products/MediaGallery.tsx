@@ -27,15 +27,26 @@ interface MediaGalleryProps {
   productName: string;
 }
 
-export const MediaGallery = ({ images, videos = [], productId, productName }: MediaGalleryProps) => {
+export const MediaGallery = ({
+  images,
+  videos = [],
+  productId,
+  productName,
+}: MediaGalleryProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [playingVideo, setPlayingVideo] = useState<number | null>(null);
 
   // Combine images and videos into media items
   const mediaItems: MediaItem[] = [
-    ...images.map(url => ({ type: "image" as const, url })),
-    ...videos.map(v => ({ type: "video" as const, url: v.url, thumbnail: v.thumbnail, title: v.title, id: v.id }))
+    ...images.map((url) => ({ type: "image" as const, url })),
+    ...videos.map((v) => ({
+      type: "video" as const,
+      url: v.url,
+      thumbnail: v.thumbnail,
+      title: v.title,
+      id: v.id,
+    })),
   ];
 
   const currentMedia = mediaItems[selectedIndex];
@@ -60,13 +71,13 @@ export const MediaGallery = ({ images, videos = [], productId, productName }: Me
       event: "media_play",
       product_id: productId,
       media_id: videoId,
-      type: type
+      type: type,
     });
   };
 
   const renderVideoEmbed = (url: string, videoId: number, type: string) => {
     let embedUrl = url;
-    
+
     if (type === "youtube") {
       const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
       if (videoIdMatch) {
@@ -104,7 +115,11 @@ export const MediaGallery = ({ images, videos = [], productId, productName }: Me
           ) : currentMedia?.type === "video" ? (
             <div className="relative w-full h-full">
               {playingVideo === currentMedia.id ? (
-                renderVideoEmbed(currentMedia.url, currentMedia.id!, videos.find(v => v.id === currentMedia.id)?.type || "youtube")
+                renderVideoEmbed(
+                  currentMedia.url,
+                  currentMedia.id!,
+                  videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
+                )
               ) : (
                 <>
                   <img
@@ -115,7 +130,12 @@ export const MediaGallery = ({ images, videos = [], productId, productName }: Me
                   <Button
                     size="lg"
                     className="absolute inset-0 m-auto w-16 h-16 rounded-full"
-                    onClick={() => handleVideoPlay(currentMedia.id!, videos.find(v => v.id === currentMedia.id)?.type || "youtube")}
+                    onClick={() =>
+                      handleVideoPlay(
+                        currentMedia.id!,
+                        videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
+                      )
+                    }
                     aria-label="Play video"
                   >
                     <Play className="h-6 w-6" />
@@ -204,7 +224,11 @@ export const MediaGallery = ({ images, videos = [], productId, productName }: Me
               />
             ) : currentMedia?.type === "video" ? (
               <div className="w-full h-full flex items-center justify-center">
-                {renderVideoEmbed(currentMedia.url, currentMedia.id!, videos.find(v => v.id === currentMedia.id)?.type || "youtube")}
+                {renderVideoEmbed(
+                  currentMedia.url,
+                  currentMedia.id!,
+                  videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
+                )}
               </div>
             ) : null}
 
@@ -251,4 +275,3 @@ export const MediaGallery = ({ images, videos = [], productId, productName }: Me
     </>
   );
 };
-

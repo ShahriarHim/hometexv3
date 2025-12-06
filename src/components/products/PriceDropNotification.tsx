@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import styles from './PriceDropNotification.module.css';
-import { Bell, Check, X } from 'lucide-react';
-import { toast } from 'sonner';
-import { getAuthToken, fetchWithFallback } from '@/lib/api';
+import React, { useState, useEffect } from "react";
+import styles from "./PriceDropNotification.module.css";
+import { Bell, Check, X } from "lucide-react";
+import { toast } from "sonner";
+import { getAuthToken, fetchWithFallback } from "@/lib/api";
+import { env } from "@/lib/env";
 
 interface PriceDropNotificationProps {
   product: {
@@ -17,11 +18,13 @@ interface PriceDropNotificationProps {
 const PriceDropNotification: React.FC<PriceDropNotificationProps> = ({ product }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notificationStatus, setNotificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [notificationStatus, setNotificationStatus] = useState<"idle" | "success" | "error">(
+    "idle"
+  );
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isVisible && notificationStatus === 'idle') {
+    if (isVisible && notificationStatus === "idle") {
       timer = setTimeout(() => {
         setIsVisible(false);
       }, 10000); // Auto-hide after 10 seconds
@@ -32,49 +35,45 @@ const PriceDropNotification: React.FC<PriceDropNotificationProps> = ({ product }
   const handleNotification = async () => {
     try {
       const token = getAuthToken();
-      
+
       if (!token) {
-        toast.error('Authentication Required', {
-          description: 'Please login to set price drop notifications',
+        toast.error("Authentication Required", {
+          description: "Please login to set price drop notifications",
         });
         return;
       }
 
       setIsSubmitting(true);
 
-      const response = await fetchWithFallback(
-        '/api/product/price-drop',
-        'https://www.hometexbd.ltd',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            product_id: product.id
-          })
-        }
-      );
+      const response = await fetchWithFallback("/api/product/price-drop", env.apiBaseUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_id: product.id,
+        }),
+      });
 
       const data = await response.json();
 
       if (data.success || response.ok) {
-        setNotificationStatus('success');
-        toast.success('Price Drop Alert Set!', {
+        setNotificationStatus("success");
+        toast.success("Price Drop Alert Set!", {
           description: `We'll notify you when ${product.name} price drops below ৳${product.price.toLocaleString()}`,
         });
       } else {
-        setNotificationStatus('error');
-        toast.error('Failed to Set Notification', {
-          description: data.message || 'Please try again later',
+        setNotificationStatus("error");
+        toast.error("Failed to Set Notification", {
+          description: data.message || "Please try again later",
         });
       }
     } catch (error) {
-      console.error('Error setting price drop notification:', error);
-      setNotificationStatus('error');
-      toast.error('Request Failed', {
-        description: 'Unable to set price drop notification. Please try again.',
+      console.error("Error setting price drop notification:", error);
+      setNotificationStatus("error");
+      toast.error("Request Failed", {
+        description: "Unable to set price drop notification. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -87,29 +86,29 @@ const PriceDropNotification: React.FC<PriceDropNotificationProps> = ({ product }
 
   const handleClick = () => {
     if (!isSubmitting) {
-      if (notificationStatus !== 'success') {
+      if (notificationStatus !== "success") {
         handleNotification();
       } else {
-        setIsVisible(prev => !prev);
+        setIsVisible((prev) => !prev);
       }
     }
   };
 
   const handleBellClick = () => {
-    setIsVisible(prev => !prev);
+    setIsVisible((prev) => !prev);
   };
 
   return (
     <>
       {/* Bell Icon */}
-      <div 
-        className={`${styles.bellIcon} ${isVisible && notificationStatus === 'idle' ? styles.active : ''}`}
+      <div
+        className={`${styles.bellIcon} ${isVisible && notificationStatus === "idle" ? styles.active : ""}`}
         onClick={handleBellClick}
         role="button"
         aria-label="Toggle price drop notification"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             handleBellClick();
           }
         }}
@@ -120,11 +119,12 @@ const PriceDropNotification: React.FC<PriceDropNotificationProps> = ({ product }
       {/* Notification Button */}
       <div className={`${styles.container} ${isVisible ? styles.open : styles.closed}`}>
         <button
-          className={`${styles.button} ${
-            isSubmitting ? styles.loading : ''
-          } ${
-            notificationStatus === 'success' ? styles.success : 
-            notificationStatus === 'error' ? styles.error : ''
+          className={`${styles.button} ${isSubmitting ? styles.loading : ""} ${
+            notificationStatus === "success"
+              ? styles.success
+              : notificationStatus === "error"
+                ? styles.error
+                : ""
           }`}
           aria-expanded={isVisible}
           onClick={handleClick}
@@ -135,12 +135,12 @@ const PriceDropNotification: React.FC<PriceDropNotificationProps> = ({ product }
               <span className={styles.spinner} aria-hidden="true" />
               <span>Setting notification...</span>
             </>
-          ) : notificationStatus === 'success' ? (
+          ) : notificationStatus === "success" ? (
             <>
               <Check className="h-4 w-4" />
               <span>Notification set!</span>
             </>
-          ) : notificationStatus === 'error' ? (
+          ) : notificationStatus === "error" ? (
             <>
               <X className="h-4 w-4" />
               <span>Failed. Try again?</span>
@@ -158,4 +158,3 @@ const PriceDropNotification: React.FC<PriceDropNotificationProps> = ({ product }
 };
 
 export default PriceDropNotification;
-

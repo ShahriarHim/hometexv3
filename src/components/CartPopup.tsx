@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { FaTrashAlt, FaShoppingCart, FaEye } from 'react-icons/fa';
-import { useCart } from '@/context/CartContext';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useRef } from "react";
+import Link from "next/link";
+import { FaTrashAlt, FaShoppingCart, FaEye } from "react-icons/fa";
+import { useCart } from "@/context/CartContext";
+import { useRouter } from "next/navigation";
 
 interface CartPopupProps {
   isOpen: boolean;
@@ -23,14 +23,14 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen, onClose]);
 
   const handleCheckoutClick = () => {
-    router.push('/checkout');
+    router.push("/checkout");
     onClose();
   };
 
@@ -40,7 +40,7 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
   };
 
   const handleViewCart = () => {
-    router.push('/cart');
+    router.push("/cart");
     onClose();
   };
 
@@ -49,13 +49,13 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
   return (
     <div className="relative z-[9999]">
       {/* Overlay */}
-      <div 
+      <div
         className="fixed inset-0 bg-gray-900 opacity-50 transition-opacity duration-300"
         onClick={onClose}
       />
-      
+
       {/* Cart Panel */}
-      <div 
+      <div
         ref={cartRef}
         className="fixed inset-y-0 right-0 w-96 max-w-full z-[9999] shadow-2xl bg-[rgba(51,51,51,0.95)] backdrop-blur-sm text-white overflow-hidden animate-slide-in transform transition-all duration-300 ease-out"
       >
@@ -73,7 +73,12 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
               stroke="currentColor"
               className="w-6 h-6"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -84,14 +89,14 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
             <tbody>
               {items.length > 0 ? (
                 items.map((cartItem, index) => (
-                  <tr 
+                  <tr
                     key={`${cartItem.product.id}-${cartItem.selectedColor}-${cartItem.selectedSize}`}
                     className="border-b border-gray-600 animate-fade-in-up"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <td className="py-4 pl-4">
                       <img
-                        src={cartItem.product.images[0] || '/placeholder.svg'}
+                        src={cartItem.product.images[0] || "/placeholder.svg"}
                         alt={cartItem.product.name}
                         className="w-20 h-20 object-cover rounded-lg shadow-md"
                       />
@@ -108,7 +113,9 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
                       </div>
                     </td>
                     <td className="px-2 py-4">x{cartItem.quantity}</td>
-                    <td className="px-2 py-4">৳{(cartItem.product.price * cartItem.quantity).toLocaleString()}</td>
+                    <td className="px-2 py-4">
+                      ৳{(cartItem.product.price * cartItem.quantity).toLocaleString()}
+                    </td>
                     <td className="px-2 py-4">
                       <button
                         className="text-red-400 hover:text-red-600 transition-colors duration-200"
@@ -207,4 +214,3 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
 };
 
 export default CartPopup;
-

@@ -11,9 +11,8 @@ interface Props {
 
 const PriceView = ({ price, originalPrice, discount, className }: Props) => {
   // Use provided originalPrice, or calculate from discount if not provided
-  const displayOriginalPrice = originalPrice || (price && discount && discount > 0 
-    ? price / (1 - discount / 100) 
-    : null);
+  const displayOriginalPrice =
+    originalPrice || (price && discount && discount > 0 ? price / (1 - discount / 100) : null);
 
   return (
     <div className="flex items-center justify-between gap-5">
@@ -25,10 +24,7 @@ const PriceView = ({ price, originalPrice, discount, className }: Props) => {
         {displayOriginalPrice && displayOriginalPrice > (price || 0) && (
           <PriceFormatter
             amount={displayOriginalPrice}
-            className={twMerge(
-              "line-through text-base font-medium text-gray-500",
-              className
-            )}
+            className={twMerge("line-through text-base font-medium text-gray-500", className)}
           />
         )}
       </div>
@@ -37,4 +33,3 @@ const PriceView = ({ price, originalPrice, discount, className }: Props) => {
 };
 
 export default PriceView;
-

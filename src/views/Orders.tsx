@@ -18,7 +18,7 @@ const Orders = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/auth");
+      router.replace("/auth" as any);
     }
   }, [isAuthenticated, router]);
 
@@ -67,10 +67,8 @@ const Orders = () => {
             <CardContent className="p-12 text-center">
               <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
               <h2 className="text-2xl font-semibold mb-2">No orders yet</h2>
-              <p className="text-muted-foreground mb-6">
-                Start shopping to see your orders here
-              </p>
-              <Button onClick={() => router.push("/products")}>Browse Products</Button>
+              <p className="text-muted-foreground mb-6">Start shopping to see your orders here</p>
+              <Button onClick={() => router.push("/products" as any)}>Browse Products</Button>
             </CardContent>
           </Card>
         ) : (
@@ -96,7 +94,11 @@ const Orders = () => {
                       <Badge variant={getStatusVariant(order.status)}>
                         {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </Badge>
-                      <Button variant="outline" size="sm" onClick={() => router.push(`/orders/${order.id}`)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/orders/${order.id}` as any)}
+                      >
                         View Details
                       </Button>
                     </div>
