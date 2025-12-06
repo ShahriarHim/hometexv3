@@ -210,13 +210,14 @@ const ProductDetailNew = () => {
       : [];
 
   // Get available values for each attribute (deduplicated)
-  const getAvailableAttributeValues = (attrKey: string) => {
+  const getAvailableAttributeValues = (attrKey: string): string[] => {
     if (!product.variations) return [];
     return Array.from(
       new Set(
         product.variations
           .filter((v) => v.attributes && v.attributes[attrKey])
           .map((v) => v.attributes[attrKey])
+          .filter((val): val is string => val !== undefined)
       )
     );
   };

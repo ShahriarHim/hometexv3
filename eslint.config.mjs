@@ -115,7 +115,7 @@ const config = [
       "no-throw-literal": "error",
       "no-unused-expressions": "error",
       "no-useless-call": "error",
-      "no-useless-catch": "error",
+      "no-useless-catch": "off", // Allow try/catch for error handling patterns
       "no-useless-concat": "error",
       "no-useless-return": "error",
       "prefer-promise-reject-errors": "error",

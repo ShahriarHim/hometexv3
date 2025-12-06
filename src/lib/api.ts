@@ -1,3 +1,26 @@
+/**
+ * @deprecated This file is DEPRECATED and will be removed in a future release.
+ *
+ * ⚠️ DO NOT ADD NEW FUNCTIONS TO THIS FILE
+ * ⚠️ DO NOT IMPORT FROM THIS FILE IN NEW CODE
+ *
+ * Use the new modular service architecture instead:
+ * - Import services from: @/services/api
+ * - Import types from: @/types/api
+ *
+ * Examples:
+ * ```typescript
+ * import { authService, userService, productService } from "@/services/api";
+ * import type { UserProfile, Product, Order } from "@/types/api";
+ *
+ * // Instead of fetchWithFallback, use service methods:
+ * const profile = await userService.getProfile();
+ * const products = await productService.getProducts();
+ * ```
+ *
+ * See docs/API_MIGRATION_GUIDE.md for full migration instructions.
+ */
+
 // API Integration utilities
 import { env } from "./env";
 
@@ -10,7 +33,7 @@ export const getAuthToken = (): string | null => {
 };
 
 // Helper function to make authenticated API requests
-export const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
+export const authenticatedFetch = (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = getAuthToken();
   const headers = {
     ...options.headers,
@@ -55,11 +78,13 @@ export const fetchWithFallback = async (
 
     // If localhost returns an error status, still try production
     // (fall through to production)
-  } catch (error: any) {
+  } catch (error) {
     // Network error, timeout, or CORS issue - try production
-    if (error.name !== "AbortError") {
-      // Only log non-timeout errors
-      console.debug("Localhost request failed, trying production:", error.message);
+    if (error instanceof Error && error.name !== "AbortError") {
+      // Only log non-timeout errors in development
+      if (process.env.NODE_ENV === "development") {
+        console.error("Localhost request failed, trying production:", error.message);
+      }
     }
   }
 
@@ -95,11 +120,13 @@ export const fetchPublicWithFallback = async (
 
     // If localhost returns an error status, still try production
     // (fall through to production)
-  } catch (error: any) {
+  } catch (error) {
     // Network error, timeout, or CORS issue - try production
-    if (error.name !== "AbortError") {
-      // Only log non-timeout errors
-      console.debug("Localhost request failed, trying production:", error.message);
+    if (error instanceof Error && error.name !== "AbortError") {
+      // Only log non-timeout errors in development
+      if (process.env.NODE_ENV === "development") {
+        console.error("Localhost request failed, trying production:", error.message);
+      }
     }
   }
 
@@ -265,7 +292,7 @@ export interface APIProduct {
     attributes: {
       Size?: string;
       Color?: string;
-      [key: string]: any;
+      [key: string]: string | undefined;
     };
     pricing: {
       regular_price: number;
@@ -276,7 +303,7 @@ export interface APIProduct {
       stock_status: string;
       stock_quantity: number;
     };
-    media: any[];
+    media: Record<string, unknown>[];
     weight: number;
     dimensions: {
       length: number;
@@ -284,10 +311,10 @@ export interface APIProduct {
       height: number;
     };
   }>;
-  attributes: any[];
-  specifications: any[];
+  attributes: Record<string, unknown>[];
+  specifications: Record<string, unknown>[];
   media: {
-    gallery: any[];
+    gallery: Record<string, unknown>[];
     videos: Array<{
       id: number;
       type: string;
@@ -384,7 +411,7 @@ export interface APIProduct {
     email: string;
     address: string;
   };
-  vendor: any;
+  vendor: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   published_at: string;
@@ -471,24 +498,41 @@ export interface HeroBannersResponse {
 }
 
 // Types for Menu API
-export interface ChildSubCategory {
+export interface ChildCategory {
   id: number;
   name: string;
-  sub_category_id: number;
+  slug: string;
+  parent_id: number;
+  image: string | null;
+  is_active: boolean;
+  sort_order: number;
 }
 
-export interface SubCategory {
+export interface Subcategory {
   id: number;
   name: string;
-  category_id: number;
-  child_sub_categories: ChildSubCategory[];
+  slug: string;
+  parent_id: number;
+  image: string | null;
+  is_active: boolean;
+  sort_order: number;
+  child_categories: ChildCategory[];
 }
 
 export interface Category {
   id: number;
   name: string;
-  image: string;
-  sub_categories: SubCategory[];
+  slug: string;
+  image: string | null;
+  description?: string | null;
+  is_active: boolean;
+  sort_order: number;
+  subcategories: Subcategory[];
+  level?: number;
+  has_children?: boolean;
+  parent_id?: number | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
 }
 
 export interface MenuResponse {
@@ -525,7 +569,7 @@ export const api = {
   // Menu/Categories
   menu: {
     getAll: async (): Promise<MenuResponse> => {
-      const response = await fetchPublicWithFallback("/api/product/menu", env.apiBaseUrl, {
+      const response = await fetchPublicWithFallback("/api/v1/categories/tree", env.apiBaseUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -537,7 +581,14 @@ export const api = {
         throw new Error(`Failed to fetch menu: ${response.statusText}`);
       }
 
-      return response.json();
+      const result = await response.json();
+
+      // Validate success field as per API guide
+      if (!result.success) {
+        throw new Error(result.message || "Failed to fetch categories");
+      }
+
+      return result;
     },
   },
 
@@ -647,7 +698,7 @@ export const api = {
 
   // Orders
   orders: {
-    create: async (orderData: any) => {
+    create: async (orderData: Record<string, unknown>) => {
       // TODO: Replace with actual API endpoint
       const response = await fetch("/api/orders", {
         method: "POST",
@@ -684,17 +735,16 @@ export const api = {
             message: data.message || "Orders retrieved successfully",
             data: data.data || [],
           };
-        } else {
-          return {
-            success: false,
-            message: data.error || data.message || "Failed to fetch orders",
-            data: [],
-          };
         }
-      } catch (error: any) {
         return {
           success: false,
-          message: error.message || "Failed to fetch orders",
+          message: data.error || data.message || "Failed to fetch orders",
+          data: [],
+        };
+      } catch (error) {
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : "Failed to fetch orders",
           data: [],
         };
       }
@@ -719,7 +769,7 @@ export const api = {
 
   // Payment (SSL Commerz)
   payment: {
-    initiate: async (orderData: any) => {
+    initiate: async (orderData: Record<string, unknown>) => {
       // TODO: Replace with actual SSL Commerz API integration
       const response = await fetch("/api/payment/initiate", {
         method: "POST",
@@ -745,10 +795,18 @@ export const api = {
       sort?: string;
     }) => {
       const queryParams = new URLSearchParams();
-      if (params?.page) queryParams.append("page", params.page.toString());
-      if (params?.per_page) queryParams.append("per_page", params.per_page.toString());
-      if (params?.category) queryParams.append("category", params.category);
-      if (params?.sort) queryParams.append("sort", params.sort);
+      if (params?.page) {
+        queryParams.append("page", params.page.toString());
+      }
+      if (params?.per_page) {
+        queryParams.append("per_page", params.per_page.toString());
+      }
+      if (params?.category) {
+        queryParams.append("category", params.category);
+      }
+      if (params?.sort) {
+        queryParams.append("sort", params.sort);
+      }
 
       const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
       const endpoint = `/api/products${queryString}`;
@@ -789,17 +847,17 @@ export const api = {
           return {
             success: false,
             message: data.message || `Failed to fetch product: ${response.statusText}`,
-            data: null as any,
+            data: null,
           };
         }
 
         return data;
-      } catch (error) {
+      } catch {
         // Network error or JSON parse error
         return {
           success: false,
           message: "Unable to connect to the server. Please check your internet connection.",
-          data: null as any,
+          data: null,
         };
       }
     },
@@ -835,7 +893,7 @@ export const api = {
         }
 
         return data;
-      } catch (error) {
+      } catch {
         return {
           success: false,
           message: "Unable to connect to the server. Please check your internet connection.",
@@ -871,7 +929,7 @@ export const api = {
           message: "Products retrieved successfully",
           data: { products },
         };
-      } catch (error) {
+      } catch {
         return {
           success: false,
           message: "Unable to fetch products. Please check your internet connection.",
@@ -910,17 +968,16 @@ export const api = {
             message: data.message || "Price drop alerts retrieved successfully",
             data: data.data || [],
           };
-        } else {
-          return {
-            success: false,
-            message: data.message || "Failed to fetch price drop alerts",
-            data: [],
-          };
         }
-      } catch (error: any) {
         return {
           success: false,
-          message: error.message || "Failed to fetch price drop alerts",
+          message: data.message || "Failed to fetch price drop alerts",
+          data: [],
+        };
+      } catch (error) {
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : "Failed to fetch price drop alerts",
           data: [],
         };
       }
@@ -956,17 +1013,16 @@ export const api = {
             message: data.message || "Restock requests retrieved successfully",
             data: data.data || [],
           };
-        } else {
-          return {
-            success: false,
-            message: data.message || "Failed to fetch restock requests",
-            data: [],
-          };
         }
-      } catch (error: any) {
         return {
           success: false,
-          message: error.message || "Failed to fetch restock requests",
+          message: data.message || "Failed to fetch restock requests",
+          data: [],
+        };
+      } catch (error) {
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : "Failed to fetch restock requests",
           data: [],
         };
       }
@@ -981,7 +1037,7 @@ export const api = {
       return response.json();
     },
 
-    updateLocation: async (trackingNumber: string, location: any) => {
+    updateLocation: async (trackingNumber: string, location: Record<string, unknown>) => {
       // TODO: Replace with actual API endpoint
       const response = await fetch(`/api/delivery/${trackingNumber}/location`, {
         method: "PATCH",
@@ -994,7 +1050,7 @@ export const api = {
 
   // Contact & Support
   contact: {
-    send: async (formData: any) => {
+    send: async (formData: Record<string, unknown>) => {
       // TODO: Replace with actual API endpoint
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -1007,7 +1063,7 @@ export const api = {
 
   // Gift Cards
   gifts: {
-    send: async (giftData: any) => {
+    send: async (giftData: Record<string, unknown>) => {
       // TODO: Replace with actual API endpoint
       const response = await fetch("/api/gifts", {
         method: "POST",
@@ -1154,7 +1210,9 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct) => {
 
   // Strip HTML tags from description
   const stripHtml = (html: string) => {
-    if (!html) return "";
+    if (!html) {
+      return "";
+    }
     return html.replace(/<[^>]*>/g, "").trim();
   };
 
@@ -1176,7 +1234,9 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct) => {
   // Get images from media gallery, fallback to brand logo or empty array
   const images =
     apiProduct.media?.gallery && apiProduct.media.gallery.length > 0
-      ? apiProduct.media.gallery.map((img: any) => img.url || img)
+      ? apiProduct.media.gallery.map((img: { url?: string } | string) =>
+          typeof img === "string" ? img : img.url || ""
+        )
       : apiProduct.brand?.logo
         ? [apiProduct.brand.logo]
         : [];
@@ -1184,7 +1244,7 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct) => {
   // Extract features from specifications or attributes
   const features: string[] = [];
   if (apiProduct.specifications && Array.isArray(apiProduct.specifications)) {
-    apiProduct.specifications.forEach((spec: any) => {
+    apiProduct.specifications.forEach((spec: { name?: string; key?: string; value?: string }) => {
       if (spec.value) {
         features.push(`${spec.name || spec.key || ""}: ${spec.value}`);
       }

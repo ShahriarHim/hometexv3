@@ -13,6 +13,35 @@ function getOptionalEnvVar(key: string, defaultValue: string = ""): string {
   return defaultValue;
 }
 
+// Determine environment
+const nodeEnv = getOptionalEnvVar("NODE_ENV", "development");
+const isDevelopment = nodeEnv === "development";
+const isProduction = nodeEnv === "production";
+
+// Determine API base URL based on environment
+const getApiBaseUrl = (): string => {
+  // If explicitly set via env var, use that
+  const explicitApiUrl = getOptionalEnvVar("NEXT_PUBLIC_API_BASE_URL", "");
+  if (explicitApiUrl) {
+    return explicitApiUrl;
+  }
+
+  // Auto-detect based on environment and hostname
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    // Use localhost API in development or when on localhost
+    if (isDevelopment || hostname === "localhost" || hostname === "127.0.0.1") {
+      return getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000");
+    }
+  } else if (isDevelopment) {
+    // Server-side in development
+    return getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000");
+  }
+
+  // Production fallback
+  return "https://www.hometexbd.ltd";
+};
+
 // Export env object - using explicit object literal for Turbopack compatibility
 export const env = Object.freeze({
   // Application
@@ -20,15 +49,13 @@ export const env = Object.freeze({
   appName: getOptionalEnvVar("NEXT_PUBLIC_APP_NAME", "Hometex Bangladesh"),
 
   // API Configuration
-  apiBaseUrl: getOptionalEnvVar("NEXT_PUBLIC_API_BASE_URL", "https://www.hometexbd.ltd"),
+  apiBaseUrl: getApiBaseUrl(),
   apiLocalUrl: getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000"),
 
   // Environment
-  nodeEnv: getOptionalEnvVar("NODE_ENV", "development"),
-  isDevelopment:
-    typeof process !== "undefined" && process.env ? process.env.NODE_ENV === "development" : false,
-  isProduction:
-    typeof process !== "undefined" && process.env ? process.env.NODE_ENV === "production" : false,
+  nodeEnv,
+  isDevelopment,
+  isProduction,
 
   // Analytics (Optional)
   gaId: getOptionalEnvVar("NEXT_PUBLIC_GA_ID", ""),

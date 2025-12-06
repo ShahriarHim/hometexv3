@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, EffectFade } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/effect-fade";
 import { heroSlides as fallbackSlides, type HeroSlide } from "@/data/migration-content";
-import { api, transformHeroBannerToSlide } from "@/lib/api";
-import Link from "next/link";
+import { transformHeroBannerToSlideV2 } from "@/lib/transforms";
+import { productService } from "@/services/api";
 import type { Route } from "next";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import "swiper/css";
+import "swiper/css/effect-fade";
+import "swiper/css/pagination";
+import { Autoplay, EffectFade, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 export const HeroShowcase = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -25,13 +26,13 @@ export const HeroShowcase = () => {
     const fetchHeroBanners = async () => {
       try {
         setIsLoading(true);
-        const response = await api.heroBanners.getAll();
+        const response = await productService.getHeroBanners();
 
         if (response.success && response.data.length > 0) {
           // Transform API data to HeroSlide format
           const transformedSlides = response.data
-            .filter((banner) => banner.status === 1) // Only active banners
-            .map((banner) => transformHeroBannerToSlide(banner));
+            .filter((banner) => banner.is_active) // Only active banners
+            .map((banner) => transformHeroBannerToSlideV2(banner));
 
           setHeroSlides(transformedSlides);
         } else {
@@ -147,7 +148,7 @@ export const HeroShowcase = () => {
                     )}
                     <Link
                       href={slide.cta.href as Route}
-                      className="bg-black text-white px-8 py-3 text-lg font-medium inline-block 
+                      className="bg-black text-white px-8 py-3 text-lg font-medium inline-block
                         hover:bg-gray-800 transition-all duration-300 rounded hover:scale-105 hover:shadow-lg animate-fadeIn delay-500"
                     >
                       {slide.cta.label}

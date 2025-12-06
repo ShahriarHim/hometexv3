@@ -4,13 +4,13 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { categories, products } from "@/data/demo-data";
 import { Link } from "@/i18n/routing";
-import type { Category } from "@/lib/api";
+import type { CategoryTree } from "@/types/api";
 
 interface CategoryContentClientProps {
   slug: string;
   subId: string | null;
   childId: string | null;
-  apiCategory: Category | undefined;
+  apiCategory: CategoryTree | undefined;
   pageTitle: string;
   pageDescription: string;
 }
@@ -64,7 +64,7 @@ export function CategoryContentClient({
         <div className="container mx-auto px-4 py-8">
           <h2 className="text-2xl font-semibold mb-4 text-center">Browse by Subcategory</h2>
           <div className="flex flex-wrap gap-2 justify-center">
-            {apiCategory.sub_categories.map((sub) => (
+            {apiCategory.subcategories.map((sub) => (
               <Link
                 key={sub.id}
                 href={{
@@ -89,9 +89,9 @@ export function CategoryContentClient({
         <div className="container mx-auto px-4 py-8">
           <h2 className="text-2xl font-semibold mb-4 text-center">Browse by Type</h2>
           <div className="flex flex-wrap gap-2 justify-center">
-            {apiCategory.sub_categories
+            {apiCategory.subcategories
               .find((s) => s.id === Number(subId))
-              ?.child_sub_categories.map((child) => (
+              ?.child_categories.map((child) => (
                 <Link
                   key={child.id}
                   href={{
