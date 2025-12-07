@@ -1,0 +1,403 @@
+# Hometex V3 - Cursor AI Rules
+
+🤖 **AI AGENT BEHAVIOR PROTOCOL** 🤖
+
+This file defines **MANDATORY behavior** for Cursor AI. These are not suggestions - they are **REQUIREMENTS**.
+
+## 🚨 SESSION START PROTOCOL
+
+**ON EVERY NEW CHAT SESSION**, you MUST read these files IN ORDER:
+
+1. **`.ai-context.md`** ← START HERE! Quick reference for everything
+2. **`.mcp/system-prompt.md`** ← Your behavioral instructions
+3. **`.mcp/project-context.json`** ← Project configuration
+4. **`docs/standards/coding-standards.md`** ← Complete coding standards
+
+**After reading, you should know:**
+
+- ✅ Next.js 16 App Router project
+- ✅ Server Components = default
+- ✅ Use `env` from `@/lib/env` (NOT `process.env`)
+- ✅ Use `api` from `@/lib/api` (NOT `fetch`)
+- ✅ No `any` types allowed
+- ✅ Run format → lint → type-check before EVERY output
+
+---
+
+## 🔄 ON EVERY USER MESSAGE
+
+**BEFORE** responding to EACH message, refresh your context:
+
+```
+🧠 CONTEXT REFRESH:
+- Project: Hometex V3 (Next.js 16)
+- Default: Server Components
+- Env: Use env from @/lib/env
+- API: Use api from @/lib/api
+- Types: No 'any' allowed
+- Output: format → lint → type-check
+```
+
+This ensures you **MAINTAIN CONTEXT THROUGHOUT THE ENTIRE CONVERSATION**.
+
+---
+
+## � CODE GENERATION WORKFLOW
+
+### STEP 1: BEFORE Generating Code
+
+**Ask yourself:**
+
+- [ ] Is this Server or Client Component?
+- [ ] Which utilities do I need? (env, api, utils)
+- [ ] Are there similar existing files?
+- [ ] What types do I need to import?
+
+### STEP 2: WHILE Generating Code
+
+**Follow these rules:**
+
+- ✅ Define all TypeScript types (no `any`)
+- ✅ Use `env` from `@/lib/env` for environment variables
+- ✅ Use `api` from `@/lib/api` for API calls
+- ✅ Server Component by default (unless needs interactivity)
+- ✅ Organize imports: React → Libraries → Internal → Types
+
+### STEP 3: AFTER Generating Code (MANDATORY!)
+
+**Before showing user, run:**
+
+```bash
+# 1. Format
+npm run format
+
+# 2. Lint
+npm run lint  # Must be 0 errors
+
+# 3. Type check
+npm run type-check  # Must be 0 errors
+```
+
+**Then verify:**
+
+- ❌ No `process.env` usage
+- ❌ No `fetch()` calls
+- ❌ No `any` types
+- ✅ All imports organized
+- ✅ Correct component type (Server/Client)
+
+---
+
+## 🚫 FORBIDDEN PATTERNS (NEVER USE)
+
+These patterns are **FORBIDDEN**. If you catch yourself using them, STOP and correct:
+
+```typescript
+❌ process.env.NEXT_PUBLIC_*        // Use: env from @/lib/env
+❌ fetch("https://...")              // Use: api from @/lib/api
+❌ const x: any = ...                // Use: proper types
+❌ const url = "https://..."         // Use: env.apiBaseUrl
+```
+
+---
+
+## ✅ REQUIRED PATTERNS (ALWAYS USE)
+
+These patterns are **REQUIRED**. Every code generation should use them:
+
+```typescript
+✅ import { env } from "@/lib/env";
+   const url = env.apiBaseUrl;
+
+✅ import { api } from "@/lib/api";
+   const data = await api.products.getAll();
+
+✅ interface Props { ... }
+   const Component = ({ ... }: Props) => { ... };
+
+✅ import type { Product } from "@/types";
+```
+
+---
+
+## 🎯 CONTEXT PERSISTENCE
+
+**CRITICAL**: You must remember these rules **THROUGHOUT THE ENTIRE CHAT**, not just the first message.
+
+After **EVERY user message**, before responding, check:
+
+1. Am I using the correct utilities? (env, api)
+2. Am I defining proper types? (no any)
+3. Am I choosing Server/Client correctly?
+4. Will I run checks before output? (format, lint, type-check)
+
+If you can't answer "YES" to all, **re-read `.ai-context.md`**
+
+## Project Context
+
+This is a Next.js 16 (App Router) e-commerce project for Hometex Bangladesh, built with:
+
+- TypeScript (strict mode)
+- React 18
+- Tailwind CSS
+- shadcn/ui components
+- next-intl for internationalization
+- TanStack Query for data fetching
+
+## Critical Rules
+
+### 1. Environment Variables
+
+- **ALWAYS** use `env` from `@/lib/env` for environment variables
+- **NEVER** use `process.env` directly in components
+- **NEVER** hardcode URLs or API endpoints
+
+```typescript
+// ✅ CORRECT
+import { env } from "@/lib/env";
+const apiUrl = env.apiBaseUrl;
+
+// ❌ WRONG
+const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+const apiUrl = "https://www.hometexbd.ltd";
+```
+
+### 2. API Calls
+
+- **ALWAYS** use `api` from `@/lib/api` for API calls
+- **NEVER** use `fetch` directly (except in `src/lib/api.ts`)
+
+```typescript
+// ✅ CORRECT
+import { api } from "@/lib/api";
+const products = await api.products.getAll();
+
+// ❌ WRONG
+const response = await fetch("https://api.example.com/products");
+```
+
+### 3. TypeScript
+
+- **ALWAYS** define types for all props, functions, and data
+- **NEVER** use `any` type (except for Next.js Route types with `as any`)
+- **ALWAYS** use `import type` for type-only imports
+
+```typescript
+// ✅ CORRECT
+import type { Product } from "@/types";
+interface ProductCardProps {
+  product: Product;
+}
+
+// ❌ WRONG
+const ProductCard = ({ product }: any) => { ... }
+```
+
+### 4. Component Patterns
+
+- **Server Components by default** (no "use client" unless needed)
+- **Client Components** only when interactivity is required
+- **ALWAYS** define props interface
+- **ALWAYS** use proper component structure
+
+```typescript
+// ✅ Server Component (default)
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const product = await api.products.getById(id);
+  return <ProductView product={product} />;
+}
+
+// ✅ Client Component (when needed)
+"use client";
+interface ProductViewProps {
+  product: Product;
+}
+export const ProductView = ({ product }: ProductViewProps) => {
+  const [quantity, setQuantity] = useState(1);
+  return <div>...</div>;
+};
+```
+
+### 5. File Structure
+
+- Components: `src/components/[feature]/ComponentName.tsx`
+- Views: `src/views/ViewName.tsx`
+- Utilities: `src/lib/utilityName.ts`
+- Types: `src/types/index.ts`
+- Hooks: `src/hooks/use-hook-name.tsx`
+
+### 6. Naming Conventions
+
+- Components: `PascalCase.tsx` (e.g., `ProductCard.tsx`)
+- Utilities: `camelCase.ts` (e.g., `formatPrice.ts`)
+- Hooks: `use-kebab-case.tsx` (e.g., `use-mobile.tsx`)
+- Types: `PascalCase` (e.g., `Product`, `CartItem`)
+
+### 7. Import Organization
+
+```typescript
+// 1. React & Next.js
+import React from "react";
+import { useRouter } from "next/navigation";
+
+// 2. Third-party
+import { toast } from "sonner";
+
+// 3. Internal (@/ paths)
+import { Button } from "@/components/ui/button";
+import { env } from "@/lib/env";
+import type { Product } from "@/types";
+
+// 4. Relative
+import "./styles.css";
+```
+
+### 8. Error Handling
+
+- **ALWAYS** wrap async operations in try-catch
+- **ALWAYS** provide user-friendly error messages
+- **ALWAYS** use Error Boundaries for components
+
+```typescript
+// ✅ CORRECT
+try {
+  const data = await api.products.getById(id);
+  if (!data.success) {
+    throw new Error(data.message);
+  }
+} catch (error) {
+  toast.error("Failed to load product");
+  console.error(error);
+}
+```
+
+### 9. Code Style
+
+- Use Prettier formatting (2 spaces, semicolons, trailing commas)
+- Maximum 100 characters per line
+- Use double quotes for consistency
+
+### 10. Performance
+
+- Use `next/image` for all images
+- Use `React.memo` for expensive components
+- Use `useMemo` and `useCallback` appropriately
+- Use dynamic imports for heavy components
+
+## When Creating New Files
+
+1. **Check existing patterns** in similar files
+2. **Follow the folder structure** strictly
+3. **Use TypeScript** with proper types
+4. **Add error handling** for async operations
+5. **Use environment variables** from `@/lib/env`
+6. **Use API client** from `@/lib/api`
+7. **Format code** with Prettier
+8. **Add JSDoc comments** for public functions
+
+## Common Patterns
+
+### Creating a New Component
+
+```typescript
+"use client"; // Only if needed
+
+import React from "react";
+import type { ComponentProps } from "@/types";
+
+interface ComponentNameProps {
+  // Define props
+}
+
+export const ComponentName: React.FC<ComponentNameProps> = ({ ...props }) => {
+  // Component logic
+  return <div>...</div>;
+};
+
+export default ComponentName;
+```
+
+### Creating a New API Function
+
+```typescript
+// In src/lib/api.ts
+export const api = {
+  // ... existing APIs
+  newFeature: {
+    getData: async (): Promise<ResponseType> => {
+      const response = await fetchPublicWithFallback("/api/new-endpoint", env.apiBaseUrl, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+      return response.json();
+    },
+  },
+};
+```
+
+### Creating a New Context
+
+```typescript
+"use client";
+
+import React, { createContext, useContext, useState } from "react";
+
+interface ContextType {
+  // Define context shape
+}
+
+const Context = createContext<ContextType | undefined>(undefined);
+
+export const ContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Context logic
+  return <Context.Provider value={value}>{children}</Context.Provider>;
+};
+
+export const useContext = () => {
+  const context = useContext(Context);
+  if (!context) {
+    throw new Error("useContext must be used within ContextProvider");
+  }
+  return context;
+};
+```
+
+## What NOT to Do
+
+❌ Don't hardcode URLs or API endpoints
+❌ Don't use `any` type
+❌ Don't use `process.env` directly
+❌ Don't use `fetch` directly (use `api` from `@/lib/api`)
+❌ Don't create components without TypeScript types
+❌ Don't mix Server and Client component patterns incorrectly
+❌ Don't skip error handling
+❌ Don't forget to format code
+❌ Don't create files in wrong locations
+❌ Don't ignore ESLint warnings
+
+## Questions to Ask Before Writing Code
+
+1. Is this a Server or Client Component?
+2. Do I need to use `env` from `@/lib/env`?
+3. Should I use `api` from `@/lib/api`?
+4. Are all types properly defined?
+5. Is error handling implemented?
+6. Does this follow the existing patterns?
+7. Is the file in the correct location?
+8. Is the naming convention correct?
+
+## Reference Files
+
+- Coding Standards: `CODING_STANDARDS.md`
+- Project Structure: `README.md`
+- Environment Config: `src/lib/env.ts`
+- API Client: `src/lib/api.ts`
+- Type Definitions: `src/types/index.ts`
+
+---
+
+**Remember**: When in doubt, check existing code patterns and follow them. Consistency is key!

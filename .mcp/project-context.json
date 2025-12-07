@@ -1,0 +1,211 @@
+{
+  "mcpVersion": "1.0",
+  "autoLoadOnStart": true,
+  "enforceOnEveryResponse": true,
+  "project": {
+    "name": "Hometex V3",
+    "type": "nextjs-ecommerce",
+    "framework": "Next.js 16 (App Router)",
+    "language": "TypeScript",
+    "description": "Modern e-commerce platform for Hometex Bangladesh"
+  },
+  "agentBehavior": {
+    "onSessionStart": {
+      "mustRead": [
+        ".ai-context.md",
+        ".cursorrules",
+        "docs/standards/coding-standards.md",
+        "src/lib/env.ts",
+        "src/lib/api.ts"
+      ],
+      "mustVerify": [
+        "Project structure understood",
+        "Critical rules memorized",
+        "Forbidden patterns identified",
+        "Required patterns understood"
+      ]
+    },
+    "onEveryResponse": {
+      "beforeGenerating": [
+        "Check if Server or Client Component needed",
+        "Identify which utilities to use (env, api, utils)",
+        "Review similar existing code for patterns",
+        "Verify types are defined"
+      ],
+      "afterGenerating": [
+        "Run: npm run format (or prettier)",
+        "Run: npm run lint (or eslint)",
+        "Run: npm run type-check (or tsc --noEmit)",
+        "Verify: No forbidden patterns used",
+        "Verify: All required patterns followed"
+      ]
+    },
+    "maintainContext": {
+      "rememberThroughoutChat": [
+        "Project uses Server Components by default",
+        "Must use env from @/lib/env (not process.env)",
+        "Must use api from @/lib/api (not fetch)",
+        "No 'any' types allowed",
+        "Always define TypeScript types"
+      ],
+      "checkBeforeEachReply": [
+        "Am I following the coding standards?",
+        "Am I using the correct utilities?",
+        "Am I generating Server or Client Component correctly?",
+        "Have I checked for similar existing code?"
+      ]
+    }
+  },
+  "architecture": {
+    "pattern": "App Router with Server Components by default",
+    "stateManagement": ["React Context API", "TanStack Query"],
+    "styling": "Tailwind CSS",
+    "uiLibrary": "shadcn/ui + Radix UI",
+    "i18n": "next-intl",
+    "formHandling": "React Hook Form + Zod"
+  },
+  "folderStructure": {
+    "app": "Next.js App Router (Server Components)",
+    "components": "Reusable UI components",
+    "views": "Page-level components (Client Components)",
+    "lib": "Utilities, API client, configurations",
+    "context": "React Context providers",
+    "hooks": "Custom React hooks",
+    "types": "TypeScript type definitions",
+    "i18n": "Internationalization configuration"
+  },
+  "criticalRules": {
+    "environmentVariables": {
+      "rule": "ALWAYS use env from @/lib/env, NEVER use process.env directly",
+      "example": "import { env } from '@/lib/env'; const url = env.apiBaseUrl;"
+    },
+    "apiCalls": {
+      "rule": "ALWAYS use api from @/lib/api, NEVER use fetch directly",
+      "example": "import { api } from '@/lib/api'; const data = await api.products.getAll();"
+    },
+    "typescript": {
+      "rule": "ALWAYS define types, NEVER use 'any' (except for Next.js Route types)",
+      "example": "interface Props { product: Product; }"
+    },
+    "components": {
+      "rule": "Server Components by default, Client Components only when interactivity needed",
+      "example": "Default: no 'use client'. Client: 'use client' at top"
+    }
+  },
+  "namingConventions": {
+    "components": "PascalCase.tsx",
+    "utilities": "camelCase.ts",
+    "hooks": "use-kebab-case.tsx",
+    "types": "PascalCase",
+    "constants": "UPPER_SNAKE_CASE"
+  },
+  "importOrder": [
+    "React & Next.js",
+    "Third-party libraries",
+    "Internal imports (@/ paths)",
+    "Relative imports",
+    "Type imports (import type)"
+  ],
+  "codeStyle": {
+    "formatter": "Prettier",
+    "indentation": 2,
+    "quotes": "double",
+    "semicolons": true,
+    "lineLength": 100,
+    "trailingCommas": true
+  },
+  "requiredFiles": {
+    "env": "src/lib/env.ts",
+    "api": "src/lib/api.ts",
+    "types": "src/types/index.ts",
+    "standards": "CODING_STANDARDS.md",
+    "cursorRules": ".cursorrules"
+  },
+  "forbiddenPatterns": [
+    "process.env.* (use env from @/lib/env)",
+    "fetch(.*) (use api from @/lib/api)",
+    ": any (define proper types)",
+    "hardcoded URLs",
+    "hardcoded API endpoints"
+  ],
+  "requiredPatterns": [
+    "Error handling for async operations",
+    "TypeScript types for all code",
+    "Use env from @/lib/env",
+    "Use api from @/lib/api",
+    "Server Components by default"
+  ],
+  "preOutputChecklist": {
+    "description": "AI agents MUST verify these before giving final output",
+    "checks": [
+      {
+        "id": "format",
+        "name": "Code Formatting",
+        "command": "npm run format",
+        "required": true,
+        "runAutomatically": true
+      },
+      {
+        "id": "lint",
+        "name": "ESLint Check",
+        "command": "npm run lint",
+        "required": true,
+        "runAutomatically": true
+      },
+      {
+        "id": "typecheck",
+        "name": "TypeScript Check",
+        "command": "npm run type-check",
+        "required": true,
+        "runAutomatically": true
+      },
+      {
+        "id": "patterns",
+        "name": "Verify Patterns",
+        "checks": [
+          "No process.env usage",
+          "No direct fetch calls",
+          "No 'any' types",
+          "All imports organized",
+          "Server/Client component correctly chosen"
+        ],
+        "required": true,
+        "runAutomatically": true
+      }
+    ]
+  },
+  "contextMemory": {
+    "persistThroughConversation": true,
+    "keyPoints": [
+      "This is a Next.js 16 App Router project",
+      "Server Components are the default",
+      "Client Components need 'use client' directive",
+      "Environment variables via env from @/lib/env",
+      "API calls via api from @/lib/api",
+      "TypeScript strict mode (no 'any')",
+      "Format/Lint/TypeCheck before final output"
+    ]
+  },
+  "validationRules": {
+    "beforeGeneratingCode": [
+      "Read .ai-context.md for quick reference",
+      "Check similar existing code for patterns",
+      "Identify if Server or Client Component",
+      "Know which utilities to import"
+    ],
+    "whileGeneratingCode": [
+      "Use proper TypeScript types",
+      "Use env for environment variables",
+      "Use api for API calls",
+      "Follow naming conventions",
+      "Organize imports correctly"
+    ],
+    "afterGeneratingCode": [
+      "Run npm run format",
+      "Run npm run lint",
+      "Run npm run type-check",
+      "Verify no forbidden patterns",
+      "Verify all required patterns present"
+    ]
+  }
+}

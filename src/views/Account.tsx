@@ -1,14 +1,89 @@
 "use client";
 
-import Link from "next/link";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Package, Heart, Settings } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { userService } from "@/services/api";
+import { Heart, Loader2, Package, Settings, User } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+interface UserProfile {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  [key: string]: string | undefined;
+}
 
 const Account = () => {
+  const { isAuthenticated, user } = useAuth();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      // Debug log
+      if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.log("Auth State - isAuthenticated:", isAuthenticated, "user:", user);
+        const token = localStorage.getItem("hometex-auth-token");
+        // eslint-disable-next-line no-console
+        console.log("LocalStorage token:", token ? `${token.substring(0, 20)}...` : "null");
+        // eslint-disable-next-line no-console
+        console.log("LocalStorage user:", localStorage.getItem("hometex-user"));
+      }
+
+      // Wait for auth to be checked
+      if (!isAuthenticated) {
+        setError("Please login to view your profile");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Use the new userService to fetch profile
+        const response = await userService.getProfile();
+
+        if (process.env.NODE_ENV === "development") {
+          // eslint-disable-next-line no-console
+          console.log("Profile data received:", response);
+        }
+
+        // Map the API response to our UserProfile interface
+        const userData = response.user;
+        const mappedProfile: UserProfile = {
+          name: userData.name || `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
+          email: userData.email,
+          phone: userData.phone,
+          address: userData.address || response.addresses?.[0]?.address || undefined,
+        };
+
+        setUserProfile(mappedProfile);
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+        setError(err instanceof Error ? err.message : "Failed to load profile");
+
+        // If 401 error, clear local storage
+        if (err instanceof Error && err.message.includes("401")) {
+          localStorage.removeItem("hometex-auth-token");
+          localStorage.removeItem("hometex-user");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [isAuthenticated, user]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -41,19 +116,43 @@ const Account = () => {
                 <CardTitle>Profile Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Full Name</label>
-                  <p className="text-muted-foreground">Demo User</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Email</label>
-                  <p className="text-muted-foreground">demo@hometex.com</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Phone</label>
-                  <p className="text-muted-foreground">+880 1234-567890</p>
-                </div>
-                <Button>Edit Profile</Button>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <span className="ml-2">Loading profile...</span>
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-8">
+                    <p className="text-destructive mb-4">{error}</p>
+                    <Button onClick={() => window.location.reload()}>Retry</Button>
+                  </div>
+                ) : userProfile ? (
+                  <>
+                    <div>
+                      <label className="text-sm font-medium">Full Name</label>
+                      <p className="text-muted-foreground">{userProfile.name || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Email</label>
+                      <p className="text-muted-foreground">{userProfile.email || "Not provided"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Phone</label>
+                      <p className="text-muted-foreground">{userProfile.phone || "Not provided"}</p>
+                    </div>
+                    {userProfile.address && (
+                      <div>
+                        <label className="text-sm font-medium">Address</label>
+                        <p className="text-muted-foreground">{userProfile.address}</p>
+                      </div>
+                    )}
+                    <Button>Edit Profile</Button>
+                  </>
+                ) : (
+                  <p className="text-center py-8 text-muted-foreground">
+                    No profile data available
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -80,10 +179,9 @@ const Account = () => {
                 <CardTitle>My Wishlist</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  View and manage your saved items
-                </p>
+                <p className="text-muted-foreground mb-4">View and manage your saved items</p>
                 <Button asChild>
+                  {/* @ts-expect-error - Route type issue */}
                   <Link href="/account/wishlist">View Wishlist</Link>
                 </Button>
               </CardContent>

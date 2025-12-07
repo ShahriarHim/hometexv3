@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import {
@@ -80,27 +81,18 @@ const FAQ = () => {
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, index) => (
               <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {faq.answer}
-                </AccordionContent>
+                <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">{faq.answer}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
 
           <div className="mt-12 p-6 bg-muted rounded-lg text-center">
             <h2 className="text-xl font-semibold mb-2">Still have questions?</h2>
-            <p className="text-muted-foreground mb-4">
-              Our customer service team is here to help
-            </p>
-            <a
-              href="/contact"
-              className="text-primary hover:underline font-medium"
-            >
+            <p className="text-muted-foreground mb-4">Our customer service team is here to help</p>
+            <Link href="/contact" className="text-primary hover:underline font-medium">
               Contact Us →
-            </a>
+            </Link>
           </div>
         </div>
       </main>

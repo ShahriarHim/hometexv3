@@ -17,11 +17,22 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const [signupData, setSignupData] = useState({ email: "", password: "", name: "" });
+  const [signupData, setSignupData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    password: "",
+    conf_password: "",
+  });
+
+  // State for field-specific errors
+  const [signupErrors, setSignupErrors] = useState<Record<string, string[]>>({});
+  const [loginErrors, setLoginErrors] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/");
+      router.replace("/" as any);
     }
   }, [isAuthenticated, router]);
 
@@ -32,11 +43,16 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setLoginErrors({}); // Clear previous errors
     try {
       await login(loginData.email, loginData.password);
-      router.push("/");
-    } catch (error) {
+      router.push("/" as any);
+    } catch (error: any) {
       console.error(error);
+      // Extract field errors from the error object
+      if (error.fieldErrors) {
+        setLoginErrors(error.fieldErrors);
+      }
     } finally {
       setLoading(false);
     }
@@ -44,12 +60,27 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Clear previous errors
+    setSignupErrors({});
+
+    // Validate password match
+    if (signupData.password !== signupData.conf_password) {
+      setSignupErrors({ conf_password: ["Passwords do not match!"] });
+      return;
+    }
+
     setLoading(true);
     try {
-      await signup(signupData.email, signupData.password, signupData.name);
-      router.push("/");
-    } catch (error) {
+      await signup(signupData);
+      router.push("/" as any);
+    } catch (error: any) {
       console.error(error);
+      // Extract field errors from the error object
+      if (error.fieldErrors) {
+        setSignupErrors(error.fieldErrors);
+      }
+      // Error is already shown via toast in the signup function
     } finally {
       setLoading(false);
     }
@@ -59,7 +90,7 @@ const Auth = () => {
     setLoading(true);
     try {
       await socialLogin(provider);
-      router.push("/");
+      router.push("/" as any);
     } catch (error) {
       console.error(error);
     } finally {
@@ -92,9 +123,21 @@ const Auth = () => {
                       type="email"
                       placeholder="you@example.com"
                       value={loginData.email}
-                      onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                      onChange={(e) => {
+                        setLoginData({ ...loginData, email: e.target.value });
+                        // Clear error when user starts typing
+                        if (loginErrors.email) {
+                          setLoginErrors({ ...loginErrors, email: [] });
+                        }
+                      }}
                       required
+                      className={loginErrors.email?.length ? "border-red-500" : ""}
                     />
+                    {loginErrors.email?.map((error, index) => (
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
+                    ))}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="login-password">Password</Label>
@@ -102,9 +145,21 @@ const Auth = () => {
                       id="login-password"
                       type="password"
                       value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      onChange={(e) => {
+                        setLoginData({ ...loginData, password: e.target.value });
+                        // Clear error when user starts typing
+                        if (loginErrors.password) {
+                          setLoginErrors({ ...loginErrors, password: [] });
+                        }
+                      }}
                       required
+                      className={loginErrors.password?.length ? "border-red-500" : ""}
                     />
+                    {loginErrors.password?.map((error, index) => (
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
+                    ))}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Logging in..." : "Login"}
@@ -114,16 +169,53 @@ const Auth = () => {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="John Doe"
-                      value={signupData.name}
-                      onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                      required
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-first-name">First Name</Label>
+                      <Input
+                        id="signup-first-name"
+                        type="text"
+                        placeholder="John"
+                        value={signupData.first_name}
+                        onChange={(e) => {
+                          setSignupData({ ...signupData, first_name: e.target.value });
+                          // Clear error when user starts typing
+                          if (signupErrors.first_name) {
+                            setSignupErrors({ ...signupErrors, first_name: [] });
+                          }
+                        }}
+                        required
+                        className={signupErrors.first_name?.length ? "border-red-500" : ""}
+                      />
+                      {signupErrors.first_name?.map((error, index) => (
+                        <p key={index} className="text-sm text-red-500">
+                          {error}
+                        </p>
+                      ))}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-last-name">Last Name</Label>
+                      <Input
+                        id="signup-last-name"
+                        type="text"
+                        placeholder="Doe"
+                        value={signupData.last_name}
+                        onChange={(e) => {
+                          setSignupData({ ...signupData, last_name: e.target.value });
+                          // Clear error when user starts typing
+                          if (signupErrors.last_name) {
+                            setSignupErrors({ ...signupErrors, last_name: [] });
+                          }
+                        }}
+                        required
+                        className={signupErrors.last_name?.length ? "border-red-500" : ""}
+                      />
+                      {signupErrors.last_name?.map((error, index) => (
+                        <p key={index} className="text-sm text-red-500">
+                          {error}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
@@ -132,9 +224,44 @@ const Auth = () => {
                       type="email"
                       placeholder="you@example.com"
                       value={signupData.email}
-                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      onChange={(e) => {
+                        setSignupData({ ...signupData, email: e.target.value });
+                        // Clear error when user starts typing
+                        if (signupErrors.email) {
+                          setSignupErrors({ ...signupErrors, email: [] });
+                        }
+                      }}
                       required
+                      className={signupErrors.email?.length ? "border-red-500" : ""}
                     />
+                    {signupErrors.email?.map((error, index) => (
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Phone</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="01712345678"
+                      value={signupData.phone}
+                      onChange={(e) => {
+                        setSignupData({ ...signupData, phone: e.target.value });
+                        // Clear error when user starts typing
+                        if (signupErrors.phone) {
+                          setSignupErrors({ ...signupErrors, phone: [] });
+                        }
+                      }}
+                      required
+                      className={signupErrors.phone?.length ? "border-red-500" : ""}
+                    />
+                    {signupErrors.phone?.map((error, index) => (
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
+                    ))}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
@@ -142,9 +269,45 @@ const Auth = () => {
                       id="signup-password"
                       type="password"
                       value={signupData.password}
-                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                      onChange={(e) => {
+                        setSignupData({ ...signupData, password: e.target.value });
+                        // Clear error when user starts typing
+                        if (signupErrors.password) {
+                          setSignupErrors({ ...signupErrors, password: [] });
+                        }
+                      }}
                       required
+                      minLength={6}
+                      className={signupErrors.password?.length ? "border-red-500" : ""}
                     />
+                    {signupErrors.password?.map((error, index) => (
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-conf-password">Confirm Password</Label>
+                    <Input
+                      id="signup-conf-password"
+                      type="password"
+                      value={signupData.conf_password}
+                      onChange={(e) => {
+                        setSignupData({ ...signupData, conf_password: e.target.value });
+                        // Clear error when user starts typing
+                        if (signupErrors.conf_password) {
+                          setSignupErrors({ ...signupErrors, conf_password: [] });
+                        }
+                      }}
+                      required
+                      minLength={6}
+                      className={signupErrors.conf_password?.length ? "border-red-500" : ""}
+                    />
+                    {signupErrors.conf_password?.map((error, index) => (
+                      <p key={index} className="text-sm text-red-500">
+                        {error}
+                      </p>
+                    ))}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Creating account..." : "Sign Up"}

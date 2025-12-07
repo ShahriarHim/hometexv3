@@ -1,158 +1,158 @@
 "use client";
 
-import Link from "next/link";
-import { ShoppingCart, Heart, User, Search, Menu } from "lucide-react";
+import PreHeader from "@/components/layout/PreHeader";
+import SearchPopup from "@/components/layout/SearchPopup";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/context/CartContext";
-import { useWishlist } from "@/context/WishlistContext";
-import { useState } from "react";
+import { productService } from "@/services/api";
+import { Menu, Search, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { CategoriesMenuBar } from "./header/CategoriesMenuBar";
+import { CategoriesMenuBarSkeleton } from "./header/CategoriesMenuBarSkeleton";
+import { HeaderActions } from "./header/HeaderActions";
+import { HeaderLogo } from "./header/HeaderLogo";
+import { MobileMenu } from "./header/MobileMenu";
+import { ShowCategoriesButton } from "./header/ShowCategoriesButton";
+import {
+  getFeaturedCategories,
+  transformCategories,
+  type TransformedCategory,
+} from "./header/types";
 
 export const Header = () => {
-  const { getTotalItems } = useCart();
-  const { items: wishlistItems } = useWishlist();
+  const tCommon = useTranslations("common");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const cartCount = getTotalItems();
-  const wishlistCount = wishlistItems.length;
+  const [showCategoriesBar, setShowCategoriesBar] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
+  // Categories State
+  const [categories, setCategories] = useState<TransformedCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const response = await productService.getMenu();
+        if (response.success) {
+          const transformedCategories = transformCategories(response.data);
+          setCategories(transformedCategories);
+        } else {
+          setCategoriesError("Failed to load categories");
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setCategoriesError("Failed to load categories");
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Close categories bar when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        showCategoriesBar &&
+        !target.closest(".categories-menu-bar") &&
+        !target.closest(".show-categories-button")
+      ) {
+        setShowCategoriesBar(false);
+      }
+    };
+
+    if (showCategoriesBar) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return undefined;
+  }, [showCategoriesBar]);
+
+  const handleSearchClick = () => {
+    setShowPopup(true);
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+  };
+
+  const featuredCategories = getFeaturedCategories(categories);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {/* Top Bar */}
-      <div className="bg-primary text-primary-foreground py-2 text-center text-sm">
-        Free shipping on orders over BDT 3,000 | Call: +880 1234-567890
-      </div>
+    <>
+      {showPopup && <SearchPopup onClose={closePopup} />}
+      <PreHeader />
+      <header
+        className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        suppressHydrationWarning
+      >
+        {/* Main Header */}
+        <div className="container mx-auto px-4" suppressHydrationWarning>
+          <div className="flex h-16 items-center justify-between">
+            {/* Left Section: Logo + Show Categories Button + Search */}
+            <div className="flex items-center gap-4">
+              <HeaderLogo />
 
-      {/* Main Header */}
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <img src="/images/hometex-logo.png" alt="Hometex" width={80} height={80} />
-          </Link>
+              <div className="hidden md:flex items-center gap-2">
+                <ShowCategoriesButton
+                  isOpen={showCategoriesBar}
+                  onClick={() => setShowCategoriesBar(!showCategoriesBar)}
+                />
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/" className="text-foreground hover:text-primary transition-colors">
-              Home
-            </Link>
-            <Link href="/shop" className="text-foreground hover:text-primary transition-colors">
-              Shop All
-            </Link>
-            <Link href="/categories/bedding" className="text-foreground hover:text-primary transition-colors">
-              Bedding
-            </Link>
-            <Link href="/categories/bath" className="text-foreground hover:text-primary transition-colors">
-              Bath
-            </Link>
-            <Link href="/categories/kitchen-dining" className="text-foreground hover:text-primary transition-colors">
-              Kitchen
-            </Link>
-            <Link href="/categories/living-decor" className="text-foreground hover:text-primary transition-colors">
-              Living
-            </Link>
-            <Link href="/corporate" className="text-foreground hover:text-primary transition-colors">
-              Corporate
-            </Link>
-          </nav>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 hover:bg-transparent p-0 hover:text-primary"
+                  onClick={handleSearchClick}
+                >
+                  <Search className="h-5 w-5 text-yellow-600" />
+                  <span className="text-sm font-medium">{tCommon("search")}</span>
+                </Button>
+              </div>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" asChild>
-            <Link href="/search">
-                <Search className="h-5 w-5" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" asChild className="relative">
-            <Link href="/account/wishlist">
-                <Heart className="h-5 w-5" />
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                    {wishlistCount}
-                  </span>
-                )}
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" asChild className="relative">
-            <Link href="/cart">
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" asChild className="hidden md:flex">
-            <Link href="/account">
-                <User className="h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              <Menu className="h-6 w-6" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <nav className="md:hidden py-4 border-t border-border">
-            <div className="flex flex-col space-y-3">
-              <Link href="/" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                Home
-              </Link>
-              <Link href="/shop" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-                Shop All
-              </Link>
-              <Link
-                href="/categories/bedding"
-                className="text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
+              {/* Mobile Menu Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                Bedding
-              </Link>
-              <Link
-                href="/categories/bath"
-                className="text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Bath
-              </Link>
-              <Link
-                href="/categories/kitchen-dining"
-                className="text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Kitchen & Dining
-              </Link>
-              <Link
-                href="/categories/living-decor"
-                className="text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Living Décor
-              </Link>
-              <Link
-                href="/corporate"
-                className="text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Corporate
-              </Link>
-              <Link
-                href="/account"
-                className="text-foreground hover:text-primary transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                My Account
-              </Link>
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
             </div>
-          </nav>
-        )}
-      </div>
-    </header>
+
+            {/* Right Section: Actions */}
+            <HeaderActions onSearchClick={handleSearchClick} />
+          </div>
+
+          {/* Categories Menu Bar (Animated) */}
+          {showCategoriesBar && (
+            <>
+              {categoriesLoading ? (
+                <CategoriesMenuBarSkeleton />
+              ) : (
+                <CategoriesMenuBar
+                  categories={categories}
+                  featuredCategories={featuredCategories}
+                />
+              )}
+            </>
+          )}
+
+          {/* Mobile Menu */}
+          <MobileMenu
+            isOpen={isMenuOpen}
+            onClose={() => setIsMenuOpen(false)}
+            categories={categories}
+            categoriesLoading={categoriesLoading}
+            categoriesError={categoriesError}
+          />
+        </div>
+      </header>
+    </>
   );
 };

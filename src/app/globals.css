@@ -51,11 +51,7 @@ All colors MUST be HSL.
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(72 85% 58%), hsl(225 43% 84%));
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(55 95% 96%),
-      hsl(225 43% 90%)
-    );
+    --gradient-hero: linear-gradient(135deg, hsl(55 95% 96%), hsl(225 43% 90%));
 
     /* Shadows */
     --shadow-soft: 0 6px 24px hsl(225 32% 20% / 0.08);
@@ -117,3 +113,7 @@ All colors MUST be HSL.
   background: black !important;
 }
 
+/* Hover Effect Utility */
+.hoverEffect {
+  transition: all 0.3s ease-in-out;
+}

@@ -50,17 +50,19 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem("hometex-orders", JSON.stringify(orders));
   }, [orders]);
 
-  const createOrder = async (orderData: Omit<Order, "id" | "createdAt" | "updatedAt">): Promise<Order> => {
+  const createOrder = async (
+    orderData: Omit<Order, "id" | "createdAt" | "updatedAt">
+  ): Promise<Order> => {
     // TODO: Replace with actual API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    
+
     const newOrder: Order = {
       ...orderData,
       id: "ORD-" + Date.now(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    
+
     setOrders((prev) => [newOrder, ...prev]);
     toast.success("Order placed successfully");
     return newOrder;
@@ -73,9 +75,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateOrderStatus = (orderId: string, status: Order["status"]) => {
     setOrders((prev) =>
       prev.map((order) =>
-        order.id === orderId
-          ? { ...order, status, updatedAt: new Date() }
-          : order
+        order.id === orderId ? { ...order, status, updatedAt: new Date() } : order
       )
     );
     toast.success("Order status updated");

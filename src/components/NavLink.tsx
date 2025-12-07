@@ -15,8 +15,7 @@ interface NavLinkProps extends LinkProps<Route> {
 const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
   ({ className, activeClassName, exact = false, href, ...props }, ref) => {
     const pathname = usePathname();
-    const normalizedHref =
-      typeof href === "string" ? href : href.pathname ?? "";
+    const normalizedHref = typeof href === "string" ? href : (href.pathname ?? "");
     const isActive = normalizedHref
       ? exact
         ? pathname === normalizedHref
@@ -31,7 +30,7 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkProps>(
         {...props}
       />
     );
-  },
+  }
 );
 
 NavLink.displayName = "NavLink";

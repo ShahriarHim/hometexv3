@@ -7,6 +7,7 @@ export interface Product {
   description: string;
   category: string;
   subcategory?: string;
+  childSubcategory?: string;
   images: string[];
   inStock: boolean;
   rating: number;
@@ -18,22 +19,69 @@ export interface Product {
   isFeatured?: boolean;
   isNew?: boolean;
   discount?: number;
+  stock?: number;
+}
+
+export interface ProductVariant {
+  id: number;
+  parent_id: number;
+  sku: string;
+  name: string;
+  slug: string;
+  attributes: {
+    Size?: string;
+    Color?: string;
+    [key: string]: any;
+  };
+  pricing: {
+    regular_price: number;
+    sale_price: number | null;
+    final_price: number;
+  };
+  inventory: {
+    stock_status: string;
+    stock_quantity: number;
+  };
+  media: any[];
+  weight: number;
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+  };
 }
 
 export interface Category {
   id: string;
   name: string;
   slug: string;
-  image: string;
+  image: string | null;
   description?: string;
   subcategories?: Subcategory[];
+  is_active?: boolean;
+  sort_order?: number;
+  has_children?: boolean;
 }
 
 export interface Subcategory {
   id: string;
   name: string;
   slug: string;
-  image?: string;
+  image?: string | null;
+  parent_id?: string;
+  is_active?: boolean;
+  sort_order?: number;
+  child_categories?: ChildCategory[];
+}
+
+export interface ChildCategory {
+  id: string;
+  name: string;
+  slug: string;
+  parent_id: string;
+  image?: string | null;
+  is_active?: boolean;
+  sort_order?: number;
 }
 
 export interface CartItem {

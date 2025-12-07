@@ -1,0 +1,94 @@
+SIMILAR PRODUCTS IMPLEMENTATION GUIDE
+=====================================
+
+The similar products feature has been successfully integrated into the ProductDetail page.
+
+## Changes Made:
+
+### 1. API Functions (src/lib/api.ts)
+   - Added `getSimilar(productId)` - Fetches similar products for a given product ID
+   - Added `getByIds(productIds[])` - Fetches multiple products by their IDs (for future use)
+
+### 2. ProductDetail Component (src/views/ProductDetail.tsx)
+   - Added state management for similar products
+   - Automatically fetches similar products when a product is loaded
+   - Displays similar products in a beautiful grid layout with ProductCard components
+
+## How It Works:
+
+1. When a user views a product (e.g., product ID 412), the component:
+   - Fetches the main product details
+   - Automatically calls the API: `GET /api/products/412/similar`
+   - Receives an array of similar products
+   - Displays them in a responsive grid below the product details
+
+2. The API response structure matches what you provided:
+   ```json
+   {
+     "success": true,
+     "message": "Similar products retrieved successfully",
+     "data": {
+       "products": [...]
+     }
+   }
+   ```
+
+3. Each similar product is displayed using the ProductCard component with:
+   - Product image
+   - Name
+   - Price (with original price if discounted)
+   - Rating and review count
+   - Stock status
+   - Badges (Featured, New, Trending, etc.)
+
+## Usage Example:
+
+The implementation is automatic! When you navigate to any product page:
+- URL: `/products/412` (or any product ID)
+- The page will automatically show similar products at the bottom
+
+## API Endpoints Used:
+
+1. **Get Similar Products:**
+   - Endpoint: `https://www.hometexbd.ltd/api/products/{productId}/similar`
+   - Example: `https://www.hometexbd.ltd/api/products/412/similar`
+
+2. **Get Product by ID (for multiple products):**
+   - Endpoint: `https://www.hometexbd.ltd/api/products/{productId}`
+   - Can be used with the `getByIds()` function for batch fetching
+
+## UI/UX Features:
+
+✓ Responsive grid layout (1 column on mobile, 2 on tablet, 4 on desktop)
+✓ Loading indicator while fetching similar products
+✓ Graceful error handling (no errors shown to user if API fails)
+✓ Seamless integration with existing ProductCard component
+✓ Automatic transformation of API data to UI-compatible format
+
+## Future Enhancements:
+
+You can also fetch products by specific IDs using the new `getByIds()` function:
+
+```typescript
+// Example: Fetch products with IDs 30, 31, 32
+const response = await api.products.getByIds([30, 31, 32]);
+if (response.success) {
+  setSimilarProducts(response.data.products);
+}
+```
+
+This is useful if you want to hardcode specific product recommendations.
+
+## Testing:
+
+To test the feature:
+1. Navigate to any product page (e.g., `/products/412`)
+2. Scroll down to the bottom of the page
+3. You should see a "Similar Products" section with product cards
+4. The section only appears if similar products are available
+
+## Note:
+
+The linter error on Line 429 is a pre-existing TypeScript issue with Next.js Link component
+and is not related to the similar products feature.
+

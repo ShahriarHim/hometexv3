@@ -66,6 +66,18 @@ const config: Config = {
         },
         cream: "hsl(var(--cream))",
         "warm-gray": "hsl(var(--warm-gray))",
+        shop: {
+          dark_green: "#2d8659",
+          light_green: "#93D991",
+          orange: "#fb6c08",
+          light_bg: "#f8f9fa",
+        },
+        darkBlue: "#1e3a5f",
+        lightText: "#ababab",
+        lightColor: "#f5f5f5",
+        lightGreen: "#93D991",
+        darkColor: "#333333",
+        lightBg: "#ffffff",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -125,7 +137,7 @@ const config: Config = {
             transform: "scale(1.08)",
           },
         },
-        "float": {
+        float: {
           "0%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-6px)" },
           "100%": { transform: "translateY(0px)" },

@@ -1,24 +1,168 @@
-# Logs
-logs
-*.log
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Testing
+/coverage
+
+# Next.js
+.next/
+/.next/
+/out/
+out/
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+.turbo/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Local env files
+.env
+.env*.local
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+*.tsbuildinfo.json
+next-env.d.ts
+.cache/
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+logs
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Package manager lockfiles (keep package-lock.json, exclude others)
+# pnpm-lock.yaml
+# yarn.lock
+
+# IDE & Editor
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-*
+
+# Testing
+/coverage
+*.lcov
+.nyc_output
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Storybook
+storybook-static/
+
+# Legacy/Migration
+Hometexv_v2.0
+MIGRATION_PACKAGE
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# AI Tools & Configuration
+.cursor/
+.ai/
+.aider*
+.aichat/
+.continue/
+
+# Monitoring & Analytics
+.sentry/
+newrelic_agent.log
+.lighthouseci/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# Dependencies lockfiles (optional - uncomment to ignore)
+# package-lock.json
+# pnpm-lock.yaml
+# yarn.lock
+
+# Build info
+.tsbuildinfo
+.turbo/
+
+# Temporary/Cache
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Editor/IDE specific
+.history/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
