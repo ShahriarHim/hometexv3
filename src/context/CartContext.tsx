@@ -43,17 +43,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       );
 
       if (existingItem) {
-        toast.success("Updated cart quantity");
+        const newQuantity = existingItem.quantity + quantity;
+        toast.success(`Updated quantity to ${newQuantity}`);
         return prev.map((item) =>
           item.product.id === product.id &&
           item.selectedColor === color &&
           item.selectedSize === size
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: newQuantity }
             : item
         );
       }
 
-      toast.success("Added to cart");
+      toast.success(`Added ${quantity} to cart`);
       return [...prev, { product, quantity, selectedColor: color, selectedSize: size }];
     });
   };
@@ -69,9 +70,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     setItems((prev) =>
-      prev.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
+      prev.map((item) => (item.product.id === productId ? { ...item, quantity } : item))
     );
   };
 

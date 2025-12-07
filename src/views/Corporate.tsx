@@ -146,9 +146,7 @@ const Corporate = () => {
                   <p className="text-sm text-muted-foreground">
                     ✓ Custom branding and packaging available
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    ✓ Dedicated account management
-                  </p>
+                  <p className="text-sm text-muted-foreground">✓ Dedicated account management</p>
                 </CardContent>
               </Card>
 
@@ -175,9 +173,7 @@ const Corporate = () => {
                     <Building2 className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <p className="font-medium">Office Hours</p>
-                      <p className="text-sm text-muted-foreground">
-                        Sat - Thu: 9:00 AM - 6:00 PM
-                      </p>
+                      <p className="text-sm text-muted-foreground">Sat - Thu: 9:00 AM - 6:00 PM</p>
                     </div>
                   </div>
                 </CardContent>

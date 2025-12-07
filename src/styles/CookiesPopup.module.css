@@ -1,0 +1,215 @@
+/* 
+  Overlay: remains fixed at the bottom center.
+*/
+.overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease forwards;
+  box-sizing: border-box;
+}
+
+/* Optional fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Popup Banner: 
+   - Full-width with a max-width.
+   - Curved side corners.
+   - Slide up from further down for a more pronounced effect.
+*/
+.popup {
+  background: #fff;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-top: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px; /* Curves all corners */
+  animation: slideUp 0.4s ease forwards;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(150px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Sections and content styling remain unchanged */
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+}
+
+.description {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.learnMoreLink {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.middleSection {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.toggleGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggleLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 18px;
+  margin-top: 0.25rem;
+}
+
+.toggleSwitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 18px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+.toggleSwitch input:checked + .slider {
+  background-color: #4caf50;
+}
+.toggleSwitch input:checked + .slider:before {
+  transform: translateX(18px);
+}
+.disabled {
+  background-color: #bbb !important;
+  cursor: not-allowed;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.popupButton {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.acceptAll {
+  background-color: #4caf50;
+  color: #fff;
+}
+.acceptAll:hover {
+  background-color: #43a047;
+}
+
+.allowSelection {
+  background-color: #0066cc;
+  color: #fff;
+}
+.allowSelection:hover {
+  background-color: #005bb5;
+}
+
+.deny {
+  background-color: #f44336;
+  color: #fff;
+}
+.deny:hover {
+  background-color: #e53935;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .popup {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .leftSection,
+  .middleSection,
+  .rightSection {
+    flex: none;
+    width: 100%;
+  }
+
+  .toggleGroup {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .rightSection {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .popupButton {
+    width: 100%;
+  }
+}

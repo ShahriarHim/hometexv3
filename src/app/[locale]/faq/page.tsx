@@ -1,0 +1,5 @@
+import FAQView from "@/views/FAQ";
+
+export default function FAQPage() {
+  return <FAQView />;
+}

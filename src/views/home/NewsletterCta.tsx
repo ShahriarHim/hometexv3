@@ -12,9 +12,12 @@ export const NewsletterCta = () => {
       <div className="bg-purple-800 rounded-lg p-8 text-white shadow-lg transition-transform transform hover:scale-105">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="space-y-2 sm:w-1/2">
-            <h2 className="text-4xl font-extrabold text-center sm:text-left">Join Our Newsletter</h2>
+            <h2 className="text-4xl font-extrabold text-center sm:text-left">
+              Join Our Newsletter
+            </h2>
             <p className="text-purple-200 text-center sm:text-left whitespace-nowrap">
-              {newsletterContent.description || "Get recommendations, tips, updates, promotions, and more."}
+              {newsletterContent.description ||
+                "Get recommendations, tips, updates, promotions, and more."}
             </p>
           </div>
           <div className="flex w-full sm:w-auto gap-2">

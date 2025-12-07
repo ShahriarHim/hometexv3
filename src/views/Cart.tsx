@@ -25,9 +25,7 @@ const Cart = () => {
             <CardContent className="pt-16 pb-16">
               <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
               <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
-              <p className="text-muted-foreground mb-6">
-                Start adding some products to your cart
-              </p>
+              <p className="text-muted-foreground mb-6">Start adding some products to your cart</p>
               <Button asChild>
                 <Link href="/shop">Continue Shopping</Link>
               </Button>
@@ -53,63 +51,66 @@ const Cart = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <Card key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`}>
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
-                    <img
-                      src={item.product.images[0] || "/placeholder.svg"}
-                      alt={item.product.name}
-                      className="w-24 h-24 object-cover rounded-md bg-muted"
-                    />
-                    <div className="flex-1">
-                      <Link
-                        href={`/products/${item.product.id}`}
-                        className="font-semibold hover:text-primary transition-colors"
-                      >
-                        {item.product.name}
-                      </Link>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {item.selectedColor && <span>Color: {item.selectedColor}</span>}
-                        {item.selectedColor && item.selectedSize && <span> • </span>}
-                        {item.selectedSize && <span>Size: {item.selectedSize}</span>}
-                      </div>
-                      <p className="text-lg font-bold text-primary mt-2">
-                        ৳{item.product.price.toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end justify-between">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeFromCart(item.product.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+            {items.map((item) => {
+              const productUrl = `/products/${item.product.category}/${item.product.childSubcategory || item.product.subcategory || "all"}/${item.product.id}`;
+              return (
+                <Card key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`}>
+                  <CardContent className="p-6">
+                    <div className="flex gap-4">
+                      <img
+                        src={item.product.images[0] || "/placeholder.svg"}
+                        alt={item.product.name}
+                        className="w-24 h-24 object-cover rounded-md bg-muted"
+                      />
+                      <div className="flex-1">
+                        <Link
+                          href={productUrl as any}
+                          className="font-semibold hover:text-primary transition-colors"
                         >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                          {item.product.name}
+                        </Link>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {item.selectedColor && <span>Color: {item.selectedColor}</span>}
+                          {item.selectedColor && item.selectedSize && <span> • </span>}
+                          {item.selectedSize && <span>Size: {item.selectedSize}</span>}
+                        </div>
+                        <p className="text-lg font-bold text-primary mt-2">
+                          ৳{item.product.price.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end justify-between">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          onClick={() => removeFromCart(item.product.id)}
                         >
-                          <Plus className="h-3 w-3" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-8 text-center font-medium">{item.quantity}</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Order Summary */}

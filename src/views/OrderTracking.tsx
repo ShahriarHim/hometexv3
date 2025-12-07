@@ -28,7 +28,7 @@ const OrderTracking = () => {
               <p className="text-muted-foreground mb-6">
                 We couldn&rsquo;t find the order you&rsquo;re looking for
               </p>
-              <Button onClick={() => router.push("/orders")}>View All Orders</Button>
+              <Button onClick={() => router.push("/orders" as any)}>View All Orders</Button>
             </CardContent>
           </Card>
         </main>
@@ -97,9 +97,7 @@ const OrderTracking = () => {
                 <div
                   className="absolute top-5 left-0 h-0.5 bg-primary transition-all duration-500"
                   style={{
-                    width: `${
-                      (trackingSteps.filter((s) => s.completed).length - 1) * 33.33
-                    }%`,
+                    width: `${(trackingSteps.filter((s) => s.completed).length - 1) * 33.33}%`,
                   }}
                 />
 
@@ -170,12 +168,10 @@ const OrderTracking = () => {
           </div>
 
           <div className="mt-6 flex gap-4">
-              <Button onClick={() => router.push("/orders")} variant="outline">
+            <Button onClick={() => router.push("/orders" as any)} variant="outline">
               Back to Orders
             </Button>
-            {order.status === "pending" && (
-              <Button variant="destructive">Cancel Order</Button>
-            )}
+            {order.status === "pending" && <Button variant="destructive">Cancel Order</Button>}
           </div>
         </div>
       </main>

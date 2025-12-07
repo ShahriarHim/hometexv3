@@ -1,27 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Pagination, EffectFade } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/pagination";
-import "swiper/css/effect-fade";
-import { heroSlides } from "@/data/migration-content";
+import { heroSlides as fallbackSlides, type HeroSlide } from "@/data/migration-content";
+import { transformHeroBannerToSlideV2 } from "@/lib/transforms";
+import { productService } from "@/services/api";
+import type { Route } from "next";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import "swiper/css";
+import "swiper/css/effect-fade";
+import "swiper/css/pagination";
+import { Autoplay, EffectFade, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 export const HeroShowcase = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(fallbackSlides);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleSlideChange = (swiper: any) => {
     setActiveIndex(swiper.activeIndex);
   };
 
+  // Fetch hero banners from API
+  useEffect(() => {
+    const fetchHeroBanners = async () => {
+      try {
+        setIsLoading(true);
+        const response = await productService.getHeroBanners();
+
+        if (response.success && response.data.length > 0) {
+          // Transform API data to HeroSlide format
+          const transformedSlides = response.data
+            .filter((banner) => banner.is_active) // Only active banners
+            .map((banner) => transformHeroBannerToSlideV2(banner));
+
+          setHeroSlides(transformedSlides);
+        } else {
+          // Use fallback slides if API returns no data
+          setHeroSlides(fallbackSlides);
+        }
+      } catch (error) {
+        console.error("Failed to fetch hero banners:", error);
+        // Use fallback slides on error
+        setHeroSlides(fallbackSlides);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHeroBanners();
+  }, []);
+
   if (isLoading) {
     return (
-      <div className="relative overflow-hidden">
-        <div className="max-w-[1400px] mx-auto bg-white rounded-lg shadow-lg h-[500px] flex items-center justify-center">
-          <div className="w-20 h-20 animate-spin">Loading...</div>
+      <div className="relative overflow-hidden py-5">
+        <div className="max-w-[1350px] mx-auto bg-gray-200 rounded-lg h-[500px] flex items-center justify-center animate-pulse">
+          <div className="text-gray-500 text-xl font-medium">Loading hero banners...</div>
         </div>
       </div>
     );
@@ -33,7 +67,7 @@ export const HeroShowcase = () => {
 
   return (
     <div className="relative overflow-hidden py-5">
-      <div className="max-w-[1400px] mx-auto bg-white rounded-lg transition-shadow duration-300">
+      <div className="max-w-[1350px] mx-auto bg-white rounded-lg transition-shadow duration-300 overflow-hidden">
         <Swiper
           spaceBetween={0}
           effect={"fade"}
@@ -50,14 +84,14 @@ export const HeroShowcase = () => {
           }}
           modules={[Autoplay, Pagination, EffectFade]}
           onSlideChange={handleSlideChange}
-          className="mySwiper"
+          className="mySwiper rounded-lg overflow-hidden"
         >
           {heroSlides.map((slide, index) => (
-            <SwiperSlide key={`${index}-${activeIndex}`}>
-              <div className="relative h-[500px] flex">
+            <SwiperSlide key={`${index}-${activeIndex}`} className="rounded-lg overflow-hidden">
+              <div className="relative h-[500px] flex w-full overflow-hidden gap-[15px] rounded-lg">
                 {/* Left Section */}
                 {slide.accentPalette?.left && (
-                  <div className="flex h-full w-[25%] gap-[15px]">
+                  <div className="flex h-full w-[25%] gap-[15px] flex-shrink-0 pl-[15px]">
                     {[
                       {
                         opacity: "opacity-100",
@@ -87,7 +121,9 @@ export const HeroShowcase = () => {
                     ].map((style, idx) => (
                       <div
                         key={idx}
-                        className={`${style.opacity} ${style.width} h-full animate-fadeInColumn ${style.delay}`}
+                        className={`${style.opacity} ${style.width} h-full animate-fadeInColumn ${style.delay} ${
+                          idx === 0 ? "rounded-l-2xl" : ""
+                        }`}
                         style={{ backgroundColor: slide.accentPalette.left[idx] || "#E8FE00" }}
                       />
                     ))}
@@ -111,8 +147,8 @@ export const HeroShowcase = () => {
                       </p>
                     )}
                     <Link
-                      href={slide.cta.href}
-                      className="bg-black text-white px-8 py-3 text-lg font-medium inline-block 
+                      href={slide.cta.href as Route}
+                      className="bg-black text-white px-8 py-3 text-lg font-medium inline-block
                         hover:bg-gray-800 transition-all duration-300 rounded hover:scale-105 hover:shadow-lg animate-fadeIn delay-500"
                     >
                       {slide.cta.label}
@@ -122,7 +158,7 @@ export const HeroShowcase = () => {
 
                 {/* Right Section */}
                 {slide.accentPalette?.right && (
-                  <div className="flex h-full w-[25%] gap-[15px]">
+                  <div className="flex h-full w-[25%] gap-[15px] flex-shrink-0 pr-[15px]">
                     {[
                       {
                         opacity: "opacity-20",
@@ -152,7 +188,9 @@ export const HeroShowcase = () => {
                     ].map((style, idx) => (
                       <div
                         key={idx}
-                        className={`${style.opacity} ${style.width} h-full animate-fadeInColumn ${style.delay}`}
+                        className={`${style.opacity} ${style.width} h-full animate-fadeInColumn ${style.delay} ${
+                          idx === 4 ? "rounded-r-2xl" : ""
+                        }`}
                         style={{
                           backgroundColor: slide.accentPalette.right[idx] || "#C5CEE8",
                         }}

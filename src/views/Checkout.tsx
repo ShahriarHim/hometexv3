@@ -32,9 +32,9 @@ const Checkout = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/auth");
+      router.replace("/auth" as any);
     } else if (items.length === 0) {
-      router.replace("/cart");
+      router.replace("/cart" as any);
     }
   }, [isAuthenticated, items.length, router]);
 
@@ -64,7 +64,7 @@ const Checkout = () => {
 
       clearCart();
       toast.success("Order placed successfully!");
-      router.push(`/orders/${order.id}`);
+      router.push(`/orders/${order.id}` as any);
     } catch (error) {
       toast.error("Failed to process order");
     } finally {
@@ -91,9 +91,7 @@ const Checkout = () => {
                       <Input
                         id="name"
                         value={shippingData.name}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, name: e.target.value })
-                        }
+                        onChange={(e) => setShippingData({ ...shippingData, name: e.target.value })}
                         required
                       />
                     </div>
@@ -125,9 +123,7 @@ const Checkout = () => {
                       <Input
                         id="city"
                         value={shippingData.city}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, city: e.target.value })
-                        }
+                        onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
                         required
                       />
                     </div>
@@ -136,9 +132,7 @@ const Checkout = () => {
                       <Input
                         id="zip"
                         value={shippingData.zip}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, zip: e.target.value })
-                        }
+                        onChange={(e) => setShippingData({ ...shippingData, zip: e.target.value })}
                         required
                       />
                     </div>
@@ -156,9 +150,7 @@ const Checkout = () => {
                       <Label htmlFor="sslcommerz" className="flex-1 cursor-pointer">
                         <div>
                           <p className="font-medium">SSL Commerz</p>
-                          <p className="text-sm text-muted-foreground">
-                            Secure payment gateway
-                          </p>
+                          <p className="text-sm text-muted-foreground">Secure payment gateway</p>
                         </div>
                       </Label>
                     </div>

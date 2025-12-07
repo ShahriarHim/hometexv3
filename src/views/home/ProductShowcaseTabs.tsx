@@ -3,11 +3,7 @@
 import { useMemo, useState } from "react";
 import { featuredProducts, newProducts, products } from "@/data/demo-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Bath, BedDouble, Leaf, Sparkles } from "lucide-react";
@@ -41,14 +37,13 @@ export const ProductShowcaseTabs = () => {
       <div className="container px-4">
         <div className="flex flex-col lg:flex-row justify-between gap-6 lg:items-end">
           <div className="space-y-3">
-            <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
-              Hot Swaps
-            </p>
+            <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Hot Swaps</p>
             <h2 className="text-3xl md:text-4xl font-semibold text-foreground">
               Mix & Match Capsules
             </h2>
             <p className="text-muted-foreground max-w-2xl">
-              Tap through curated edits by category. Every edit includes quick-view, wishlist, and cart shortcuts powered by our new contexts.
+              Tap through curated edits by category. Every edit includes quick-view, wishlist, and
+              cart shortcuts powered by our new contexts.
             </p>
           </div>
           <Button asChild variant="outline">
@@ -84,10 +79,7 @@ export const ProductShowcaseTabs = () => {
 
           {tabConfig.map((tab) => (
             <TabsContent key={tab.id} value={tab.id} className="mt-8">
-              <Carousel
-                opts={{ align: "start", loop: true }}
-                className="relative"
-              >
+              <Carousel opts={{ align: "start", loop: true }} className="relative">
                 <CarouselContent>
                   {(grouped[tab.id] || []).map((product) => (
                     <CarouselItem
@@ -106,4 +98,3 @@ export const ProductShowcaseTabs = () => {
     </section>
   );
 };
-
