@@ -68,17 +68,31 @@ export interface Order {
 
 // Create Order Request
 export interface CreateOrderRequest {
+  customerId?: number;
+  shippingAddress?: ShippingAddress & { street?: string; postalCode?: string };
+  billingAddress?: ShippingAddress & { street?: string; postalCode?: string };
   items: Array<{
+    id?: string;
     product_id: number;
     quantity: number;
     color?: string;
     size?: string;
   }>;
-  shipping_address: ShippingAddress;
-  billing_address?: ShippingAddress;
+  shipping_address: ShippingAddress & { street?: string; postalCode?: string };
+  billing_address?: ShippingAddress & { street?: string; postalCode?: string };
   payment_method: PaymentMethod;
+  paymentMethod?: {
+    type: string;
+    cardNumber?: string;
+    expirationDate?: string;
+    cvv?: string;
+  };
   notes?: string;
   coupon_code?: string;
+  additionalDetails?: {
+    notes?: string;
+    couponCode?: string;
+  };
 }
 
 // Order Response
@@ -114,4 +128,64 @@ export interface OrderTrackResponse {
       timestamp: string;
     }>;
   };
+}
+
+export interface CustomerOrderSummary {
+  id: number;
+  created_at: string;
+  updated_at: string;
+  customer_name: string;
+  customer_phone: string;
+  order_number: string;
+  order_status: number;
+  order_status_string: string;
+  payment_method: string;
+  payment_status: string;
+  sales_manager: string;
+  shop: string;
+  discount: number;
+  due_amount: number;
+  paid_amount: number;
+  quantity: number;
+  sub_total: number;
+  total: number;
+  consignment_id: string | null;
+  tracking_code: string | null;
+}
+
+export interface CustomerOrdersResponse {
+  success: boolean;
+  message: string;
+  data: CustomerOrderSummary[];
+  meta?: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export interface TrackingResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    delivery_status?: string;
+    status?: number;
+    identifier_type?: string;
+    identifier_value?: string;
+    order?: {
+      id?: number;
+      order_number?: string;
+      consignment_id?: string;
+      tracking_code?: string;
+      total?: number;
+      customer_id?: number;
+    };
+  };
+}
+
+export interface InvoiceResponse {
+  success: boolean;
+  message: string;
+  data?: Record<string, unknown>;
 }

@@ -276,11 +276,9 @@ const PreHeader = () => {
             <div className="flex items-center hover:text-blue-500 whitespace-nowrap mr-8 cursor-pointer">
               <Ticket className="w-4 h-4 text-pink-500 mr-1" />
               <span className="text-xs">
-                {isAuthenticated ? (
-                  <Link href="/account">{t("orderTracking")}</Link>
-                ) : (
-                  t("orderTracking")
-                )}
+                <Link href={isAuthenticated ? "/account?tab=orders" : "/auth"}>
+                  {t("orderTracking")}
+                </Link>
               </span>
             </div>
 

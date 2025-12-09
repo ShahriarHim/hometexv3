@@ -10,15 +10,21 @@ import { FaBriefcase, FaCommentDots, FaGift, FaMapMarkerAlt } from "react-icons/
 
 interface HeaderActionsProps {
   onSearchClick: () => void;
+  onChatToggle?: () => void;
+  isChatOpen?: boolean;
 }
 
-export const HeaderActions = ({ onSearchClick }: HeaderActionsProps) => {
+export const HeaderActions = ({ onSearchClick, onChatToggle, isChatOpen }: HeaderActionsProps) => {
   const t = useTranslations("navigation");
   const tCommon = useTranslations("common");
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
   const cartCount = getTotalItems();
   const wishlistCount = wishlistItems.length;
+
+  const handleChatToggle = () => {
+    onChatToggle?.();
+  };
 
   return (
     <div className="flex items-center justify-end gap-4">
@@ -61,6 +67,7 @@ export const HeaderActions = ({ onSearchClick }: HeaderActionsProps) => {
         variant="ghost"
         size="sm"
         className="hidden lg:flex items-center gap-2 px-2 hover:bg-transparent hover:text-primary"
+        onClick={handleChatToggle}
       >
         <div className="text-yellow-600">
           <FaCommentDots className="h-5 w-5" />
@@ -77,7 +84,7 @@ export const HeaderActions = ({ onSearchClick }: HeaderActionsProps) => {
       </Link>
 
       <Link
-        href="/wishlist"
+        href="/account?tab=wishlist"
         className="hidden md:flex items-center justify-center p-2 hover:text-primary transition-colors relative"
       >
         <Heart className="h-5 w-5" />

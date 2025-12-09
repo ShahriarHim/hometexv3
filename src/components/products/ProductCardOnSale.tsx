@@ -9,11 +9,17 @@ import PriceView from "./PriceView";
 import Title from "./Title";
 import ProductSideMenu from "./ProductSideMenu";
 import AddToCartButton from "./AddToCartButton";
+import { useRecentViews } from "@/hooks/use-recent-views";
 
 const ProductCardOnSale = ({ product }: { product: Product }) => {
   const stock = product.stock ?? (product.inStock ? 100 : 0);
   const discount = product.discount || 0;
   const status = discount > 0 ? "sale" : "trending";
+  const { addRecentView } = useRecentViews();
+
+  const handleProductClick = () => {
+    addRecentView(product);
+  };
 
   return (
     <div className="text-sm border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden">
@@ -23,6 +29,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
             href={
               `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any
             }
+            onClick={handleProductClick}
           >
             <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center">
               <Image
@@ -31,7 +38,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
                 width={500}
                 height={500}
                 priority
-                className={`w-full h-full object-contain transition-transform duration-500 
+                className={`w-full h-full object-contain transition-transform duration-500
                 ${stock !== 0 ? "group-hover:scale-105" : "opacity-50"}`}
               />
               {/* Stock Indicator - Modern overlay */}
@@ -78,6 +85,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
           href={
             `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any
           }
+          onClick={handleProductClick}
           className="hover:text-[#2d8659] transition-colors"
         >
           <Title className="text-base line-clamp-2 font-bold text-gray-900 leading-snug">

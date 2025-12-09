@@ -5,7 +5,8 @@
   bottom: 20px;
   left: 20px;
   width: 350px;
-  max-width: 90%;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 10px;
@@ -14,6 +15,16 @@
   animation: fadeIn 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .popupContainer {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    bottom: 10px;
+    left: 10px;
+    max-height: calc(100vh - 20px);
+  }
 }
 
 .popupHeader {
@@ -175,10 +186,10 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(20px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
