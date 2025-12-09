@@ -28,8 +28,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useRecentViews } from "@/hooks/use-recent-views";
 import { trackEvent } from "@/lib/analytics";
-import { api, type APIProduct } from "@/lib/api";
+import { api, transformAPIProductToProduct, type APIProduct } from "@/lib/api";
+import type { Product } from "@/types";
 import {
   AlertTriangle,
   Check,
@@ -56,6 +58,7 @@ const ProductDetailNew = () => {
   const id = params?.id;
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
+  const { addRecentView } = useRecentViews();
 
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
@@ -113,7 +116,7 @@ const ProductDetailNew = () => {
     }
   }, [product]);
 
-  // Track product view
+  // Track product view and add to recent views
   useEffect(() => {
     if (product) {
       trackEvent({
@@ -124,8 +127,12 @@ const ProductDetailNew = () => {
         price: product.pricing.final_price,
         currency: product.pricing.currency,
       });
+
+      // Add to recent views
+      const productForTracking: Product = transformAPIProductToProduct(product);
+      addRecentView(productForTracking);
     }
-  }, [product]);
+  }, [product, addRecentView]);
 
   const error = productError instanceof Error ? productError.message : productError ? String(productError) : null;
 
@@ -356,8 +363,6 @@ const ProductDetailNew = () => {
       price: effectiveBasePrice,
       quantity,
     });
-
-    toast.success("Added to cart");
   };
 
   // Handle wishlist toggle

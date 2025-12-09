@@ -306,8 +306,6 @@ const ProductDetailNew = () => {
       price: effectivePrice,
       quantity,
     });
-
-    toast.success("Added to cart");
   };
 
   // Handle wishlist toggle

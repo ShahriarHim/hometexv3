@@ -1,7 +1,9 @@
 "use client";
 
+import { useRecentViews } from "@/hooks/use-recent-views";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
+import type { Product as ProductType } from "@/types";
 import { Clock, Eye, Heart, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -12,7 +14,7 @@ import { Autoplay, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import styles from "./HotDeals.module.css";
 
-interface Product {
+interface HotDealProduct {
   id: number;
   img: string;
   primary_photo: string;
@@ -29,9 +31,10 @@ interface Product {
 }
 
 const HotDeals = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<HotDealProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
+  const { addRecentView } = useRecentViews();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 2,
@@ -199,6 +202,27 @@ const HotDeals = () => {
             >
               {products.map((product, index) => {
                 const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+
+                const handleProductClick = () => {
+                  const productForTracking: ProductType = {
+                    id: product.id.toString(),
+                    name: product.name,
+                    slug: product.product_slug || "",
+                    price: product.price,
+                    originalPrice: parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
+                    description: "",
+                    category: product.category_slug,
+                    subcategory: product.subcategory_slug,
+                    images: product.img ? [product.img] : [],
+                    primary_photo: product.primary_photo,
+                    inStock: product.stock > 0,
+                    rating: product.star || 4,
+                    reviewCount: 0,
+                    stock: product.stock,
+                  };
+                  addRecentView(productForTracking);
+                };
+
                 return (
                   <SwiperSlide
                     key={index}
@@ -206,7 +230,7 @@ const HotDeals = () => {
                     onMouseEnter={() => handleProductHover(true)}
                     onMouseLeave={() => handleProductHover(false)}
                   >
-                    <Link href={productUrl} className="block h-full">
+                    <Link href={productUrl} onClick={handleProductClick} className="block h-full">
                       <div className={styles["product-item-container"]}>
                         <div className={styles["product-image-container"]}>
                           <img src={product.img} alt={product.name} loading="lazy" />
@@ -278,6 +302,27 @@ const HotDeals = () => {
 
               {products.map((product, index) => {
                 const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+
+                const handleProductClickCloned = () => {
+                  const productForTracking: ProductType = {
+                    id: product.id.toString(),
+                    name: product.name,
+                    slug: product.product_slug || "",
+                    price: product.price,
+                    originalPrice: parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
+                    description: "",
+                    category: product.category_slug,
+                    subcategory: product.subcategory_slug,
+                    images: product.img ? [product.img] : [],
+                    primary_photo: product.primary_photo,
+                    inStock: product.stock > 0,
+                    rating: product.star || 4,
+                    reviewCount: 0,
+                    stock: product.stock,
+                  };
+                  addRecentView(productForTracking);
+                };
+
                 return (
                   <SwiperSlide
                     key={`cloned-after-${index}`}
@@ -285,7 +330,7 @@ const HotDeals = () => {
                     onMouseEnter={() => handleProductHover(true)}
                     onMouseLeave={() => handleProductHover(false)}
                   >
-                    <Link href={productUrl} className="block h-full">
+                    <Link href={productUrl} onClick={handleProductClickCloned} className="block h-full">
                       <div className={styles["product-item-container"]}>
                         <div className={styles["product-image-container"]}>
                           <img src={product.img} alt={product.name} loading="lazy" />
