@@ -1,6 +1,7 @@
 "use client";
 
 import { ApiError, authService } from "@/services/api";
+import { clearRecentViewsStorage } from "@/hooks/use-recent-views";
 import React, { createContext, startTransition, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -240,6 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       localStorage.removeItem("hometex-user");
       localStorage.removeItem("hometex-auth-token");
+      clearRecentViewsStorage(); // Clear recent views on logout
       toast.success("Logged out successfully");
       // Redirect to home
       window.location.href = "/";

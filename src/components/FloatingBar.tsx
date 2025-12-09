@@ -1,21 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  FaShoppingCart,
-  FaListUl,
-  FaPhoneAlt,
-  FaMapMarkerAlt,
-  FaHeart,
-  FaEye,
-  FaArrowUp,
-  FaWhatsapp,
-} from "react-icons/fa";
-import ChatPopup from "./ChatPopup";
-import CartPopup from "./CartPopup";
-import WishlistPopup from "./WishlistPopup";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useRecentViews } from "@/hooks/use-recent-views";
+import { ChevronLeft, ChevronRight, Clock, Trash2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+  FaArrowUp,
+  FaEye,
+  FaHeart,
+  FaListUl,
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaShoppingCart,
+  FaWhatsapp,
+} from "react-icons/fa";
+import CartPopup from "./CartPopup";
+import ChatPopup from "./ChatPopup";
+import WishlistPopup from "./WishlistPopup";
 
 const FloatingBar = () => {
   const [showBar, setShowBar] = useState(false); // Visibility based on scroll
@@ -29,9 +33,13 @@ const FloatingBar = () => {
   // Get cart and wishlist data from context
   const { getTotalItems, getTotalPrice } = useCart();
   const { items: wishlistItems } = useWishlist();
+  const { recentViews, removeRecentView, clearRecentViews } = useRecentViews();
 
   const cartItemsCount = getTotalItems();
   const totalPrice = getTotalPrice();
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 8;
+  const totalPages = Math.ceil(recentViews.length / productsPerPage);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -55,9 +63,38 @@ const FloatingBar = () => {
   // Placeholder handlers
   const handleCartClick = () => setIsCartOpen(!isCartOpen);
   const handleWishClick = () => setIsWishOpen(!isWishOpen);
-  const handleRecentlyViewedClick = () => setShowRecentlyViewed(!showRecentlyViewed);
+  const handleRecentlyViewedClick = () => {
+    setShowRecentlyViewed(!showRecentlyViewed);
+    setCurrentPage(1);
+  };
   const handleGetCurrentLocation = () => setShowLocationPanel(!showLocationPanel);
   const handleChatToggle = () => setIsChatVisible(!isChatVisible);
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
+  const getProductUrl = (product: typeof recentViews[0]) => {
+    return `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any;
+  };
+
+  const formatTimeAgo = (timestamp: number) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const visibleProducts = recentViews.slice(startIndex, startIndex + productsPerPage);
 
   const buttonData = [
     {
@@ -93,7 +130,7 @@ const FloatingBar = () => {
       tooltip: "Recently Viewed",
       onClick: handleRecentlyViewedClick,
       className: "floating-btn-middle",
-      badge: null,
+      badge: recentViews.length > 0 ? recentViews.length : null,
     },
     {
       icon: <FaArrowUp />,
@@ -176,26 +213,164 @@ const FloatingBar = () => {
         </div>
       )}
 
-      {/* Recently Viewed Popup Placeholder */}
+      {/* Recently Viewed Popup */}
       {showRecentlyViewed && (
         <div
           className="fixed inset-0 flex items-center justify-center z-[1100] location-modal-overlay"
           onClick={() => setShowRecentlyViewed(false)}
         >
           <div
-            className="bg-white rounded-2xl p-6 max-w-4xl w-full mx-4 relative z-10 shadow-2xl transform transition-all animate-popup-in border border-gray-200 recently-viewed-popup"
+            className="bg-white rounded-2xl max-w-6xl w-full mx-4 relative z-10 shadow-2xl transform transition-all animate-popup-in border border-gray-200 recently-viewed-popup flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-800">Recently Viewed</h3>
-              <button
-                onClick={() => setShowRecentlyViewed(false)}
-                className="text-2xl text-gray-500"
-              >
-                &times;
-              </button>
+            <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white p-6 flex items-center justify-between rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <FaEye className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">Recently Viewed Products</h3>
+                  <p className="text-teal-100 text-sm mt-1">
+                    {recentViews.length} {recentViews.length === 1 ? "item" : "items"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {recentViews.length > 0 && (
+                  <button
+                    onClick={clearRecentViews}
+                    className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors flex items-center gap-2"
+                    title="Clear all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowRecentlyViewed(false)}
+                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors text-2xl leading-none"
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
-            <div className="p-10 text-center text-gray-500">Recently Viewed Placeholder</div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {recentViews.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="bg-gray-100 rounded-full p-6 mb-4">
+                    <FaEye className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No Recent Views
+                  </h3>
+                  <p className="text-gray-600 max-w-md">
+                    Products you view will appear here. Start browsing to see your recent views!
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {visibleProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 bg-white"
+                    >
+                      <Link
+                        href={getProductUrl(product)}
+                        onClick={() => setShowRecentlyViewed(false)}
+                        className="flex gap-4 p-4"
+                      >
+                        <div className="relative w-24 h-24 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden">
+                          {product.image ? (
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              fill
+                              className="object-contain group-hover:scale-105 transition-transform duration-300"
+                              sizes="96px"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <FaEye className="w-8 h-8 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors">
+                              {product.name}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                              <Clock className="w-3 h-3" />
+                              <span>{formatTimeAgo(product.viewedAt)}</span>
+                            </div>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg font-bold text-teal-600">
+                                ৳{product.price.toLocaleString()}
+                              </span>
+                              {product.originalPrice && product.originalPrice > product.price && (
+                                <span className="text-sm text-gray-500 line-through">
+                                  ৳{product.originalPrice.toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                removeRecentView(product.id);
+                              }}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Remove from recent views"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {recentViews.length > productsPerPage && (
+              <div className="border-t border-gray-200 p-4 flex items-center justify-between bg-gray-50 rounded-b-2xl">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
