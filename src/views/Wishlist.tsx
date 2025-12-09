@@ -1,21 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import { Heart, Trash2, ShoppingCart, X } from "lucide-react";
+import { useWishlist } from "@/context/WishlistContext";
+import { useRouter } from "@/i18n/routing";
+import { Heart, ShoppingCart, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const Wishlist = () => {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const { items, clearWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/" as any);
+      return;
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {

@@ -1,20 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { useCart } from "@/context/CartContext";
-import { useAuth } from "@/context/AuthContext";
-import { useOrders } from "@/context/OrderContext";
+import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { toast } from "sonner";
-import { ApiError } from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import type { ApiErrorResponse } from "@/context/OrderContext";
+import { useOrders } from "@/context/OrderContext";
+import { useRouter } from "@/i18n/routing";
+import { ApiError } from "@/services/api";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const Checkout = () => {
   const router = useRouter();
@@ -46,7 +46,8 @@ const Checkout = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/auth" as any);
+      router.replace("/" as any);
+      return;
     } else if (items.length === 0) {
       router.replace("/cart" as any);
     }
