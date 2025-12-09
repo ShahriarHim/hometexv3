@@ -9,6 +9,7 @@ export interface Product {
   subcategory?: string;
   childSubcategory?: string;
   images: string[];
+  primary_photo?: string;
   inStock: boolean;
   rating: number;
   reviewCount: number;

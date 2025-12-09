@@ -69,8 +69,8 @@ const Products = () => {
           <p className="text-muted-foreground">Browse our complete collection</p>
         </div>
 
-        {/* Search & Filters */}
-        <div className="bg-card border border-border rounded-lg p-4 mb-8">
+        {/* Search & Filters - Sticky */}
+        <div className="sticky top-16 z-40 bg-card border border-border rounded-lg p-4 mb-4 shadow-sm">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -121,32 +121,33 @@ const Products = () => {
               </SelectContent>
             </Select>
           </div>
+        </div>
 
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground">{sortedProducts.length} products found</p>
-            <div className="flex gap-2">
-              <Button
-                variant={viewMode === "grid-5" ? "default" : "outline"}
-                size="icon"
-                onClick={() => setViewMode("grid-5")}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "grid-3" ? "default" : "outline"}
-                size="icon"
-                onClick={() => setViewMode("grid-3")}
-              >
-                <Grid3x3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "outline"}
-                size="icon"
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
+        {/* Products Count & View Mode - Non-sticky */}
+        <div className="flex items-center justify-between mb-8">
+          <p className="text-sm text-muted-foreground">{sortedProducts.length} products found</p>
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === "grid-5" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode("grid-5")}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "grid-3" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode("grid-3")}
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode("list")}
+            >
+              <List className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 

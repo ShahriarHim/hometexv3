@@ -2,14 +2,29 @@
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { MediaGallery } from "@/components/products/MediaGallery";
-import PriceDropNotification from "@/components/products/PriceDropNotification";
-import { ProductCard } from "@/components/products/ProductCard";
+import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
+import dynamic from "next/dynamic";
+
+// Dynamic imports for better performance
+const MediaGallery = dynamic(() => import("@/components/products/MediaGallery").then((mod) => ({ default: mod.MediaGallery })), {
+  loading: () => <div className="aspect-square bg-muted animate-pulse rounded-lg" />,
+  ssr: true,
+});
+
+const PriceDropNotification = dynamic(() => import("@/components/products/PriceDropNotification"), {
+  ssr: false,
+});
+
+const ProductCard = dynamic(() => import("@/components/products/ProductCard").then((mod) => ({ default: mod.ProductCard })), {
+  loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg" />,
+  ssr: true,
+});
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -34,6 +49,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 const ProductDetailNew = () => {
   const params = useParams<{ id?: string }>();
@@ -41,99 +57,83 @@ const ProductDetailNew = () => {
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
 
-  const [product, setProduct] = useState<APIProduct | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [showTaxIncluded, setShowTaxIncluded] = useState(true);
-  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
-  const [similarProducts, setSimilarProducts] = useState<any[]>([]); // Using any[] since API returns different structure
-  const [similarProductsLoading, setSimilarProductsLoading] = useState(false);
   const [showBulkPricingModal, setShowBulkPricingModal] = useState(false);
   const [selectedBulkPrice, setSelectedBulkPrice] = useState<number | null>(null);
   const [showStickySidebar, setShowStickySidebar] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const addToCartSectionRef = useRef<HTMLDivElement>(null);
 
+  // Fetch product with React Query (cached and parallel)
+  const {
+    data: productResponse,
+    isLoading: loading,
+    error: productError,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: async () => {
+      if (!id) throw new Error("Product ID is required");
+      const response = await api.products.getById(id);
+      if (response.success === false || !response.data) {
+        throw new Error(response.message || "Failed to load product");
+      }
+      return response;
+    },
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes cache
+  });
+
+  const product = productResponse?.data;
+
+  // Fetch similar products in parallel (non-blocking)
+  const {
+    data: similarProductsResponse,
+    isLoading: similarProductsLoading,
+  } = useQuery({
+    queryKey: ["similar-products", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const response = await api.products.getSimilar(id);
+      return response.success && response.data?.products ? response.data.products : [];
+    },
+    enabled: !!id && !!product, // Only fetch after product loads
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const similarProducts = similarProductsResponse || [];
+
+  // Initialize quantity when product loads
   useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await api.products.getById(id);
-
-        if (response.success === false || !response.data) {
-          setError(response.message || "Failed to load product");
-          return;
-        }
-
-        const productData = response.data;
-        setProduct(productData);
-
-        // Initialize quantity to minimum order quantity
-        if (productData.minimum_order_quantity) {
-          setQuantity(productData.minimum_order_quantity);
-        }
-
-        // Track product view
-        trackEvent({
-          event: "product_view",
-          product_id: productData.id.toString(),
-          sku: productData.sku,
-          name: productData.name,
-          price: productData.pricing.final_price,
-          currency: productData.pricing.currency,
-        });
-
-        // Fetch similar products
-        fetchSimilarProducts(productData.id.toString());
-      } catch (err) {
-        console.error("Error fetching product:", err);
-        const errorMessage = err instanceof Error ? err.message : "Failed to load product";
-        setError(
-          errorMessage.includes("500")
-            ? "The server is temporarily unavailable. Please try again later."
-            : "Failed to load product. Please check your connection."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
-
-  // Fetch similar products
-  const fetchSimilarProducts = async (productId: string) => {
-    try {
-      setSimilarProductsLoading(true);
-      const response = await api.products.getSimilar(productId);
-
-      if (response.success && response.data?.products) {
-        setSimilarProducts(response.data.products);
-      }
-    } catch (err) {
-      console.error("Error fetching similar products:", err);
-    } finally {
-      setSimilarProductsLoading(false);
+    if (product?.minimum_order_quantity) {
+      setQuantity(product.minimum_order_quantity);
     }
-  };
+  }, [product]);
+
+  // Track product view
+  useEffect(() => {
+    if (product) {
+      trackEvent({
+        event: "product_view",
+        product_id: product.id.toString(),
+        sku: product.sku,
+        name: product.name,
+        price: product.pricing.final_price,
+        currency: product.pricing.currency,
+      });
+    }
+  }, [product]);
+
+  const error = productError instanceof Error ? productError.message : productError ? String(productError) : null;
 
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </main>
+        <ProductDetailSkeleton />
         <Footer />
       </div>
     );
@@ -150,7 +150,7 @@ const ProductDetailNew = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
-              <p className="text-muted-foreground mb-4">{error}</p>
+              <p className="text-muted-foreground mb-4">{error || "Product could not be loaded"}</p>
             </div>
             <div className="flex gap-4 justify-center">
               <Button onClick={() => window.location.reload()}>Try Again</Button>
@@ -472,10 +472,7 @@ const ProductDetailNew = () => {
             <ChevronRight className="h-4 w-4" />
             {product.breadcrumb.map((crumb, idx) => (
               <div key={`${crumb.slug}-${idx}`} className="flex items-center space-x-2">
-                <Link
-                  href={`/shop?category=${crumb.slug}` as any}
-                  className="hover:text-foreground"
-                >
+                <Link href={`/categories/${crumb.slug}` as any} className="hover:text-foreground">
                   {crumb.name}
                 </Link>
                 {idx < product.breadcrumb.length - 1 && <ChevronRight className="h-4 w-4" />}
@@ -1146,14 +1143,20 @@ const ProductDetailNew = () => {
           </Tabs>
 
           {/* Related Products */}
-          {similarProducts && similarProducts.length > 0 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold">Similar Products</h2>
-                {similarProductsLoading && (
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                )}
+          <div className="space-y-6">
+            <h2 className="text-3xl font-bold">Similar Products</h2>
+            {similarProductsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="aspect-square w-full rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </div>
+                ))}
               </div>
+            ) : similarProducts && similarProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {similarProducts.map((similarProduct: any) => {
                   // Similar products API returns a different structure than single product API
@@ -1198,8 +1201,8 @@ const ProductDetailNew = () => {
                   return <ProductCard key={similarProduct.id} product={transformedProduct} />;
                 })}
               </div>
-            </div>
-          )}
+            ) : null}
+          </div>
 
           {/* Legacy Related Products Section - Keep for compatibility */}
           {product.related_products && (
