@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Autoplay } from "swiper/modules";
-import Link from "next/link";
-import { ShoppingCart, Eye, Heart, Clock } from "lucide-react";
-import styles from "./HotDeals.module.css";
+import { useRecentViews } from "@/hooks/use-recent-views";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
+import type { Product as ProductType } from "@/types";
+import { Clock, Eye, Heart, ShoppingCart } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import "swiper/css";
-import "swiper/css/navigation";
 import "swiper/css/autoplay";
+import "swiper/css/navigation";
+import { Autoplay, Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import styles from "./HotDeals.module.css";
 
-interface Product {
+interface HotDealProduct {
   id: number;
   img: string;
   primary_photo: string;
@@ -29,9 +31,10 @@ interface Product {
 }
 
 const HotDeals = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<HotDealProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
+  const { addRecentView } = useRecentViews();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 2,
@@ -131,7 +134,7 @@ const HotDeals = () => {
               <span>Hot Deals!</span> Get Our Best Price
             </h2>
           </div>
-          <Link href="/shop" className={styles["see-all-link"]}>
+          <Link href="/products" className={styles["see-all-link"]}>
             + See All Products
           </Link>
         </div>
@@ -197,119 +200,198 @@ const HotDeals = () => {
                 },
               }}
             >
-              {products.map((product, index) => (
-                <SwiperSlide
-                  key={index}
-                  className="owl2-item active"
-                  onMouseEnter={() => handleProductHover(true)}
-                  onMouseLeave={() => handleProductHover(false)}
-                >
-                  <div className={styles["product-item-container"]}>
-                    <div className={styles["product-image-container"]}>
-                      <img src={product.img} alt={product.name} loading="lazy" />
-                      {product.discount && (
-                        <div className={styles["discount-badge"]}>{product.discount}</div>
-                      )}
-                      <div className={styles.overlay}>
-                        <div className={styles["button-group"]}>
-                          <button title="Add to Cart">
-                            <ShoppingCart className="w-4 h-4" />
-                          </button>
-                          <button title="Quick View">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button title="Add to Wishlist">
-                            <Heart className="w-4 h-4" />
-                          </button>
+              {products.map((product, index) => {
+                const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+
+                const handleProductClick = () => {
+                  const productForTracking: ProductType = {
+                    id: product.id.toString(),
+                    name: product.name,
+                    slug: product.product_slug || "",
+                    price: product.price,
+                    originalPrice: parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
+                    description: "",
+                    category: product.category_slug,
+                    subcategory: product.subcategory_slug,
+                    images: product.img ? [product.img] : [],
+                    primary_photo: product.primary_photo,
+                    inStock: product.stock > 0,
+                    rating: product.star || 4,
+                    reviewCount: 0,
+                    stock: product.stock,
+                  };
+                  addRecentView(productForTracking);
+                };
+
+                return (
+                  <SwiperSlide
+                    key={index}
+                    className="owl2-item active"
+                    onMouseEnter={() => handleProductHover(true)}
+                    onMouseLeave={() => handleProductHover(false)}
+                  >
+                    <Link href={productUrl} onClick={handleProductClick} className="block h-full">
+                      <div className={styles["product-item-container"]}>
+                        <div className={styles["product-image-container"]}>
+                          <img src={product.img} alt={product.name} loading="lazy" />
+                          {product.discount && (
+                            <div className={styles["discount-badge"]}>{product.discount}</div>
+                          )}
+                          <div className={styles.overlay}>
+                            <div className={styles["button-group"]}>
+                              <button
+                                title="Add to Cart"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <ShoppingCart className="w-4 h-4" />
+                              </button>
+                              <button
+                                title="Quick View"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                title="Add to Wishlist"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <Heart className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <div className={styles["overlay-info"]}>
+                              <p className={styles["overlay-title"]}>{product.name}</p>
+                              <div className={styles["overlay-prices"]}>
+                                <span className={styles["price-new"]}>{product.displayPrice}</span>
+                                <span className={styles["price-old"]}>{product.originalPrice}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className={styles["product-title"]}>{product.name}</div>
+
+                        <div className={styles.rating}>
+                          {[...Array(5)].map((_, i) => (
+                            <span
+                              key={i}
+                              className={i < product.star ? styles.star : styles["star-empty"]}
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className={styles["price-container"]}>
+                          <span className={styles["price-new"]}>{product.displayPrice}</span>
+                          <span className={styles["price-old"]}>{product.originalPrice}</span>
                         </div>
                       </div>
-                    </div>
+                    </Link>
+                  </SwiperSlide>
+                );
+              })}
 
-                    <div className={styles["product-title"]}>
-                      <Link
-                        href={
-                          `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any
-                        }
-                      >
-                        {product.name}
-                      </Link>
-                    </div>
+              {products.map((product, index) => {
+                const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
 
-                    <div className={styles.rating}>
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={i < product.star ? styles.star : styles["star-empty"]}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
+                const handleProductClickCloned = () => {
+                  const productForTracking: ProductType = {
+                    id: product.id.toString(),
+                    name: product.name,
+                    slug: product.product_slug || "",
+                    price: product.price,
+                    originalPrice: parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
+                    description: "",
+                    category: product.category_slug,
+                    subcategory: product.subcategory_slug,
+                    images: product.img ? [product.img] : [],
+                    primary_photo: product.primary_photo,
+                    inStock: product.stock > 0,
+                    rating: product.star || 4,
+                    reviewCount: 0,
+                    stock: product.stock,
+                  };
+                  addRecentView(productForTracking);
+                };
 
-                    <div className={styles["price-container"]}>
-                      <span className={styles["price-new"]}>{product.displayPrice}</span>
-                      <span className={styles["price-old"]}>{product.originalPrice}</span>
-                    </div>
-                  </div>
-                </SwiperSlide>
-              ))}
+                return (
+                  <SwiperSlide
+                    key={`cloned-after-${index}`}
+                    className="owl2-item cloned"
+                    onMouseEnter={() => handleProductHover(true)}
+                    onMouseLeave={() => handleProductHover(false)}
+                  >
+                    <Link href={productUrl} onClick={handleProductClickCloned} className="block h-full">
+                      <div className={styles["product-item-container"]}>
+                        <div className={styles["product-image-container"]}>
+                          <img src={product.img} alt={product.name} loading="lazy" />
+                          {product.discount && (
+                            <div className={styles["discount-badge"]}>{product.discount}</div>
+                          )}
+                          <div className={styles.overlay}>
+                            <div className={styles["button-group"]}>
+                              <button
+                                title="Add to Cart"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <ShoppingCart className="w-4 h-4" />
+                              </button>
+                              <button
+                                title="Quick View"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                title="Add to Wishlist"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <Heart className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
 
-              {products.map((product, index) => (
-                <SwiperSlide
-                  key={`cloned-after-${index}`}
-                  className="owl2-item cloned"
-                  onMouseEnter={() => handleProductHover(true)}
-                  onMouseLeave={() => handleProductHover(false)}
-                >
-                  <div className={styles["product-item-container"]}>
-                    <div className={styles["product-image-container"]}>
-                      <img src={product.img} alt={product.name} loading="lazy" />
-                      {product.discount && (
-                        <div className={styles["discount-badge"]}>{product.discount}</div>
-                      )}
-                      <div className={styles.overlay}>
-                        <div className={styles["button-group"]}>
-                          <button title="Add to Cart">
-                            <ShoppingCart className="w-4 h-4" />
-                          </button>
-                          <button title="Quick View">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button title="Add to Wishlist">
-                            <Heart className="w-4 h-4" />
-                          </button>
+                        <div className={styles["product-title"]}>{product.name}</div>
+
+                        <div className={styles.rating}>
+                          {[...Array(5)].map((_, i) => (
+                            <span
+                              key={i}
+                              className={i < product.star ? styles.star : styles["star-empty"]}
+                            >
+                              ★
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className={styles["price-container"]}>
+                          <span className={styles["price-new"]}>{product.displayPrice}</span>
+                          <span className={styles["price-old"]}>{product.originalPrice}</span>
                         </div>
                       </div>
-                    </div>
-
-                    <div className={styles["product-title"]}>
-                      <Link
-                        href={
-                          `/product/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any
-                        }
-                      >
-                        {product.name}
-                      </Link>
-                    </div>
-
-                    <div className={styles.rating}>
-                      {[...Array(5)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={i < product.star ? styles.star : styles["star-empty"]}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className={styles["price-container"]}>
-                      <span className={styles["price-new"]}>{product.displayPrice}</span>
-                      <span className={styles["price-old"]}>{product.originalPrice}</span>
-                    </div>
-                  </div>
-                </SwiperSlide>
-              ))}
+                    </Link>
+                  </SwiperSlide>
+                );
+              })}
             </Swiper>
           )}
         </div>

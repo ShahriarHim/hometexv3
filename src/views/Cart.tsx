@@ -140,8 +140,8 @@ const Cart = () => {
                   <span>Total</span>
                   <span>৳{grandTotal.toLocaleString()}</span>
                 </div>
-                <Button className="w-full" size="lg" variant="premium">
-                  Proceed to Checkout
+                <Button asChild className="w-full" size="lg" variant="premium">
+                  <Link href="/checkout">Proceed to Checkout</Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full mt-3">
                   <Link href="/shop">Continue Shopping</Link>

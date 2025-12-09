@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { CategoriesMenuBar } from "./header/CategoriesMenuBar";
 import { CategoriesMenuBarSkeleton } from "./header/CategoriesMenuBarSkeleton";
 import { HeaderActions } from "./header/HeaderActions";
+import ChatPopup from "@/components/ChatPopup";
 import { HeaderLogo } from "./header/HeaderLogo";
 import { MobileMenu } from "./header/MobileMenu";
 import { ShowCategoriesButton } from "./header/ShowCategoriesButton";
@@ -24,6 +25,7 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showCategoriesBar, setShowCategoriesBar] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Categories State
   const [categories, setCategories] = useState<TransformedCategory[]>([]);
@@ -86,6 +88,7 @@ export const Header = () => {
   return (
     <>
       {showPopup && <SearchPopup onClose={closePopup} />}
+      {isChatOpen && <ChatPopup onClose={() => setIsChatOpen(false)} />}
       <PreHeader />
       <header
         className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
@@ -126,7 +129,11 @@ export const Header = () => {
             </div>
 
             {/* Right Section: Actions */}
-            <HeaderActions onSearchClick={handleSearchClick} />
+            <HeaderActions
+              onSearchClick={handleSearchClick}
+              onChatToggle={() => setIsChatOpen(!isChatOpen)}
+              isChatOpen={isChatOpen}
+            />
           </div>
 
           {/* Categories Menu Bar (Animated) */}
