@@ -6,10 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
-import { userService } from "@/services/api";
-import { Heart, Loader2, Package, Settings, User } from "lucide-react";
+import { orderService, userService } from "@/services/api";
+import type {
+  CustomerOrderSummary,
+  InvoiceResponse,
+  TrackingResponse,
+} from "@/types/api/order";
+import { Heart, Loader2, Package, Settings, User, Truck, FileText, RefreshCcw } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { env } from "@/lib/env";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 interface UserProfile {
   name?: string;
@@ -21,9 +30,20 @@ interface UserProfile {
 
 const Account = () => {
   const { isAuthenticated, user } = useAuth();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const initialTabRef = useRef<string>(searchParams.get("tab") || "profile");
+  const [activeTab, setActiveTab] = useState<string>(initialTabRef.current);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [orders, setOrders] = useState<CustomerOrderSummary[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [trackingStatus, setTrackingStatus] = useState<Record<string, string>>({});
+  const [trackingLoading, setTrackingLoading] = useState<Record<string, boolean>>({});
+  const [invoiceLoading, setInvoiceLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -84,13 +104,213 @@ const Account = () => {
     fetchUserProfile();
   }, [isAuthenticated, user]);
 
+  // Sync tab with query string without causing loops
+  const handleTabChange = (nextTab: string) => {
+    setActiveTab(nextTab);
+    const next = new URLSearchParams(window.location.search);
+    next.set("tab", nextTab);
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!isAuthenticated || !user?.id || activeTab !== "orders") {
+        return;
+      }
+      setOrdersLoading(true);
+      setOrdersError(null);
+      try {
+        const response = await orderService.getCustomerOrders(Number(user.id));
+        if (!response.success) {
+          throw new Error(response.message || "Failed to load orders");
+        }
+        setOrders(response.data || []);
+      } catch (err) {
+        setOrdersError(err instanceof Error ? err.message : "Failed to load orders");
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [activeTab, isAuthenticated, user]);
+
+  const formatError = (payload: unknown): string => {
+    if (!payload || typeof payload !== "object") return "Something went wrong";
+    const maybeResp = payload as { message?: string; error?: string; errors?: Record<string, string[]> };
+    if (maybeResp.errors && Object.keys(maybeResp.errors).length > 0) {
+      const first = Object.values(maybeResp.errors)[0];
+      if (first?.[0]) return first[0];
+    }
+    if (maybeResp.error) {
+      try {
+        const parsed = JSON.parse(maybeResp.error);
+        if (parsed && typeof parsed === "object") {
+          const firstParsed = Object.values(parsed)[0];
+          if (typeof firstParsed === "string") return firstParsed;
+        }
+      } catch {
+        return maybeResp.error;
+      }
+    }
+    if (maybeResp.message) return maybeResp.message;
+    return "Something went wrong";
+  };
+
+  const handleTrack = async (order: CustomerOrderSummary) => {
+    if (!order.tracking_code) {
+      setTrackingStatus((prev) => ({ ...prev, [order.order_number]: "Tracking code missing" }));
+      return;
+    }
+    setTrackingLoading((prev) => ({ ...prev, [order.order_number]: true }));
+    try {
+      const response: TrackingResponse = await orderService.trackOrderByCode(order.tracking_code);
+      if (!response.success) {
+        throw new Error(formatError(response));
+      }
+      const statusLabel =
+        response.data?.delivery_status ||
+        response.data?.status?.toString() ||
+        "Status unavailable";
+      setTrackingStatus((prev) => ({ ...prev, [order.order_number]: statusLabel }));
+    } catch (err) {
+      setTrackingStatus((prev) => ({
+        ...prev,
+        [order.order_number]:
+          err instanceof Error ? err.message : "Failed to fetch tracking status",
+      }));
+    } finally {
+      setTrackingLoading((prev) => ({ ...prev, [order.order_number]: false }));
+    }
+  };
+
+  const handleInvoice = async (order: CustomerOrderSummary) => {
+    setInvoiceLoading((prev) => ({ ...prev, [order.order_number]: true }));
+    try {
+      const response: InvoiceResponse = await orderService.getInvoice(order.order_number);
+      if (!response.success) {
+        throw new Error(formatError(response));
+      }
+      // Open invoice endpoint directly (server returns JSON, but URL provides PDF/print view)
+      const invoiceUrl = `${env.apiBaseUrl}/api/orders/invoice/${order.order_number}`;
+      window.open(invoiceUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setOrdersError(err instanceof Error ? err.message : "Failed to load invoice");
+    } finally {
+      setInvoiceLoading((prev) => ({ ...prev, [order.order_number]: false }));
+    }
+  };
+
+  const renderOrders = () => {
+    if (ordersLoading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <span className="ml-2 text-sm text-muted-foreground">Loading orders...</span>
+        </div>
+      );
+    }
+    if (ordersError) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-destructive mb-4">{ordersError}</p>
+          <Button onClick={() => setActiveTab("orders")}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      );
+    }
+    if (!orders || orders.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground mb-4">No orders yet. Start shopping to see orders.</p>
+          <Button asChild>
+            <Link href="/shop">Start Shopping</Link>
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {orders.map((order) => (
+          <Card key={order.order_number}>
+            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="text-lg">Order {order.order_number}</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Placed: {order.created_at} • Updated: {order.updated_at}
+                </p>
+              </div>
+              <Badge variant={order.order_status_string === "Completed" ? "default" : "outline"}>
+                {order.order_status_string}
+              </Badge>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="text-sm text-muted-foreground">
+                  <div>Payment: {order.payment_method}</div>
+                  <div>Status: {order.payment_status}</div>
+                  <div>Shop: {order.shop}</div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <div>Total: ৳{order.total}</div>
+                  <div>Quantity: {order.quantity}</div>
+                  {order.tracking_code && <div>Tracking: {order.tracking_code}</div>}
+                </div>
+              </div>
+              <Separator />
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => handleTrack(order)}
+                  disabled={trackingLoading[order.order_number]}
+                >
+                  {trackingLoading[order.order_number] ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Truck className="h-4 w-4 mr-2" />
+                  )}
+                  Track
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleInvoice(order)}
+                  disabled={invoiceLoading[order.order_number]}
+                >
+                  {invoiceLoading[order.order_number] ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <FileText className="h-4 w-4 mr-2" />
+                  )}
+                  Invoice
+                </Button>
+                <Button asChild variant="ghost" size="sm">
+                  <Link href={`/orders/${order.order_number}`}>View Details</Link>
+                </Button>
+              </div>
+              {trackingStatus[order.order_number] && (
+                <div className="text-sm text-muted-foreground">
+                  Current delivery status: <span className="text-foreground">{trackingStatus[order.order_number]}</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">My Account</h1>
 
-        <Tabs defaultValue="profile" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
@@ -163,12 +383,7 @@ const Account = () => {
                 <CardTitle>Order History</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-center py-8">
-                  No orders yet. Start shopping to see your orders here.
-                </p>
-                <Button asChild className="w-full">
-                  <Link href="/shop">Start Shopping</Link>
-                </Button>
+                {renderOrders()}
               </CardContent>
             </Card>
           </TabsContent>

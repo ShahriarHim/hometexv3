@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { ApiError } from "@/services/api";
+import type { ApiErrorResponse } from "@/context/OrderContext";
 
 const Checkout = () => {
   const router = useRouter();
@@ -21,13 +23,25 @@ const Checkout = () => {
   const { createOrder } = useOrders();
 
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("sslcommerz");
-  const [shippingData, setShippingData] = useState({
+  const [paymentMethod, setPaymentMethod] = useState("ssl_commerce");
+  const [shippingData, setShippingData] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    zip: string;
+    state: string;
+    country: string;
+  }>({
     name: user?.name || "",
+    email: user?.email || "",
     phone: "",
     address: "",
     city: "",
     zip: "",
+    state: "",
+    country: "Bangladesh",
   });
 
   useEffect(() => {
@@ -42,9 +56,50 @@ const Checkout = () => {
     return null;
   }
 
+  const formatApiError = (error: ApiError): string => {
+    const responseData = (error.response ?? {}) as ApiErrorResponse;
+    if (responseData.errors && Object.keys(responseData.errors).length > 0) {
+      const firstKey = Object.keys(responseData.errors)[0];
+      const firstMessage = responseData.errors[firstKey]?.[0];
+      if (firstMessage) {
+        return firstMessage;
+      }
+    }
+    if (responseData.error) {
+      try {
+        const parsed = JSON.parse(responseData.error);
+        if (parsed && typeof parsed === "object") {
+          const firstParsedMsg = Object.values(parsed)[0];
+          if (typeof firstParsedMsg === "string") {
+            return firstParsedMsg;
+          }
+        }
+      } catch {
+        // ignore
+      }
+      return responseData.error;
+    }
+    if (responseData.message) {
+      return responseData.message;
+    }
+    return error.message || "Failed to process order. Please try again.";
+  };
+
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Basic front-end validation to avoid bad payloads
+    const emailPattern =
+      /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!emailPattern.test(shippingData.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (!items || items.length === 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
 
     try {
       // Create order
@@ -58,15 +113,14 @@ const Checkout = () => {
         shippingAddress: shippingData,
       });
 
-      // TODO: Integrate with SSL Commerz API
-      // For now, simulate payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
       clearCart();
-      toast.success("Order placed successfully!");
       router.push(`/orders/${order.id}` as any);
     } catch (error) {
+      if (error instanceof ApiError) {
+        toast.error(formatApiError(error));
+      } else {
       toast.error("Failed to process order");
+      }
     } finally {
       setLoading(false);
     }
@@ -107,6 +161,18 @@ const Checkout = () => {
                         required
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={shippingData.email}
+                        onChange={(e) =>
+                          setShippingData({ ...shippingData, email: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
                     <div className="md:col-span-2 space-y-2">
                       <Label htmlFor="address">Address</Label>
                       <Input
@@ -136,6 +202,27 @@ const Checkout = () => {
                         required
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="state">State/Division</Label>
+                      <Input
+                        id="state"
+                        value={shippingData.state}
+                        onChange={(e) =>
+                          setShippingData({ ...shippingData, state: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="country">Country</Label>
+                      <Input
+                        id="country"
+                        value={shippingData.country}
+                        onChange={(e) =>
+                          setShippingData({ ...shippingData, country: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -146,8 +233,8 @@ const Checkout = () => {
                   <h2 className="text-2xl font-semibold mb-6">Payment Method</h2>
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                     <div className="flex items-center space-x-2 p-4 border border-border rounded-lg">
-                      <RadioGroupItem value="sslcommerz" id="sslcommerz" />
-                      <Label htmlFor="sslcommerz" className="flex-1 cursor-pointer">
+                      <RadioGroupItem value="ssl_commerce" id="ssl_commerce" />
+                      <Label htmlFor="ssl_commerce" className="flex-1 cursor-pointer">
                         <div>
                           <p className="font-medium">SSL Commerz</p>
                           <p className="text-sm text-muted-foreground">Secure payment gateway</p>
