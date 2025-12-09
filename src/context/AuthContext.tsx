@@ -1,6 +1,6 @@
 "use client";
 
-import { authService } from "@/services/api";
+import { ApiError, authService } from "@/services/api";
 import React, { createContext, startTransition, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -53,9 +53,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authService.login({ email, password });
 
-      // Extract token and user data from the response (data is an array)
-      const userData = response.data[0];
-      const token = userData.token;
+      // Log response for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.log("Login response:", response);
+      }
+
+      // Extract token and user data from the response
+      // Handle different response structures
+      let userData: any = null;
+      let token: string | undefined = undefined;
+
+      if (response.data) {
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          userData = response.data[0];
+          token = userData?.token;
+        } else if (typeof response.data === "object" && !Array.isArray(response.data)) {
+          // Handle case where data is an object, not an array
+          userData = response.data;
+          token = (response.data as any)?.token;
+        }
+      }
+
+      if (!userData || !token) {
+        console.error("Login response structure:", response);
+        throw new Error("Invalid response: user data or token not found");
+      }
 
       if (!token) {
         console.error("No token found in login response");
@@ -69,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const loggedInUser = {
         id: String(userData.id),
         email: userData.email,
-        name: userData.name || `${userData.first_name} ${userData.last_name}`,
+        name: userData.name || `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
         token: token,
       };
 
@@ -92,19 +114,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authService.signup(signupData);
 
+      // Log response for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.log("Signup response:", response);
+      }
+
       // Extract token and user data from the response
-      const userData = response.data[0];
-      const token = userData.token;
+      // API returns: { success: { name, authorisation: { token, type }, message } }
+      let token: string | undefined = undefined;
+      let userName: string | undefined = undefined;
+      let message: string | undefined = undefined;
+
+      if ((response as any).success) {
+        const successData = (response as any).success;
+        token = successData?.authorisation?.token;
+        userName = successData?.name;
+        message = successData?.message;
+      } else if (response.data) {
+        // Fallback to old structure if needed
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          const userData = response.data[0];
+          token = userData?.token;
+          userName = userData?.name;
+        } else if (typeof response.data === "object" && !Array.isArray(response.data)) {
+          token = (response.data as any)?.token;
+          userName = (response.data as any)?.name;
+        }
+        message = response.message;
+      }
 
       if (!token) {
-        console.error("No token found in signup response");
+        console.error("Signup response structure:", response);
+        throw new Error("Invalid response: authentication token not found");
       }
 
       // Create user object from response
       const newUser = {
-        id: String(userData.id),
-        email: userData.email,
-        name: userData.name,
+        id: `user-${Date.now()}`, // Temporary ID since API doesn't return user ID in this structure
+        email: signupData.email,
+        name: userName || `${signupData.first_name} ${signupData.last_name}`.trim(),
         token: token,
       };
 
@@ -112,14 +160,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("hometex-user", JSON.stringify(newUser));
       localStorage.setItem("hometex-auth-token", token);
 
-      toast.success(response.message || "Account created successfully!");
+      toast.success(message || "Account created successfully!");
     } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("Signup failed. Please try again.");
+      const extractError = (err: unknown): string => {
+        if (!err) return "Signup failed. Please try again.";
+        const tryParse = (payload: Record<string, unknown>): string | null => {
+          if (payload.errors && typeof payload.errors === "object") {
+            const first = Object.values(payload.errors as Record<string, string[]>)[0];
+            if (first?.[0]) return first[0];
+          }
+          if (payload.error && typeof payload.error === "object") {
+            const first = Object.values(payload.error as Record<string, string[]>)[0];
+            if (Array.isArray(first) && first[0]) return first[0] as string;
+          }
+          if (payload.message && typeof payload.message === "string") return payload.message;
+          return null;
+        };
+
+        if (err instanceof ApiError && err.response && typeof err.response === "object") {
+          const parsed = tryParse(err.response as Record<string, unknown>);
+          if (parsed) return parsed;
+        }
+
+        if (err instanceof Error) {
+          return err.message;
+        }
+
+        if (typeof err === "object") {
+          const parsed = tryParse(err as Record<string, unknown>);
+          if (parsed) return parsed;
+        }
+
+        return "Signup failed. Please try again.";
+      };
+
+      const errorMessage = extractError(error);
+
+      // Extract field-specific errors for form display
+      let fieldErrors: Record<string, string[]> = {};
+      if (error instanceof ApiError && error.response && typeof error.response === "object") {
+        const response = error.response as Record<string, unknown>;
+        if (response.error && typeof response.error === "object") {
+          fieldErrors = response.error as Record<string, string[]>;
+        } else if (response.errors && typeof response.errors === "object") {
+          fieldErrors = response.errors as Record<string, string[]>;
+        }
       }
-      throw error;
+
+      // Create enhanced error with fieldErrors
+      const enhancedError = new Error(errorMessage);
+      (enhancedError as any).fieldErrors = fieldErrors;
+
+      toast.error(errorMessage);
+      throw enhancedError;
     }
   };
 
@@ -141,17 +234,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       await authService.logout();
-
-      setUser(null);
-      localStorage.removeItem("hometex-user");
-      localStorage.removeItem("hometex-auth-token");
-      toast.success("Logged out successfully");
     } catch {
-      // Still logout locally even if API call fails
+      // ignore API errors on logout
+    } finally {
       setUser(null);
       localStorage.removeItem("hometex-user");
       localStorage.removeItem("hometex-auth-token");
       toast.success("Logged out successfully");
+      // Redirect to home
+      window.location.href = "/";
     }
   };
 

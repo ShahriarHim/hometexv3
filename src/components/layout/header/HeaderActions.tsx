@@ -77,7 +77,7 @@ export const HeaderActions = ({ onSearchClick }: HeaderActionsProps) => {
       </Link>
 
       <Link
-        href="/wishlist"
+        href="/account?tab=wishlist"
         className="hidden md:flex items-center justify-center p-2 hover:text-primary transition-colors relative"
       >
         <Heart className="h-5 w-5" />

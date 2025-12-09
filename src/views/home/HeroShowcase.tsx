@@ -34,7 +34,13 @@ export const HeroShowcase = () => {
             .filter((banner) => banner.is_active) // Only active banners
             .map((banner) => transformHeroBannerToSlideV2(banner));
 
-          setHeroSlides(transformedSlides);
+          // Use transformed slides if available, otherwise fallback
+          if (transformedSlides.length > 0) {
+            setHeroSlides(transformedSlides);
+          } else {
+            // All banners are inactive, use fallback slides
+            setHeroSlides(fallbackSlides);
+          }
         } else {
           // Use fallback slides if API returns no data
           setHeroSlides(fallbackSlides);

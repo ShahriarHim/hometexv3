@@ -44,7 +44,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
             className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg"
           >
             <img
-              src={product.images[0] || "/placeholder.svg"}
+              src={product.primary_photo || product.images[0] || "/placeholder.svg"}
               alt={product.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
@@ -117,7 +117,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
       <Link href={productUrl as any}>
         <div className="relative aspect-square overflow-hidden bg-muted">
           <img
-            src={product.images[0] || "/placeholder.svg"}
+            src={product.primary_photo || product.images[0] || "/placeholder.svg"}
             alt={product.name}
             className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
               imageLoaded ? "opacity-100" : "opacity-0"

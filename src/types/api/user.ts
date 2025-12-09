@@ -60,9 +60,18 @@ export interface SignupRequest {
 }
 
 export interface SignupResponse {
-  success: boolean;
-  message: string;
-  data: Array<{
+  success: {
+    name: string;
+    statue: number;
+    message: string;
+    authorisation: {
+      token: string;
+      type: string;
+    };
+  };
+  // Fallback for old structure (optional)
+  message?: string;
+  data?: Array<{
     id: number;
     email: string;
     name: string;

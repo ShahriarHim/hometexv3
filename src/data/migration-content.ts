@@ -1,5 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-import { Compass, Globe2, Leaf, Sparkles, Star, Sunrise, Crown, Diamond } from "lucide-react";
+import { Crown, Diamond, Globe2, Leaf, Star, Sunrise } from "lucide-react";
 
 export type HeroSlide = {
   id: string;
@@ -180,33 +179,33 @@ export type BrandSpot = {
 
 export const brandSpotlight: BrandSpot[] = [
   {
-    id: "sealy",
+    id: "hometex-premium",
     logo: "/images/prefooter/vivo-350x150.webp",
-    name: "Vivo",
+    name: "Hometex",
     tagline: "Signature Suites",
   },
   {
-    id: "linen-house",
+    id: "hometex-spa",
     logo: "/images/prefooter/ziska_pharma-350x150.png",
-    name: "Ziska Pharma",
+    name: "Hometex",
     tagline: "Spa Retreats",
   },
   {
-    id: "muji",
+    id: "hometex-corporate",
     logo: "/images/prefooter/Perfetti_Van_Melle_logo-350x150.webp",
-    name: "Perfetti Van Melle",
+    name: "Hometex",
     tagline: "Corporate Suites",
   },
   {
-    id: "ikea",
+    id: "hometex-government",
     logo: "/images/prefooter/PWD_hometex-350x150.webp",
-    name: "PWD Bangladesh",
+    name: "Hometex",
     tagline: "Government Supply",
   },
   {
-    id: "artisan",
+    id: "hometex-studios",
     logo: "/images/prefooter/hometexbrand1-350x150.webp",
-    name: "Hometex Studios",
+    name: "Hometex",
     tagline: "Editors' Picks",
   },
 ];

@@ -422,10 +422,7 @@ const ProductDetailNew = () => {
             <ChevronRight className="h-4 w-4" />
             {product.breadcrumb.map((crumb, idx) => (
               <div key={`${crumb.slug}-${idx}`} className="flex items-center space-x-2">
-                <Link
-                  href={`/shop?category=${crumb.slug}` as any}
-                  className="hover:text-foreground"
-                >
+                <Link href={`/categories/${crumb.slug}` as any} className="hover:text-foreground">
                   {crumb.name}
                 </Link>
                 {idx < product.breadcrumb.length - 1 && <ChevronRight className="h-4 w-4" />}

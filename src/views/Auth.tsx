@@ -77,7 +77,7 @@ const Auth = () => {
     } catch (error: any) {
       console.error(error);
       // Extract field errors from the error object
-      if (error.fieldErrors) {
+      if (error.fieldErrors && typeof error.fieldErrors === "object") {
         setSignupErrors(error.fieldErrors);
       }
       // Error is already shown via toast in the signup function
