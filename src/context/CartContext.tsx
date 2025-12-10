@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
+import React, { createContext, useContext, useState, useEffect, startTransition, useRef } from "react";
 import type { CartItem, Product } from "@/types";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const lastToastRef = useRef<{ message: string; timestamp: number } | null>(null);
 
   useEffect(() => {
     const savedCart = localStorage.getItem("hometex-cart");
@@ -44,7 +45,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;
-        toast.success(`Updated quantity to ${newQuantity}`);
+        const message = `Updated quantity to ${newQuantity}`;
+        const now = Date.now();
+
+        if (!lastToastRef.current || lastToastRef.current.message !== message || now - lastToastRef.current.timestamp > 500) {
+          toast.dismiss();
+          toast.success(message);
+          lastToastRef.current = { message, timestamp: now };
+        }
+
         return prev.map((item) =>
           item.product.id === product.id &&
           item.selectedColor === color &&
@@ -54,7 +63,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
       }
 
-      toast.success(`Added ${quantity} to cart`);
+      const message = `Added ${quantity} to cart`;
+      const now = Date.now();
+
+      if (!lastToastRef.current || lastToastRef.current.message !== message || now - lastToastRef.current.timestamp > 500) {
+        toast.dismiss();
+        toast.success(message);
+        lastToastRef.current = { message, timestamp: now };
+      }
+
       return [...prev, { product, quantity, selectedColor: color, selectedSize: size }];
     });
   };
