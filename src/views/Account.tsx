@@ -2,23 +2,24 @@
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "@/i18n/routing";
+import { env } from "@/lib/env";
 import { orderService, userService } from "@/services/api";
 import type {
   CustomerOrderSummary,
   InvoiceResponse,
   TrackingResponse,
 } from "@/types/api/order";
-import { Heart, Loader2, Package, Settings, User, Truck, FileText, RefreshCcw } from "lucide-react";
+import { FileText, Heart, Loader2, Package, RefreshCcw, Settings, Truck, User } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { env } from "@/lib/env";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 interface UserProfile {
   name?: string;
@@ -44,6 +45,17 @@ const Account = () => {
   const [trackingStatus, setTrackingStatus] = useState<Record<string, string>>({});
   const [trackingLoading, setTrackingLoading] = useState<Record<string, boolean>>({});
   const [invoiceLoading, setInvoiceLoading] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/" as any);
+      return;
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   useEffect(() => {
     const fetchUserProfile = async () => {
