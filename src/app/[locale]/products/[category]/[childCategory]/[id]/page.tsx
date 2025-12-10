@@ -1,9 +1,10 @@
 import { api } from "@/lib/api";
-import type { Metadata } from "next";
 import ProductDetailView from "@/views/ProductDetail";
+import type { Metadata } from "next";
 
 interface PageProps {
   params: Promise<{
+    locale: string;
     category: string;
     childCategory: string;
     id: string;
@@ -26,6 +27,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default function ProductDetailPage() {
+export default async function ProductDetailPage(props: { params: PageProps["params"] }) {
+  // Await the params as per Next.js 15 requirements
+  const params = await props.params;
+
   return <ProductDetailView />;
 }

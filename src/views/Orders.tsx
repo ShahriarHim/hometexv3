@@ -1,15 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { useOrders } from "@/context/OrderContext";
-import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
-import { Package, Truck, CheckCircle, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
+import { useOrders } from "@/context/OrderContext";
+import { useRouter } from "@/i18n/routing";
+import { CheckCircle, Package, Truck, XCircle } from "lucide-react";
+import { useEffect } from "react";
 
 const Orders = () => {
   const { orders } = useOrders();
@@ -18,7 +18,8 @@ const Orders = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/auth" as any);
+      router.replace("/" as any);
+      return;
     }
   }, [isAuthenticated, router]);
 

@@ -19,6 +19,11 @@ const ProductCard = dynamic(() => import("@/components/products/ProductCard").th
   loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg" />,
   ssr: true,
 });
+
+const ProductReviews = dynamic(() => import("@/components/products/ProductReviews").then((mod) => ({ default: mod.ProductReviews })), {
+  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg" />,
+  ssr: false,
+});
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -1007,71 +1012,11 @@ const ProductDetailNew = () => {
             </TabsContent>
 
             <TabsContent value="reviews" className="space-y-4">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <div className="text-center">
-                      <div className="text-5xl font-bold mb-2">
-                        {product.reviews.average_rating.toFixed(1)}
-                      </div>
-                      <div className="flex justify-center mb-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`h-5 w-5 ${
-                              star <= Math.round(product.reviews.average_rating)
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-muted"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Based on {product.reviews.review_count} reviews
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      {[5, 4, 3, 2, 1].map((rating) => {
-                        const count =
-                          product.reviews.rating_distribution[
-                            `${rating}_star` as keyof typeof product.reviews.rating_distribution
-                          ];
-                        const percentage = (count / product.reviews.review_count) * 100;
-
-                        return (
-                          <div key={rating} className="flex items-center gap-2">
-                            <span className="text-sm w-8">{rating}★</span>
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-yellow-400"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                            <span className="text-sm text-muted-foreground w-12 text-right">
-                              {count}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 text-sm text-muted-foreground mb-6">
-                    <div>
-                      <Check className="inline h-4 w-4 text-green-600 mr-1" />
-                      {product.reviews.verified_purchase_percentage.toFixed(0)}% verified purchases
-                    </div>
-                    <div>
-                      👍 {product.reviews.recommendation_percentage.toFixed(0)}% would recommend
-                    </div>
-                  </div>
-
-                  <p className="text-center text-muted-foreground">
-                    Detailed reviews will be displayed here.
-                  </p>
-                </CardContent>
-              </Card>
+              <ProductReviews
+                productId={product.id}
+                averageRating={product.reviews.average_rating}
+                reviewCount={product.reviews.review_count}
+              />
             </TabsContent>
 
             <TabsContent value="shipping" className="space-y-4">
