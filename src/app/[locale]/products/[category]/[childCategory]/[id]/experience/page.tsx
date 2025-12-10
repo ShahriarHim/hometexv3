@@ -1,5 +1,15 @@
 import ProductDetailEnhancedView from "@/views/ProductDetailEnhanced";
 
-export default function ProductDetailExperiencePage() {
+type Params = Promise<{
+  locale: string;
+  category: string;
+  childCategory: string;
+  id: string;
+}>;
+
+export default async function ProductDetailExperiencePage(props: { params: Params }) {
+  // Await the params as per Next.js 15 requirements
+  const params = await props.params;
+
   return <ProductDetailEnhancedView />;
 }

@@ -79,6 +79,15 @@ export interface ProductQueryParams {
 // Hero Banners
 export interface HeroBanner {
   id: number;
+  name: string;
+  slider: string; // URL with embedded JSON data
+  sl: number; // sort/slide order
+  status: number; // 1 = active, 0 = inactive
+}
+
+// Legacy HeroBanner interface for new API structure (if ever migrated)
+export interface HeroBannerV2 {
+  id: number;
   title: string;
   subtitle?: string;
   image: string;
