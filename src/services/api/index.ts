@@ -15,6 +15,7 @@ export * from "./gifts.service";
 export * from "./order.service";
 export * from "./payment.service";
 export * from "./product.service";
+export * from "./review.service";
 export * from "./user.service";
 export * from "./wishlist.service";
 
@@ -25,4 +26,5 @@ export type * from "@/types/api/common";
 export type * from "@/types/api/order";
 export type * from "@/types/api/payment";
 export type * from "@/types/api/product";
+export type * from "@/types/api/review";
 export type * from "@/types/api/user";

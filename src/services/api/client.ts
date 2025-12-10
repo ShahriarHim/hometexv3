@@ -23,16 +23,26 @@ export const authenticatedFetch = (url: string, options: RequestInit = {}): Prom
   const headers = {
     ...options.headers,
     "Content-Type": "application/json",
+    Accept: "application/json",
   };
 
   if (token) {
     Object.assign(headers, { Authorization: `Bearer ${token}` });
   }
 
-  return fetch(url, {
+  // Only include credentials if explicitly requested in options
+  // This avoids CORS issues when server uses wildcard Access-Control-Allow-Origin
+  const fetchOptions: RequestInit = {
     ...options,
     headers,
-  });
+  };
+
+  // Allow credentials to be overridden per request if needed
+  if (options.credentials !== undefined) {
+    fetchOptions.credentials = options.credentials;
+  }
+
+  return fetch(url, fetchOptions);
 };
 
 /**
@@ -132,14 +142,24 @@ export class ApiError extends Error {
  * Handle API response and throw error if not ok
  */
 export const handleApiResponse = async <T>(response: Response): Promise<T> => {
+  const data = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new ApiError(
-      error.message || `API Error: ${response.statusText}`,
-      response.status,
-      error
-    );
+    // Try to extract error message from various response formats
+    let errorMessage = `API Error: ${response.statusText}`;
+
+    if (data.message) {
+      errorMessage = data.message;
+    } else if (data.error) {
+      errorMessage = typeof data.error === "string" ? data.error : JSON.stringify(data.error);
+    } else if (data.errors && typeof data.errors === "object") {
+      // Handle Laravel validation errors
+      const errorMessages = Object.values(data.errors).flat();
+      errorMessage = errorMessages.join(", ");
+    }
+
+    throw new ApiError(errorMessage, response.status, data);
   }
 
-  return response.json();
+  return data as T;
 };

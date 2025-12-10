@@ -32,3 +32,10 @@ export interface ErrorResponse {
   error?: string | Record<string, string[]>;
   errors?: Record<string, string[]>;
 }
+
+// API Meta information
+export interface ApiMeta {
+  request_id?: string;
+  timestamp?: string;
+  response_time_ms?: number;
+}
