@@ -1,7 +1,7 @@
 "use client";
 
 import { heroSlides as fallbackSlides, type HeroSlide } from "@/data/migration-content";
-import { transformHeroBannerToSlideV2 } from "@/lib/transforms";
+import { transformHeroBannerToSlide } from "@/lib/transforms";
 import { productService } from "@/services/api";
 import type { Route } from "next";
 import Link from "next/link";
@@ -31,8 +31,8 @@ export const HeroShowcase = () => {
         if (response.success && response.data.length > 0) {
           // Transform API data to HeroSlide format
           const transformedSlides = response.data
-            .filter((banner) => banner.is_active) // Only active banners
-            .map((banner) => transformHeroBannerToSlideV2(banner));
+            .filter((banner) => banner.status === 1) // Only active banners (status: 1)
+            .map((banner) => transformHeroBannerToSlide(banner));
 
           // Use transformed slides if available, otherwise fallback
           if (transformedSlides.length > 0) {
@@ -42,11 +42,12 @@ export const HeroShowcase = () => {
             setHeroSlides(fallbackSlides);
           }
         } else {
+          console.warn("⚠️ API returned no data or unsuccessful, using fallback");
           // Use fallback slides if API returns no data
           setHeroSlides(fallbackSlides);
         }
       } catch (error) {
-        console.error("Failed to fetch hero banners:", error);
+        console.error("❌ Failed to fetch hero banners:", error);
         // Use fallback slides on error
         setHeroSlides(fallbackSlides);
       } finally {
