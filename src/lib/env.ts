@@ -55,40 +55,15 @@ const normalizeUrl = (url: string): string => {
 
 // Determine API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // If explicitly set via env var, use that
-  const explicitApiUrl = getOptionalEnvVar("NEXT_PUBLIC_API_BASE_URL", "http://123.176.58.209");
+  // Check if user explicitly wants local API
+  const useLocalApi = getOptionalEnvVar("NEXT_PUBLIC_USE_LOCAL_API", "false") === "true";
 
-  if (explicitApiUrl) {
-    if (isDevelopment) {
-      // eslint-disable-next-line no-console
-      console.log("[env] Using NEXT_PUBLIC_API_BASE_URL:", explicitApiUrl);
-    }
-    return normalizeUrl(explicitApiUrl);
+  if (useLocalApi) {
+    return getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000");
   }
 
-
-  // Auto-detect based on environment and hostname
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    // Use localhost API in development or when on localhost
-    if (isDevelopment || hostname === "localhost" || hostname === "127.0.0.1") {
-      return normalizeUrl(getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000"));
-    }
-  } else if (isDevelopment) {
-    // Server-side in development
-    return normalizeUrl(getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000"));
-  }
-
-  // Production fallback
-  return normalizeUrl("https://www.hometexbd.ltd");
-};
-
-// Check if we should skip localhost fallback
-// Skip localhost if API base URL is not localhost (user has explicitly set a different URL)
-const shouldSkipLocalhostFallback = (): boolean => {
-  const apiBaseUrl = getApiBaseUrl();
-  const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)/i;
-  return !localhostPattern.test(apiBaseUrl);
+  // Use production API
+  return getOptionalEnvVar("NEXT_PUBLIC_API_BASE_URL", "http://123.176.58.209");
 };
 
 // Export env object - using explicit object literal for Turbopack compatibility

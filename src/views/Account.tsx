@@ -455,7 +455,6 @@ const Account = () => {
               <CardContent>
                 <p className="text-muted-foreground mb-4">View and manage your saved items</p>
                 <Button asChild>
-                  {/* @ts-expect-error - Route type issue */}
                   <Link href="/account/wishlist">View Wishlist</Link>
                 </Button>
               </CardContent>
