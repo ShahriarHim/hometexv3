@@ -1,5 +1,7 @@
 "use client";
 
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
@@ -35,6 +37,8 @@ const HotDeals = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
   const { addRecentView } = useRecentViews();
+  const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 2,
@@ -125,6 +129,45 @@ const HotDeals = () => {
     }
   };
 
+  const transformToProduct = (product: HotDealProduct): ProductType => {
+    const originalPriceValue =
+      parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined;
+    return {
+      id: product.id.toString(),
+      name: product.name,
+      slug: product.product_slug || "",
+      price: product.price,
+      originalPrice: originalPriceValue,
+      description: "",
+      category: product.category_slug,
+      subcategory: product.subcategory_slug,
+      images: product.img ? [product.img] : [],
+      primary_photo: product.primary_photo,
+      inStock: product.stock > 0,
+      rating: product.star || 4,
+      reviewCount: 0,
+      stock: product.stock,
+    };
+  };
+
+  const handleAddToCart = (product: HotDealProduct, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const productData = transformToProduct(product);
+    addToCart(productData);
+  };
+
+  const handleWishlistToggle = (product: HotDealProduct, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const productData = transformToProduct(product);
+    if (isInWishlist(productData.id)) {
+      removeFromWishlist(productData.id);
+    } else {
+      addToWishlist(productData);
+    }
+  };
+
   return (
     <div className={styles["hot-deals-container"]}>
       <div className={styles["hot-deals-box"]}>
@@ -134,7 +177,7 @@ const HotDeals = () => {
               <span>Hot Deals!</span> Get Our Best Price
             </h2>
           </div>
-          <Link href="/products" className={styles["see-all-link"]}>
+          <Link href="/products?filter=trending" className={styles["see-all-link"]}>
             + See All Products
           </Link>
         </div>
@@ -201,7 +244,8 @@ const HotDeals = () => {
               }}
             >
               {products.map((product, index) => {
-                const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+                const productUrl =
+                  `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
 
                 const handleProductClick = () => {
                   const productForTracking: ProductType = {
@@ -209,7 +253,8 @@ const HotDeals = () => {
                     name: product.name,
                     slug: product.product_slug || "",
                     price: product.price,
-                    originalPrice: parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
+                    originalPrice:
+                      parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
                     description: "",
                     category: product.category_slug,
                     subcategory: product.subcategory_slug,
@@ -241,10 +286,7 @@ const HotDeals = () => {
                             <div className={styles["button-group"]}>
                               <button
                                 title="Add to Cart"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
+                                onClick={(e) => handleAddToCart(product, e)}
                               >
                                 <ShoppingCart className="w-4 h-4" />
                               </button>
@@ -258,13 +300,19 @@ const HotDeals = () => {
                                 <Eye className="w-4 h-4" />
                               </button>
                               <button
-                                title="Add to Wishlist"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
+                                title={
+                                  isInWishlist(product.id.toString())
+                                    ? "Remove from Wishlist"
+                                    : "Add to Wishlist"
+                                }
+                                onClick={(e) => handleWishlistToggle(product, e)}
+                                className={
+                                  isInWishlist(product.id.toString()) ? styles["active-heart"] : ""
+                                }
                               >
-                                <Heart className="w-4 h-4" />
+                                <Heart
+                                  className={`w-4 h-4 ${isInWishlist(product.id.toString()) ? "fill-current" : ""}`}
+                                />
                               </button>
                             </div>
                             <div className={styles["overlay-info"]}>
@@ -301,7 +349,8 @@ const HotDeals = () => {
               })}
 
               {products.map((product, index) => {
-                const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+                const productUrl =
+                  `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
 
                 const handleProductClickCloned = () => {
                   const productForTracking: ProductType = {
@@ -309,7 +358,8 @@ const HotDeals = () => {
                     name: product.name,
                     slug: product.product_slug || "",
                     price: product.price,
-                    originalPrice: parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
+                    originalPrice:
+                      parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
                     description: "",
                     category: product.category_slug,
                     subcategory: product.subcategory_slug,
@@ -330,7 +380,11 @@ const HotDeals = () => {
                     onMouseEnter={() => handleProductHover(true)}
                     onMouseLeave={() => handleProductHover(false)}
                   >
-                    <Link href={productUrl} onClick={handleProductClickCloned} className="block h-full">
+                    <Link
+                      href={productUrl}
+                      onClick={handleProductClickCloned}
+                      className="block h-full"
+                    >
                       <div className={styles["product-item-container"]}>
                         <div className={styles["product-image-container"]}>
                           <img src={product.img} alt={product.name} loading="lazy" />
@@ -341,10 +395,7 @@ const HotDeals = () => {
                             <div className={styles["button-group"]}>
                               <button
                                 title="Add to Cart"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
+                                onClick={(e) => handleAddToCart(product, e)}
                               >
                                 <ShoppingCart className="w-4 h-4" />
                               </button>
@@ -358,14 +409,27 @@ const HotDeals = () => {
                                 <Eye className="w-4 h-4" />
                               </button>
                               <button
-                                title="Add to Wishlist"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
+                                title={
+                                  isInWishlist(product.id.toString())
+                                    ? "Remove from Wishlist"
+                                    : "Add to Wishlist"
+                                }
+                                onClick={(e) => handleWishlistToggle(product, e)}
+                                className={
+                                  isInWishlist(product.id.toString()) ? styles["active-heart"] : ""
+                                }
                               >
-                                <Heart className="w-4 h-4" />
+                                <Heart
+                                  className={`w-4 h-4 ${isInWishlist(product.id.toString()) ? "fill-current" : ""}`}
+                                />
                               </button>
+                            </div>
+                            <div className={styles["overlay-info"]}>
+                              <p className={styles["overlay-title"]}>{product.name}</p>
+                              <div className={styles["overlay-prices"]}>
+                                <span className={styles["price-new"]}>{product.displayPrice}</span>
+                                <span className={styles["price-old"]}>{product.originalPrice}</span>
+                              </div>
                             </div>
                           </div>
                         </div>

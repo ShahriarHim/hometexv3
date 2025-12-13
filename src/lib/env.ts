@@ -8,7 +8,19 @@
 // Helper functions
 function getOptionalEnvVar(key: string, defaultValue: string = ""): string {
   if (typeof process !== "undefined" && process.env) {
-    return process.env[key] || defaultValue;
+    const value = process.env[key];
+    if (value) {
+      // Trim whitespace
+      let trimmed = value.trim();
+      // Remove surrounding quotes if present (handles "value" or 'value')
+      if (
+        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))
+      ) {
+        trimmed = trimmed.slice(1, -1).trim();
+      }
+      return trimmed || defaultValue;
+    }
   }
   return defaultValue;
 }
@@ -17,6 +29,29 @@ function getOptionalEnvVar(key: string, defaultValue: string = ""): string {
 const nodeEnv = getOptionalEnvVar("NODE_ENV", "development");
 const isDevelopment = nodeEnv === "development";
 const isProduction = nodeEnv === "production";
+
+/**
+ * Normalize URL to ensure it has a protocol
+ * Adds http:// if no protocol is present
+ */
+const normalizeUrl = (url: string): string => {
+  if (!url) {
+    return url;
+  }
+
+  // If URL already has protocol, return as-is
+  if (/^https?:\/\//i.test(url)) {
+    return url;
+  }
+
+  // If URL starts with //, it's protocol-relative, add http:
+  if (url.startsWith("//")) {
+    return `http:${url}`;
+  }
+
+  // Otherwise, add http:// prefix
+  return `http://${url}`;
+};
 
 // Determine API base URL based on environment
 const getApiBaseUrl = (): string => {
@@ -40,6 +75,7 @@ export const env = Object.freeze({
   // API Configuration
   apiBaseUrl: getApiBaseUrl(),
   apiLocalUrl: getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000"),
+  shouldSkipLocalhostFallback: shouldSkipLocalhostFallback(),
 
   // Environment
   nodeEnv,
