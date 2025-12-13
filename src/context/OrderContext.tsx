@@ -57,15 +57,16 @@ interface OrderContextType {
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
-interface OrdersStorage {
-  userId: string | null;
-  orders: Order[];
-}
+const getOrdersStorageKey = (userId: string | null): string => {
+  return userId ? `hometex-orders-${userId}` : "hometex-orders-guest";
+};
 
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const currentUserIdRef = useRef<string | null>(null);
+  const hasLoadedRef = useRef<boolean>(false);
+  const isTransitioningRef = useRef<boolean>(false);
 
   const formatApiError = (error: ApiError): string => {
     const responseData = (error.response ?? {}) as ApiErrorResponse;
@@ -100,66 +101,125 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Load orders from localStorage and handle user changes
   useEffect(() => {
     const currentUserId = user?.id || null;
-    const savedOrders = localStorage.getItem("hometex-orders");
+    const storageKey = getOrdersStorageKey(currentUserId);
 
-    // Check if user changed
-    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
-      // User changed, clear orders
+    // Check if user changed (only after initial load)
+    if (hasLoadedRef.current && currentUserIdRef.current !== currentUserId) {
+      // User changed - immediately clear state to prevent stale data
+      isTransitioningRef.current = true;
       setOrders([]);
-      localStorage.removeItem("hometex-orders");
       currentUserIdRef.current = currentUserId;
+
+      // Load the new user's orders
+      const savedOrders = localStorage.getItem(storageKey);
+      if (savedOrders) {
+        try {
+          const parsed = JSON.parse(savedOrders);
+          const ordersList = Array.isArray(parsed) ? parsed : parsed.orders || [];
+          // Filter orders to only include those belonging to current user
+          const userOrders = ordersList.filter(
+            (order: Order) => !currentUserId || order.userId === currentUserId
+          );
+          startTransition(() => {
+            setOrders(userOrders);
+            isTransitioningRef.current = false;
+          });
+        } catch {
+          startTransition(() => {
+            setOrders([]);
+            isTransitioningRef.current = false;
+          });
+        }
+      } else {
+        startTransition(() => {
+          setOrders([]);
+          isTransitioningRef.current = false;
+        });
+      }
       return;
     }
 
-    // Load from localStorage if available
-    if (savedOrders) {
-      try {
-        const parsed = JSON.parse(savedOrders);
+    // Handle initial load or when user becomes null (logout)
+    if (!hasLoadedRef.current || currentUserId === null) {
+      if (currentUserId === null) {
+        // User logged out - clear state immediately
+        setOrders([]);
+        currentUserIdRef.current = null;
+        hasLoadedRef.current = true;
+        return;
+      }
 
-        // Handle backward compatibility: old format was just an array
-        let ordersData: OrdersStorage;
-        if (Array.isArray(parsed)) {
-          // Old format - treat as guest orders
-          ordersData = { userId: null, orders: parsed };
-        } else {
-          ordersData = parsed as OrdersStorage;
-        }
-
-        // Only load orders if they belong to the current user or if no user is logged in
-        if (ordersData.userId === currentUserId || (!currentUserId && !ordersData.userId)) {
+      // Initial load - load from localStorage if available
+      const savedOrders = localStorage.getItem(storageKey);
+      if (savedOrders) {
+        try {
+          const parsed = JSON.parse(savedOrders);
+          const ordersList = Array.isArray(parsed) ? parsed : parsed.orders || [];
+          // Filter orders to only include those belonging to current user
+          const userOrders = ordersList.filter(
+            (order: Order) => !currentUserId || order.userId === currentUserId
+          );
           startTransition(() => {
-            // Filter orders to only include those belonging to current user
-            const userOrders =
-              ordersData.orders?.filter(
-                (order) => !currentUserId || order.userId === currentUserId
-              ) || [];
             setOrders(userOrders);
             currentUserIdRef.current = currentUserId;
+            hasLoadedRef.current = true;
           });
-        } else {
-          // Orders belong to different user, clear them
-          setOrders([]);
-          currentUserIdRef.current = currentUserId;
+        } catch {
+          startTransition(() => {
+            setOrders([]);
+            currentUserIdRef.current = currentUserId;
+            hasLoadedRef.current = true;
+          });
         }
-      } catch {
-        // Invalid data, clear it
-        setOrders([]);
-        currentUserIdRef.current = currentUserId;
+      } else {
+        // Also check old format for backward compatibility
+        const oldOrders = localStorage.getItem("hometex-orders");
+        if (oldOrders) {
+          try {
+            const parsed = JSON.parse(oldOrders);
+            const ordersList = Array.isArray(parsed) ? parsed : parsed.orders || [];
+            // Filter orders to only include those belonging to current user
+            const userOrders = ordersList.filter(
+              (order: Order) => !currentUserId || order.userId === currentUserId
+            );
+            // Migrate old orders to new format
+            startTransition(() => {
+              setOrders(userOrders);
+              localStorage.setItem(storageKey, JSON.stringify(userOrders));
+              localStorage.removeItem("hometex-orders");
+              currentUserIdRef.current = currentUserId;
+              hasLoadedRef.current = true;
+            });
+          } catch {
+            startTransition(() => {
+              setOrders([]);
+              currentUserIdRef.current = currentUserId;
+              hasLoadedRef.current = true;
+            });
+          }
+        } else {
+          currentUserIdRef.current = currentUserId;
+          hasLoadedRef.current = true;
+        }
       }
-    } else {
-      currentUserIdRef.current = currentUserId;
     }
   }, [user?.id]);
 
   useEffect(() => {
+    if (!hasLoadedRef.current || isTransitioningRef.current) {
+      return; // Don't save before initial load or during user transitions
+    }
+
     const currentUserId = user?.id || null;
+    // Only save if user ID matches current ref (prevent saving to wrong user's storage)
+    if (currentUserIdRef.current !== currentUserId) {
+      return;
+    }
+
+    const storageKey = getOrdersStorageKey(currentUserId);
     // Only save orders that belong to current user
     const userOrders = orders.filter((order) => !currentUserId || order.userId === currentUserId);
-    const ordersData: OrdersStorage = {
-      userId: currentUserId,
-      orders: userOrders,
-    };
-    localStorage.setItem("hometex-orders", JSON.stringify(ordersData));
+    localStorage.setItem(storageKey, JSON.stringify(userOrders));
   }, [orders, user?.id]);
 
   const createOrder = async (

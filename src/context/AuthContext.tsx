@@ -263,13 +263,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // ignore API errors on logout
     } finally {
-      setUser(null);
+      const userId = user?.id;
+
+      // Clear user-specific storage
+      if (userId) {
+        localStorage.removeItem(`hometex-cart-${userId}`);
+        localStorage.removeItem(`hometex-wishlist-${userId}`);
+        localStorage.removeItem(`hometex-orders-${userId}`);
+        localStorage.removeItem(`recentview-${userId}`);
+      }
+
+      // Also clear old format keys and guest data
       localStorage.removeItem("hometex-user");
       localStorage.removeItem("hometex-auth-token");
       localStorage.removeItem("hometex-cart");
       localStorage.removeItem("hometex-wishlist");
       localStorage.removeItem("hometex-orders");
+      localStorage.removeItem("hometex-cart-guest");
+      localStorage.removeItem("hometex-wishlist-guest");
+      localStorage.removeItem("hometex-orders-guest");
       clearRecentViewsStorage(); // Clear recent views on logout
+
+      setUser(null);
       toast.success("Logged out successfully");
       // Redirect to home
       window.location.href = "/";

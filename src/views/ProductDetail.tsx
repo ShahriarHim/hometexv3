@@ -6,24 +6,34 @@ import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkelet
 import dynamic from "next/dynamic";
 
 // Dynamic imports for better performance
-const MediaGallery = dynamic(() => import("@/components/products/MediaGallery").then((mod) => ({ default: mod.MediaGallery })), {
-  loading: () => <div className="aspect-square bg-muted animate-pulse rounded-lg" />,
-  ssr: true,
-});
+const MediaGallery = dynamic(
+  () => import("@/components/products/MediaGallery").then((mod) => ({ default: mod.MediaGallery })),
+  {
+    loading: () => <div className="aspect-square bg-muted animate-pulse rounded-lg" />,
+    ssr: true,
+  }
+);
 
 const PriceDropNotification = dynamic(() => import("@/components/products/PriceDropNotification"), {
   ssr: false,
 });
 
-const ProductCard = dynamic(() => import("@/components/products/ProductCard").then((mod) => ({ default: mod.ProductCard })), {
-  loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg" />,
-  ssr: true,
-});
+const ProductCard = dynamic(
+  () => import("@/components/products/ProductCard").then((mod) => ({ default: mod.ProductCard })),
+  {
+    loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg" />,
+    ssr: true,
+  }
+);
 
-const ProductReviews = dynamic(() => import("@/components/products/ProductReviews").then((mod) => ({ default: mod.ProductReviews })), {
-  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg" />,
-  ssr: false,
-});
+const ProductReviews = dynamic(
+  () =>
+    import("@/components/products/ProductReviews").then((mod) => ({ default: mod.ProductReviews })),
+  {
+    loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg" />,
+    ssr: false,
+  }
+);
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -98,10 +108,7 @@ const ProductDetailNew = () => {
   const product = productResponse?.data;
 
   // Fetch similar products in parallel (non-blocking)
-  const {
-    data: similarProductsResponse,
-    isLoading: similarProductsLoading,
-  } = useQuery({
+  const { data: similarProductsResponse, isLoading: similarProductsLoading } = useQuery({
     queryKey: ["similar-products", id],
     queryFn: async () => {
       if (!id) return null;
@@ -139,7 +146,12 @@ const ProductDetailNew = () => {
     }
   }, [product, addRecentView]);
 
-  const error = productError instanceof Error ? productError.message : productError ? String(productError) : null;
+  const error =
+    productError instanceof Error
+      ? productError.message
+      : productError
+        ? String(productError)
+        : null;
 
   if (loading) {
     return (

@@ -18,6 +18,7 @@ export * from "./product.service";
 export * from "./review.service";
 export * from "./user.service";
 export * from "./wishlist.service";
+export * from "./location.service";
 
 // Re-export types for convenience
 export type * from "@/types/api/alerts";
@@ -28,3 +29,4 @@ export type * from "@/types/api/payment";
 export type * from "@/types/api/product";
 export type * from "@/types/api/review";
 export type * from "@/types/api/user";
+export type * from "@/types/api/location";

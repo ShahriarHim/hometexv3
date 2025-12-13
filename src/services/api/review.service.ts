@@ -81,7 +81,10 @@ export const reviewService = {
   /**
    * Update an existing review
    */
-  updateReview: async (reviewId: string | number, data: UpdateReviewRequest): Promise<ReviewResponse> => {
+  updateReview: async (
+    reviewId: string | number,
+    data: UpdateReviewRequest
+  ): Promise<ReviewResponse> => {
     const response = await fetchWithFallback(`/api/update-review/${reviewId}`, env.apiBaseUrl, {
       method: "PUT",
       headers: {
@@ -111,4 +114,3 @@ export const reviewService = {
     return handleApiResponse<ApiResponse<null>>(response);
   },
 };
-

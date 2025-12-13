@@ -1,6 +1,6 @@
-import createNextIntlPlugin from 'next-intl/plugin';
+import createNextIntlPlugin from "next-intl/plugin";
 
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const securityHeaders = [
   {
@@ -17,7 +17,7 @@ const securityHeaders = [
   },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=()",
+    value: "camera=(), microphone=(), geolocation=(self)",
   },
 ];
 
@@ -32,7 +32,7 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     dangerouslyAllowSVG: true,
-    unoptimized: process.env.NODE_ENV === 'development', // Bypass private IP restriction in dev
+    unoptimized: process.env.NODE_ENV === "development", // Bypass private IP restriction in dev
     remotePatterns: [
       {
         protocol: "https",
@@ -65,4 +65,3 @@ const nextConfig = {
 };
 
 export default withNextIntl(nextConfig);
-

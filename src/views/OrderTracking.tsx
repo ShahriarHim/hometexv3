@@ -24,7 +24,11 @@ const OrderTracking = () => {
 
   const formatError = (payload: unknown): string => {
     if (!payload || typeof payload !== "object") return "Something went wrong";
-    const maybeResp = payload as { message?: string; error?: string; errors?: Record<string, string[]> };
+    const maybeResp = payload as {
+      message?: string;
+      error?: string;
+      errors?: Record<string, string[]>;
+    };
     if (maybeResp.errors && Object.keys(maybeResp.errors).length > 0) {
       const first = Object.values(maybeResp.errors)[0];
       if (first?.[0]) return first[0];
@@ -138,11 +142,14 @@ const OrderTracking = () => {
       );
     }
 
-    const orderDetails = (order as { order_details?: Array<Record<string, unknown>> })?.order_details || [];
+    const orderDetails =
+      (order as { order_details?: Array<Record<string, unknown>> })?.order_details || [];
     const customer = (order as { customer?: Record<string, unknown> })?.customer;
     const paymentMethod = (order as { payment_method?: { name?: string } })?.payment_method;
-    const statusString = (order as { order_status_string?: string })?.order_status_string || "Unknown";
-    const trackingCode = (order as { consignment_id?: string; tracking_code?: string })?.tracking_code;
+    const statusString =
+      (order as { order_status_string?: string })?.order_status_string || "Unknown";
+    const trackingCode = (order as { consignment_id?: string; tracking_code?: string })
+      ?.tracking_code;
     const total = (order as { total?: number })?.total;
     const subTotal = (order as { sub_total?: number })?.sub_total;
     const paidAmount = (order as { paid_amount?: number })?.paid_amount;
@@ -167,7 +174,8 @@ const OrderTracking = () => {
             <div>
               <CardTitle className="text-lg">Current Status</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Payment: {paymentMethod?.name || "Unknown"} • Status: {(order as { payment_status?: string })?.payment_status || "Unknown"}
+                Payment: {paymentMethod?.name || "Unknown"} • Status:{" "}
+                {(order as { payment_status?: string })?.payment_status || "Unknown"}
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={handleInvoiceOpen}>
@@ -217,8 +225,12 @@ const OrderTracking = () => {
               </h3>
               <div className="space-y-1 text-muted-foreground">
                 <p>{(customer as { name?: string })?.name || "N/A"}</p>
-                {(customer as { email?: string })?.email && <p>{(customer as { email?: string })?.email}</p>}
-                {(customer as { phone?: string })?.phone && <p>{(customer as { phone?: string })?.phone}</p>}
+                {(customer as { email?: string })?.email && (
+                  <p>{(customer as { email?: string })?.email}</p>
+                )}
+                {(customer as { phone?: string })?.phone && (
+                  <p>{(customer as { phone?: string })?.phone}</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -230,7 +242,8 @@ const OrderTracking = () => {
                 {orderDetails.map((item, index) => {
                   const name = (item as { name?: string })?.name;
                   const qty = (item as { quantity?: number })?.quantity || 0;
-                  const price = (item as { sell_price?: { price?: number } })?.sell_price?.price || 0;
+                  const price =
+                    (item as { sell_price?: { price?: number } })?.sell_price?.price || 0;
                   return (
                     <div key={index} className="flex justify-between text-sm">
                       <span className="text-muted-foreground">

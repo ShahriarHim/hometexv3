@@ -26,10 +26,9 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-interface CartStorage {
-  userId: string | null;
-  items: CartItem[];
-}
+const getCartStorageKey = (userId: string | null): string => {
+  return userId ? `hometex-cart-${userId}` : "hometex-cart-guest";
+};
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -37,64 +36,118 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCartPopupOpen, setIsCartPopupOpen] = useState(false);
   const lastToastRef = useRef<{ message: string; timestamp: number } | null>(null);
   const currentUserIdRef = useRef<string | null>(null);
+  const hasLoadedRef = useRef<boolean>(false);
+  const isTransitioningRef = useRef<boolean>(false);
 
   // Load cart from localStorage and handle user changes
   useEffect(() => {
     const currentUserId = user?.id || null;
-    const savedCart = localStorage.getItem("hometex-cart");
+    const storageKey = getCartStorageKey(currentUserId);
 
-    // Check if user changed
-    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
-      // User changed, clear cart
+    // Check if user changed (only after initial load)
+    if (hasLoadedRef.current && currentUserIdRef.current !== currentUserId) {
+      // User changed - immediately clear state to prevent stale data
+      isTransitioningRef.current = true;
       setItems([]);
-      localStorage.removeItem("hometex-cart");
       currentUserIdRef.current = currentUserId;
+
+      // Load the new user's cart
+      const savedCart = localStorage.getItem(storageKey);
+      if (savedCart) {
+        try {
+          const parsed = JSON.parse(savedCart);
+          const cartItems = Array.isArray(parsed) ? parsed : parsed.items || [];
+          startTransition(() => {
+            setItems(cartItems);
+            isTransitioningRef.current = false;
+          });
+        } catch {
+          startTransition(() => {
+            setItems([]);
+            isTransitioningRef.current = false;
+          });
+        }
+      } else {
+        startTransition(() => {
+          setItems([]);
+          isTransitioningRef.current = false;
+        });
+      }
       return;
     }
 
-    // Load from localStorage if available
-    if (savedCart) {
-      try {
-        const parsed = JSON.parse(savedCart);
-
-        // Handle backward compatibility: old format was just an array
-        let cartData: CartStorage;
-        if (Array.isArray(parsed)) {
-          // Old format - treat as guest cart
-          cartData = { userId: null, items: parsed };
-        } else {
-          cartData = parsed as CartStorage;
-        }
-
-        // Only load cart if it belongs to the current user or if no user is logged in
-        if (cartData.userId === currentUserId || (!currentUserId && !cartData.userId)) {
-          startTransition(() => {
-            setItems(cartData.items || []);
-            currentUserIdRef.current = currentUserId;
-          });
-        } else {
-          // Cart belongs to different user, clear it
-          setItems([]);
-          currentUserIdRef.current = currentUserId;
-        }
-      } catch {
-        // Invalid data, clear it
+    // Handle initial load or when user becomes null (logout)
+    if (!hasLoadedRef.current || currentUserId === null) {
+      if (currentUserId === null) {
+        // User logged out - clear state immediately
         setItems([]);
-        currentUserIdRef.current = currentUserId;
+        currentUserIdRef.current = null;
+        hasLoadedRef.current = true;
+        return;
       }
-    } else {
-      currentUserIdRef.current = currentUserId;
+
+      // Initial load - load from localStorage if available
+      const savedCart = localStorage.getItem(storageKey);
+      if (savedCart) {
+        try {
+          const parsed = JSON.parse(savedCart);
+          const cartItems = Array.isArray(parsed) ? parsed : parsed.items || [];
+          startTransition(() => {
+            setItems(cartItems);
+            currentUserIdRef.current = currentUserId;
+            hasLoadedRef.current = true;
+          });
+        } catch {
+          startTransition(() => {
+            setItems([]);
+            currentUserIdRef.current = currentUserId;
+            hasLoadedRef.current = true;
+          });
+        }
+      } else {
+        // Also check old format for backward compatibility
+        const oldCart = localStorage.getItem("hometex-cart");
+        if (oldCart) {
+          try {
+            const parsed = JSON.parse(oldCart);
+            const cartItems = Array.isArray(parsed) ? parsed : parsed.items || [];
+            // Migrate old cart to new format
+            startTransition(() => {
+              setItems(cartItems);
+              localStorage.setItem(storageKey, JSON.stringify(cartItems));
+              localStorage.removeItem("hometex-cart");
+              currentUserIdRef.current = currentUserId;
+              hasLoadedRef.current = true;
+            });
+          } catch {
+            startTransition(() => {
+              setItems([]);
+              currentUserIdRef.current = currentUserId;
+              hasLoadedRef.current = true;
+            });
+          }
+        } else {
+          currentUserIdRef.current = currentUserId;
+          hasLoadedRef.current = true;
+        }
+      }
     }
   }, [user?.id]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
+    if (!hasLoadedRef.current || isTransitioningRef.current) {
+      return; // Don't save before initial load or during user transitions
+    }
+
     const currentUserId = user?.id || null;
-    const cartData: CartStorage = {
-      userId: currentUserId,
-      items,
-    };
-    localStorage.setItem("hometex-cart", JSON.stringify(cartData));
+    // Only save if user ID matches current ref (prevent saving to wrong user's storage)
+    if (currentUserIdRef.current !== currentUserId) {
+      return;
+    }
+
+    const storageKey = getCartStorageKey(currentUserId);
+    localStorage.setItem(storageKey, JSON.stringify(items));
   }, [items, user?.id]);
 
   const addToCart = (product: Product, quantity = 1, color?: string, size?: string) => {

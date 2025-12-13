@@ -22,72 +22,125 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-interface WishlistStorage {
-  userId: string | null;
-  items: WishlistItem[];
-}
+const getWishlistStorageKey = (userId: string | null): string => {
+  return userId ? `hometex-wishlist-${userId}` : "hometex-wishlist-guest";
+};
 
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const currentUserIdRef = useRef<string | null>(null);
+  const hasLoadedRef = useRef<boolean>(false);
+  const isTransitioningRef = useRef<boolean>(false);
 
   // Load wishlist from localStorage and handle user changes
   useEffect(() => {
     const currentUserId = user?.id || null;
-    const savedWishlist = localStorage.getItem("hometex-wishlist");
+    const storageKey = getWishlistStorageKey(currentUserId);
 
-    // Check if user changed
-    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
-      // User changed, clear wishlist
+    // Check if user changed (only after initial load)
+    if (hasLoadedRef.current && currentUserIdRef.current !== currentUserId) {
+      // User changed - immediately clear state to prevent stale data
+      isTransitioningRef.current = true;
       setItems([]);
-      localStorage.removeItem("hometex-wishlist");
       currentUserIdRef.current = currentUserId;
+
+      // Load the new user's wishlist
+      const savedWishlist = localStorage.getItem(storageKey);
+      if (savedWishlist) {
+        try {
+          const parsed = JSON.parse(savedWishlist);
+          const wishlistItems = Array.isArray(parsed) ? parsed : parsed.items || [];
+          startTransition(() => {
+            setItems(wishlistItems);
+            isTransitioningRef.current = false;
+          });
+        } catch {
+          startTransition(() => {
+            setItems([]);
+            isTransitioningRef.current = false;
+          });
+        }
+      } else {
+        startTransition(() => {
+          setItems([]);
+          isTransitioningRef.current = false;
+        });
+      }
       return;
     }
 
-    // Load from localStorage if available
-    if (savedWishlist) {
-      try {
-        const parsed = JSON.parse(savedWishlist);
-
-        // Handle backward compatibility: old format was just an array
-        let wishlistData: WishlistStorage;
-        if (Array.isArray(parsed)) {
-          // Old format - treat as guest wishlist
-          wishlistData = { userId: null, items: parsed };
-        } else {
-          wishlistData = parsed as WishlistStorage;
-        }
-
-        // Only load wishlist if it belongs to the current user or if no user is logged in
-        if (wishlistData.userId === currentUserId || (!currentUserId && !wishlistData.userId)) {
-          startTransition(() => {
-            setItems(wishlistData.items || []);
-            currentUserIdRef.current = currentUserId;
-          });
-        } else {
-          // Wishlist belongs to different user, clear it
-          setItems([]);
-          currentUserIdRef.current = currentUserId;
-        }
-      } catch {
-        // Invalid data, clear it
+    // Handle initial load or when user becomes null (logout)
+    if (!hasLoadedRef.current || currentUserId === null) {
+      if (currentUserId === null) {
+        // User logged out - clear state immediately
         setItems([]);
-        currentUserIdRef.current = currentUserId;
+        currentUserIdRef.current = null;
+        hasLoadedRef.current = true;
+        return;
       }
-    } else {
-      currentUserIdRef.current = currentUserId;
+
+      // Initial load - load from localStorage if available
+      const savedWishlist = localStorage.getItem(storageKey);
+      if (savedWishlist) {
+        try {
+          const parsed = JSON.parse(savedWishlist);
+          const wishlistItems = Array.isArray(parsed) ? parsed : parsed.items || [];
+          startTransition(() => {
+            setItems(wishlistItems);
+            currentUserIdRef.current = currentUserId;
+            hasLoadedRef.current = true;
+          });
+        } catch {
+          startTransition(() => {
+            setItems([]);
+            currentUserIdRef.current = currentUserId;
+            hasLoadedRef.current = true;
+          });
+        }
+      } else {
+        // Also check old format for backward compatibility
+        const oldWishlist = localStorage.getItem("hometex-wishlist");
+        if (oldWishlist) {
+          try {
+            const parsed = JSON.parse(oldWishlist);
+            const wishlistItems = Array.isArray(parsed) ? parsed : parsed.items || [];
+            // Migrate old wishlist to new format
+            startTransition(() => {
+              setItems(wishlistItems);
+              localStorage.setItem(storageKey, JSON.stringify(wishlistItems));
+              localStorage.removeItem("hometex-wishlist");
+              currentUserIdRef.current = currentUserId;
+              hasLoadedRef.current = true;
+            });
+          } catch {
+            startTransition(() => {
+              setItems([]);
+              currentUserIdRef.current = currentUserId;
+              hasLoadedRef.current = true;
+            });
+          }
+        } else {
+          currentUserIdRef.current = currentUserId;
+          hasLoadedRef.current = true;
+        }
+      }
     }
   }, [user?.id]);
 
   useEffect(() => {
+    if (!hasLoadedRef.current || isTransitioningRef.current) {
+      return; // Don't save before initial load or during user transitions
+    }
+
     const currentUserId = user?.id || null;
-    const wishlistData: WishlistStorage = {
-      userId: currentUserId,
-      items,
-    };
-    localStorage.setItem("hometex-wishlist", JSON.stringify(wishlistData));
+    // Only save if user ID matches current ref (prevent saving to wrong user's storage)
+    if (currentUserIdRef.current !== currentUserId) {
+      return;
+    }
+
+    const storageKey = getWishlistStorageKey(currentUserId);
+    localStorage.setItem(storageKey, JSON.stringify(items));
   }, [items, user?.id]);
 
   const addToWishlist = (product: Product) => {

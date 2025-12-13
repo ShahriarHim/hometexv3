@@ -64,7 +64,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
     setCurrentPage((prev) => Math.min(totalPages, prev + 1));
   };
 
-  const getProductUrl = (product: typeof recentViews[0]) => {
+  const getProductUrl = (product: (typeof recentViews)[0]) => {
     return `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any;
   };
 
@@ -143,9 +143,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
                   <div className="bg-gray-100 rounded-full p-6 mb-4">
                     <Eye className="w-12 h-12 text-gray-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No Recent Views
-                  </h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Recent Views</h3>
                   <p className="text-gray-600 max-w-md">
                     Products you view will appear here. Start browsing to see your recent views!
                   </p>
@@ -255,4 +253,3 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
 };
 
 export default RecentView;
-

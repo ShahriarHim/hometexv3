@@ -198,7 +198,8 @@ const Cart = () => {
               Login Required
             </DialogTitle>
             <DialogDescription>
-              You need to be logged in to proceed to checkout. Please login to continue with your order.
+              You need to be logged in to proceed to checkout. Please login to continue with your
+              order.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col sm:flex-row gap-2">

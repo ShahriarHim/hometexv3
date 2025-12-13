@@ -7,12 +7,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useOrders, type ApiErrorResponse } from "@/context/OrderContext";
 import { useRouter } from "@/i18n/routing";
-import { ApiError, userService } from "@/services/api";
-import { useEffect, useState } from "react";
+import { ApiError, locationService, userService } from "@/services/api";
+import type { Area, Division } from "@/types/api/location";
+import { Loader2, MapPin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const Checkout = () => {
@@ -23,6 +32,14 @@ const Checkout = () => {
 
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("ssl_commerce");
+  const [divisions, setDivisions] = useState<Division[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [selectedDivisionId, setSelectedDivisionId] = useState<string>("");
+  const [selectedAreaId, setSelectedAreaId] = useState<string>("");
+  const [loadingDivisions, setLoadingDivisions] = useState(false);
+  const [loadingAreas, setLoadingAreas] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const isNavigatingRef = useRef(false);
   const [shippingData, setShippingData] = useState<{
     name: string;
     email: string;
@@ -44,12 +61,180 @@ const Checkout = () => {
   });
 
   useEffect(() => {
+    if (isNavigatingRef.current) {
+      return;
+    }
     if (!isAuthenticated) {
       router.replace("/" as any);
     } else if (items.length === 0) {
       router.replace("/cart" as any);
     }
   }, [isAuthenticated, items.length, router]);
+
+  useEffect(() => {
+    const fetchDivisions = async () => {
+      setLoadingDivisions(true);
+      try {
+        const response = await locationService.getDivisions();
+        setDivisions(Array.isArray(response) ? response : []);
+      } catch (error) {
+        console.error("Failed to fetch divisions:", error);
+        toast.error("Failed to load divisions");
+      } finally {
+        setLoadingDivisions(false);
+      }
+    };
+
+    fetchDivisions();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedDivisionId) {
+      setAreas([]);
+      setSelectedAreaId("");
+      return;
+    }
+
+    const fetchAreas = async () => {
+      setLoadingAreas(true);
+      try {
+        const response = await locationService.getAreas(Number(selectedDivisionId));
+        const areasArray = Array.isArray(response) ? response : [];
+        // Remove duplicates based on area ID
+        const uniqueAreas = areasArray.filter(
+          (area, index, self) => index === self.findIndex((a) => a.id === area.id)
+        );
+        setAreas(uniqueAreas);
+        setSelectedAreaId("");
+      } catch (error) {
+        console.error("Failed to fetch areas:", error);
+        toast.error("Failed to load areas");
+      } finally {
+        setLoadingAreas(false);
+      }
+    };
+
+    fetchAreas();
+  }, [selectedDivisionId]);
+
+  interface ReverseGeocodeResult {
+    address: {
+      city?: string;
+      town?: string;
+      village?: string;
+      state?: string;
+      postcode?: string;
+      country?: string;
+      road?: string;
+      house_number?: string;
+      suburb?: string;
+      neighbourhood?: string;
+    };
+    display_name?: string;
+  }
+
+  const handleGetCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setLoadingLocation(true);
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          (error) => {
+            reject(error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0,
+          }
+        );
+      });
+
+      const { latitude, longitude } = position.coords;
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&zoom=18`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch address");
+      }
+
+      const data = (await response.json()) as ReverseGeocodeResult;
+
+      if (!data || !data.address) {
+        throw new Error("Invalid address data received");
+      }
+
+      const address = data.address;
+      const city = address.city || address.town || address.village || address.suburb || "";
+      const state = address.state?.replace(" Division", "").replace(" District", "") || "";
+      const postcode = address.postcode || "";
+      const road = address.road || "";
+      const houseNumber = address.house_number || "";
+      const fullAddress =
+        [houseNumber, road].filter(Boolean).join(", ") || data.display_name?.split(",")[0] || "";
+
+      setShippingData((prev) => ({
+        ...prev,
+        address: fullAddress,
+        city: city,
+        state: state,
+        zip: postcode,
+        country: address.country || "Bangladesh",
+      }));
+
+      if (state) {
+        const matchingDivision = divisions.find(
+          (d) =>
+            d.name.toLowerCase().includes(state.toLowerCase()) ||
+            state.toLowerCase().includes(d.name.toLowerCase())
+        );
+        if (matchingDivision) {
+          setSelectedDivisionId(String(matchingDivision.id));
+        }
+      }
+
+      toast.success("Location address filled successfully");
+    } catch (error) {
+      if (error instanceof GeolocationPositionError) {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            toast.error(
+              "Location access denied. Please enable location permissions in your browser settings and try again.",
+              {
+                duration: 5000,
+              }
+            );
+            break;
+          case error.POSITION_UNAVAILABLE:
+            toast.error(
+              "Location information unavailable. Please check your GPS/network connection."
+            );
+            break;
+          case error.TIMEOUT:
+            toast.error("Location request timed out. Please try again.");
+            break;
+          default:
+            toast.error("Failed to get your location. Please enter address manually.");
+        }
+      } else if (error instanceof Error) {
+        console.error("Error getting location:", error);
+        toast.error("Failed to get location address. Please enter manually.");
+      } else {
+        console.error("Unknown error getting location:", error);
+        toast.error("An unexpected error occurred. Please enter address manually.");
+      }
+    } finally {
+      setLoadingLocation(false);
+    }
+  };
 
   if (!isAuthenticated || items.length === 0) {
     return null;
@@ -138,8 +323,12 @@ const Checkout = () => {
         shippingAddress: shippingData,
       });
 
+      // Set flag to prevent useEffect redirect
+      isNavigatingRef.current = true;
+      // Navigate to success page
+      router.push(`/payment/success?orderId=${order.id}` as any);
+      // Clear cart after navigation starts
       clearCart();
-      router.push(`/orders/${order.id}` as any);
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(formatApiError(error));
@@ -163,7 +352,29 @@ const Checkout = () => {
               {/* Shipping Information */}
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-semibold mb-6">Shipping Information</h2>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-semibold">Shipping Information</h2>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGetCurrentLocation}
+                      disabled={loadingLocation}
+                      className="flex items-center gap-2"
+                    >
+                      {loadingLocation ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Getting location...</span>
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="h-4 w-4" />
+                          <span>Use Current Location</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Full Name</Label>
@@ -210,15 +421,6 @@ const Checkout = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        value={shippingData.city}
-                        onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
                       <Label htmlFor="zip">ZIP Code</Label>
                       <Input
                         id="zip"
@@ -228,14 +430,63 @@ const Checkout = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="state">State/Division</Label>
-                      <Input
-                        id="state"
-                        value={shippingData.state}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, state: e.target.value })
-                        }
-                      />
+                      <Label htmlFor="division">Division</Label>
+                      <Select
+                        value={selectedDivisionId}
+                        onValueChange={(value) => {
+                          setSelectedDivisionId(value);
+                          const division = divisions.find((d) => d.id === Number(value));
+                          setShippingData({ ...shippingData, state: division?.name || "" });
+                        }}
+                        disabled={loadingDivisions}
+                      >
+                        <SelectTrigger id="division">
+                          <SelectValue
+                            placeholder={loadingDivisions ? "Loading..." : "Select division"}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {divisions.map((division) => (
+                            <SelectItem key={division.id} value={String(division.id)}>
+                              {division.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="area">Area</Label>
+                      <Select
+                        value={selectedAreaId}
+                        onValueChange={(value) => {
+                          setSelectedAreaId(value);
+                          const area = areas.find((a) => a.id === Number(value));
+                          setShippingData({ ...shippingData, city: area?.name || "" });
+                        }}
+                        disabled={!selectedDivisionId || loadingAreas}
+                      >
+                        <SelectTrigger id="area">
+                          <SelectValue
+                            placeholder={
+                              !selectedDivisionId
+                                ? "Select division first"
+                                : loadingAreas
+                                  ? "Loading..."
+                                  : "Select area"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {areas.map((area, index) => (
+                            <SelectItem
+                              key={`${selectedDivisionId}-${area.id}-${index}`}
+                              value={String(area.id)}
+                            >
+                              {area.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="country">Country</Label>
