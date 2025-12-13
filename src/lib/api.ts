@@ -24,6 +24,29 @@
 // API Integration utilities
 import { env } from "./env";
 
+/**
+ * Normalize URL to ensure it has a protocol
+ * Adds http:// if no protocol is present
+ */
+const normalizeUrl = (url: string): string => {
+  if (!url) {
+    return url;
+  }
+
+  // If URL already has protocol, return as-is
+  if (/^https?:\/\//i.test(url)) {
+    return url;
+  }
+
+  // If URL starts with //, it's protocol-relative, add http:
+  if (url.startsWith("//")) {
+    return `http:${url}`;
+  }
+
+  // Otherwise, add http:// prefix
+  return `http://${url}`;
+};
+
 // Helper function to get the auth token
 export const getAuthToken = (): string | null => {
   if (typeof window !== "undefined") {
@@ -56,8 +79,9 @@ export const fetchWithFallback = async (
   productionBaseUrl: string,
   options: RequestInit = {}
 ) => {
+  const normalizedProductionBaseUrl = normalizeUrl(productionBaseUrl);
   const localhostUrl = `${env.apiLocalUrl}${endpoint}`;
-  const productionUrl = `${productionBaseUrl}${endpoint}`;
+  const productionUrl = `${normalizedProductionBaseUrl}${endpoint}`;
 
   try {
     // Try localhost first with a short timeout
@@ -80,12 +104,7 @@ export const fetchWithFallback = async (
     // (fall through to production)
   } catch (error) {
     // Network error, timeout, or CORS issue - try production
-    if (error instanceof Error && error.name !== "AbortError") {
-      // Only log non-timeout errors in development
-      if (process.env.NODE_ENV === "development") {
-        console.error("Localhost request failed, trying production:", error.message);
-      }
-    }
+    // This is expected behavior if localhost API is not running, silently fall back
   }
 
   // Fallback to production
@@ -93,13 +112,21 @@ export const fetchWithFallback = async (
 };
 
 // Helper function to try localhost first, then fallback to production (for public requests)
+// Skips localhost if API base URL is explicitly set via environment variable
 export const fetchPublicWithFallback = async (
   endpoint: string,
   productionBaseUrl: string,
   options: RequestInit = {}
 ) => {
+  const normalizedProductionBaseUrl = normalizeUrl(productionBaseUrl);
+  const productionUrl = `${normalizedProductionBaseUrl}${endpoint}`;
+
+  // Skip localhost fallback if API base URL is not localhost
+  if (env.shouldSkipLocalhostFallback) {
+    return fetch(productionUrl, options);
+  }
+
   const localhostUrl = `${env.apiLocalUrl}${endpoint}`;
-  const productionUrl = `${productionBaseUrl}${endpoint}`;
 
   try {
     // Try localhost first with a short timeout
@@ -122,12 +149,7 @@ export const fetchPublicWithFallback = async (
     // (fall through to production)
   } catch (error) {
     // Network error, timeout, or CORS issue - try production
-    if (error instanceof Error && error.name !== "AbortError") {
-      // Only log non-timeout errors in development
-      if (process.env.NODE_ENV === "development") {
-        console.error("Localhost request failed, trying production:", error.message);
-      }
-    }
+    // This is expected behavior if localhost API is not running, silently fall back
   }
 
   // Fallback to production

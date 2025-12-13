@@ -120,14 +120,23 @@
 
 /* Hover effect for individual buttons */
 .button-group button:hover {
-  background: #ff0066;
+  background: #84cc16;
   color: white;
   transform: translateX(-5px);
-  box-shadow: 0 5px 15px rgba(255, 0, 102, 0.3);
+  box-shadow: 0 5px 15px rgba(132, 204, 22, 0.3);
 }
 
 .button-group button:hover svg {
   transform: scale(1.1);
+}
+
+.button-group button.active-heart {
+  color: #84cc16;
+}
+
+.button-group button.active-heart svg {
+  color: #84cc16;
+  fill: #84cc16;
 }
 
 .overlay-info {
@@ -154,6 +163,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.overlay-prices .price-new {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.overlay-prices .price-old {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  text-decoration: line-through;
 }
 
 .product-image-container::after {
