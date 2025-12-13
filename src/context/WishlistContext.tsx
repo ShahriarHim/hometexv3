@@ -1,7 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
-import type { WishlistItem, Product } from "@/types";
+import { useAuth } from "@/context/AuthContext";
+import type { Product, WishlistItem } from "@/types";
+import React, {
+  createContext,
+  startTransition,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 interface WishlistContextType {
@@ -14,21 +22,73 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
+interface WishlistStorage {
+  userId: string | null;
+  items: WishlistItem[];
+}
+
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [items, setItems] = useState<WishlistItem[]>([]);
+  const currentUserIdRef = useRef<string | null>(null);
 
+  // Load wishlist from localStorage and handle user changes
   useEffect(() => {
+    const currentUserId = user?.id || null;
     const savedWishlist = localStorage.getItem("hometex-wishlist");
-    if (savedWishlist) {
-      startTransition(() => {
-        setItems(JSON.parse(savedWishlist));
-      });
+
+    // Check if user changed
+    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
+      // User changed, clear wishlist
+      setItems([]);
+      localStorage.removeItem("hometex-wishlist");
+      currentUserIdRef.current = currentUserId;
+      return;
     }
-  }, []);
+
+    // Load from localStorage if available
+    if (savedWishlist) {
+      try {
+        const parsed = JSON.parse(savedWishlist);
+
+        // Handle backward compatibility: old format was just an array
+        let wishlistData: WishlistStorage;
+        if (Array.isArray(parsed)) {
+          // Old format - treat as guest wishlist
+          wishlistData = { userId: null, items: parsed };
+        } else {
+          wishlistData = parsed as WishlistStorage;
+        }
+
+        // Only load wishlist if it belongs to the current user or if no user is logged in
+        if (wishlistData.userId === currentUserId || (!currentUserId && !wishlistData.userId)) {
+          startTransition(() => {
+            setItems(wishlistData.items || []);
+            currentUserIdRef.current = currentUserId;
+          });
+        } else {
+          // Wishlist belongs to different user, clear it
+          setItems([]);
+          currentUserIdRef.current = currentUserId;
+        }
+      } catch {
+        // Invalid data, clear it
+        setItems([]);
+        currentUserIdRef.current = currentUserId;
+      }
+    } else {
+      currentUserIdRef.current = currentUserId;
+    }
+  }, [user?.id]);
 
   useEffect(() => {
-    localStorage.setItem("hometex-wishlist", JSON.stringify(items));
-  }, [items]);
+    const currentUserId = user?.id || null;
+    const wishlistData: WishlistStorage = {
+      userId: currentUserId,
+      items,
+    };
+    localStorage.setItem("hometex-wishlist", JSON.stringify(wishlistData));
+  }, [items, user?.id]);
 
   const addToWishlist = (product: Product) => {
     setItems((prev) => {

@@ -9,10 +9,9 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import type { ApiErrorResponse } from "@/context/OrderContext";
-import { useOrders } from "@/context/OrderContext";
+import { useOrders, type ApiErrorResponse } from "@/context/OrderContext";
 import { useRouter } from "@/i18n/routing";
-import { ApiError } from "@/services/api";
+import { ApiError, userService } from "@/services/api";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -47,7 +46,6 @@ const Checkout = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/" as any);
-      return;
     } else if (items.length === 0) {
       router.replace("/cart" as any);
     }
@@ -91,21 +89,47 @@ const Checkout = () => {
     setLoading(true);
 
     // Basic front-end validation to avoid bad payloads
-    const emailPattern =
-      /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!user || !user.id) {
+      toast.error("User information is missing. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    // Check if user has a temporary ID from signup, and fetch profile to get real ID
+    let userIdToUse = user.id;
+    if (typeof user.id === "string" && user.id.startsWith("user-")) {
+      try {
+        const profileResponse = await userService.getProfile();
+        if (profileResponse.user?.id) {
+          userIdToUse = String(profileResponse.user.id);
+          // Update user in localStorage with real ID
+          const updatedUser = { ...user, id: userIdToUse };
+          localStorage.setItem("hometex-user", JSON.stringify(updatedUser));
+        }
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+        toast.error("Please log in again to complete your order.");
+        setLoading(false);
+        return;
+      }
+    }
+
+    const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!emailPattern.test(shippingData.email)) {
       toast.error("Please enter a valid email address.");
+      setLoading(false);
       return;
     }
     if (!items || items.length === 0) {
       toast.error("Your cart is empty.");
+      setLoading(false);
       return;
     }
 
     try {
       // Create order
       const order = await createOrder({
-        userId: user!.id,
+        userId: userIdToUse,
         items,
         totalAmount: getTotalPrice(),
         status: "pending",
@@ -120,7 +144,7 @@ const Checkout = () => {
       if (error instanceof ApiError) {
         toast.error(formatApiError(error));
       } else {
-      toast.error("Failed to process order");
+        toast.error("Failed to process order");
       }
     } finally {
       setLoading(false);

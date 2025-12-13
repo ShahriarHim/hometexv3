@@ -1,7 +1,15 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, startTransition, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 import type { CartItem, Product } from "@/types";
+import React, {
+  createContext,
+  startTransition,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 interface CartContextType {
@@ -12,27 +20,82 @@ interface CartContextType {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  isCartPopupOpen: boolean;
+  setIsCartPopupOpen: (isOpen: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const lastToastRef = useRef<{ message: string; timestamp: number } | null>(null);
+interface CartStorage {
+  userId: string | null;
+  items: CartItem[];
+}
 
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartPopupOpen, setIsCartPopupOpen] = useState(false);
+  const lastToastRef = useRef<{ message: string; timestamp: number } | null>(null);
+  const currentUserIdRef = useRef<string | null>(null);
+
+  // Load cart from localStorage and handle user changes
   useEffect(() => {
+    const currentUserId = user?.id || null;
     const savedCart = localStorage.getItem("hometex-cart");
-    if (savedCart) {
-      startTransition(() => {
-        setItems(JSON.parse(savedCart));
-      });
+
+    // Check if user changed
+    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
+      // User changed, clear cart
+      setItems([]);
+      localStorage.removeItem("hometex-cart");
+      currentUserIdRef.current = currentUserId;
+      return;
     }
-  }, []);
+
+    // Load from localStorage if available
+    if (savedCart) {
+      try {
+        const parsed = JSON.parse(savedCart);
+
+        // Handle backward compatibility: old format was just an array
+        let cartData: CartStorage;
+        if (Array.isArray(parsed)) {
+          // Old format - treat as guest cart
+          cartData = { userId: null, items: parsed };
+        } else {
+          cartData = parsed as CartStorage;
+        }
+
+        // Only load cart if it belongs to the current user or if no user is logged in
+        if (cartData.userId === currentUserId || (!currentUserId && !cartData.userId)) {
+          startTransition(() => {
+            setItems(cartData.items || []);
+            currentUserIdRef.current = currentUserId;
+          });
+        } else {
+          // Cart belongs to different user, clear it
+          setItems([]);
+          currentUserIdRef.current = currentUserId;
+        }
+      } catch {
+        // Invalid data, clear it
+        setItems([]);
+        currentUserIdRef.current = currentUserId;
+      }
+    } else {
+      currentUserIdRef.current = currentUserId;
+    }
+  }, [user?.id]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("hometex-cart", JSON.stringify(items));
-  }, [items]);
+    const currentUserId = user?.id || null;
+    const cartData: CartStorage = {
+      userId: currentUserId,
+      items,
+    };
+    localStorage.setItem("hometex-cart", JSON.stringify(cartData));
+  }, [items, user?.id]);
 
   const addToCart = (product: Product, quantity = 1, color?: string, size?: string) => {
     setItems((prev) => {
@@ -48,7 +111,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const message = `Updated quantity to ${newQuantity}`;
         const now = Date.now();
 
-        if (!lastToastRef.current || lastToastRef.current.message !== message || now - lastToastRef.current.timestamp > 500) {
+        if (
+          !isCartPopupOpen &&
+          (!lastToastRef.current ||
+            lastToastRef.current.message !== message ||
+            now - lastToastRef.current.timestamp > 500)
+        ) {
           toast.dismiss();
           toast.success(message);
           lastToastRef.current = { message, timestamp: now };
@@ -66,7 +134,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const message = `Added ${quantity} to cart`;
       const now = Date.now();
 
-      if (!lastToastRef.current || lastToastRef.current.message !== message || now - lastToastRef.current.timestamp > 500) {
+      if (
+        !isCartPopupOpen &&
+        (!lastToastRef.current ||
+          lastToastRef.current.message !== message ||
+          now - lastToastRef.current.timestamp > 500)
+      ) {
         toast.dismiss();
         toast.success(message);
         lastToastRef.current = { message, timestamp: now };
@@ -114,6 +187,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearCart,
         getTotalItems,
         getTotalPrice,
+        isCartPopupOpen,
+        setIsCartPopupOpen,
       }}
     >
       {children}
