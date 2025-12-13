@@ -53,7 +53,16 @@ export interface ProductsResponse {
   success: boolean;
   message: string;
   data: {
-    products: PaginatedResponse<Product>;
+    products: Product[];
+    pagination: {
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+      from: number;
+      to: number;
+      has_more: boolean;
+    };
   };
 }
 

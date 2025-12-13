@@ -32,7 +32,10 @@ export const CollectionSpotlight = () => {
                 </div>
               </div>
             </div>
-            <span className={`mt-2 font-bold`} style={{ color: category.accent || "#68d1c8" }}>
+            <span
+              className={`mt-2 font-bold`}
+              style={{ color: category.accent || "hsl(var(--info))" }}
+            >
               {category.name}
             </span>
           </div>

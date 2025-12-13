@@ -87,7 +87,7 @@ export const Header = () => {
 
   return (
     <>
-      {showPopup && <SearchPopup onClose={closePopup} />}
+      <SearchPopup isOpen={showPopup} onClose={closePopup} />
       {isChatOpen && <ChatPopup onClose={() => setIsChatOpen(false)} />}
       <PreHeader />
       <header

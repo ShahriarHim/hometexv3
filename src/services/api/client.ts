@@ -96,7 +96,16 @@ export const fetchPublicWithFallback = async (
   const baseUrl = getBaseUrl(productionBaseUrl);
   const fullUrl = `${baseUrl}${endpoint}`;
 
-  return fetch(fullUrl, options);
+  console.log(`Fetching from: ${fullUrl}`);
+
+  try {
+    const response = await fetch(fullUrl, options);
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+    return response;
+  } catch (error) {
+    console.error(`Fetch error for ${fullUrl}:`, error);
+    throw error;
+  }
 };
 
 /**
