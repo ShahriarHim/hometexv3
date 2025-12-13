@@ -46,17 +46,17 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="relative z-[99999]">
+    <div className="relative z-[999999]">
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-gray-900 opacity-50 transition-opacity duration-300 z-[99999]"
+        className="fixed inset-0 bg-gray-900 opacity-50 transition-opacity duration-300 z-[999999]"
         onClick={onClose}
       />
 
       {/* Cart Panel */}
       <div
         ref={cartRef}
-        className="fixed inset-y-0 right-0 w-96 max-w-full z-[99999] shadow-2xl bg-[rgba(51,51,51,0.95)] backdrop-blur-sm text-white overflow-hidden animate-slide-in transform transition-all duration-300 ease-out"
+        className="fixed inset-y-0 right-0 w-96 max-w-full z-[999999] shadow-2xl bg-[rgba(51,51,51,0.95)] backdrop-blur-sm text-white overflow-hidden animate-slide-in transform transition-all duration-300 ease-out"
       >
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-600">

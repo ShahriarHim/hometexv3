@@ -1,12 +1,20 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, startTransition } from "react";
-import { toast } from "sonner";
-import type { CartItem } from "@/types";
+import { useAuth } from "@/context/AuthContext";
 import { ApiError, orderService } from "@/services/api";
+import type { CartItem } from "@/types";
 import type { CreateOrderRequest, PaymentMethod } from "@/types/api/order";
+import React, {
+  createContext,
+  startTransition,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { toast } from "sonner";
 
-interface ApiErrorResponse {
+export interface ApiErrorResponse {
   message?: string;
   error?: string;
   errors?: Record<string, string[]>;
@@ -49,8 +57,15 @@ interface OrderContextType {
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
+interface OrdersStorage {
+  userId: string | null;
+  orders: Order[];
+}
+
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const currentUserIdRef = useRef<string | null>(null);
 
   const formatApiError = (error: ApiError): string => {
     const responseData = (error.response ?? {}) as ApiErrorResponse;
@@ -82,18 +97,70 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return error.message || "Failed to place order. Please try again.";
   };
 
+  // Load orders from localStorage and handle user changes
   useEffect(() => {
+    const currentUserId = user?.id || null;
     const savedOrders = localStorage.getItem("hometex-orders");
-    if (savedOrders) {
-      startTransition(() => {
-        setOrders(JSON.parse(savedOrders));
-      });
+
+    // Check if user changed
+    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
+      // User changed, clear orders
+      setOrders([]);
+      localStorage.removeItem("hometex-orders");
+      currentUserIdRef.current = currentUserId;
+      return;
     }
-  }, []);
+
+    // Load from localStorage if available
+    if (savedOrders) {
+      try {
+        const parsed = JSON.parse(savedOrders);
+
+        // Handle backward compatibility: old format was just an array
+        let ordersData: OrdersStorage;
+        if (Array.isArray(parsed)) {
+          // Old format - treat as guest orders
+          ordersData = { userId: null, orders: parsed };
+        } else {
+          ordersData = parsed as OrdersStorage;
+        }
+
+        // Only load orders if they belong to the current user or if no user is logged in
+        if (ordersData.userId === currentUserId || (!currentUserId && !ordersData.userId)) {
+          startTransition(() => {
+            // Filter orders to only include those belonging to current user
+            const userOrders =
+              ordersData.orders?.filter(
+                (order) => !currentUserId || order.userId === currentUserId
+              ) || [];
+            setOrders(userOrders);
+            currentUserIdRef.current = currentUserId;
+          });
+        } else {
+          // Orders belong to different user, clear them
+          setOrders([]);
+          currentUserIdRef.current = currentUserId;
+        }
+      } catch {
+        // Invalid data, clear it
+        setOrders([]);
+        currentUserIdRef.current = currentUserId;
+      }
+    } else {
+      currentUserIdRef.current = currentUserId;
+    }
+  }, [user?.id]);
 
   useEffect(() => {
-    localStorage.setItem("hometex-orders", JSON.stringify(orders));
-  }, [orders]);
+    const currentUserId = user?.id || null;
+    // Only save orders that belong to current user
+    const userOrders = orders.filter((order) => !currentUserId || order.userId === currentUserId);
+    const ordersData: OrdersStorage = {
+      userId: currentUserId,
+      orders: userOrders,
+    };
+    localStorage.setItem("hometex-orders", JSON.stringify(ordersData));
+  }, [orders, user?.id]);
 
   const createOrder = async (
     orderData: Omit<Order, "id" | "createdAt" | "updatedAt">
@@ -104,10 +171,39 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       throw validationError;
     }
 
+    if (!orderData.userId) {
+      const validationError = new ApiError("User ID is required. Please log in again.");
+      toast.error(validationError.message);
+      throw validationError;
+    }
+
+    // Convert userId to number, handling both numeric strings and numbers
+    let customerId: number;
+    if (typeof orderData.userId === "string") {
+      // Check if it's a temporary ID (starts with "user-")
+      if (orderData.userId.startsWith("user-")) {
+        const validationError = new ApiError("Please log in again to complete your order.");
+        toast.error(validationError.message);
+        throw validationError;
+      }
+      // Try to parse as number
+      customerId = Number(orderData.userId);
+    } else {
+      customerId = Number(orderData.userId);
+    }
+
+    // Validate the converted number
+    if (isNaN(customerId) || customerId <= 0) {
+      console.error("Invalid customer ID:", orderData.userId, "converted to:", customerId);
+      const validationError = new ApiError("Invalid user ID. Please log in again.");
+      toast.error(validationError.message);
+      throw validationError;
+    }
+
     const paymentMethod: PaymentMethod = orderData.paymentMethod === "cod" ? "cod" : "ssl_commerce";
 
     const payload: CreateOrderRequest = {
-      customerId: Number(orderData.userId),
+      customerId: customerId,
       items: orderData.items.map((item) => ({
         id: String(item.product.id),
         product_id: Number(item.product.id),
@@ -195,7 +291,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...orderData,
         id: String(normalizedOrder.id ?? `ORD-${Date.now()}`),
         orderNumber: normalizedOrder.order_number || normalizedOrder.orderNumber,
-        status: (apiOrder as { status?: string })?.status as Order["status"] || orderData.status,
+        status: ((apiOrder as { status?: string })?.status as Order["status"]) || orderData.status,
         paymentStatus:
           ((apiOrder as { payment_status?: string })?.payment_status as Order["paymentStatus"]) ||
           orderData.paymentStatus,
@@ -222,8 +318,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           zip:
             (apiOrder as { shipping_address?: { postal_code?: string; postalCode?: string } })
               ?.shipping_address?.postal_code ||
-            (apiOrder as { shipping_address?: { postalCode?: string } })
-              ?.shipping_address?.postalCode ||
+            (apiOrder as { shipping_address?: { postalCode?: string } })?.shipping_address
+              ?.postalCode ||
             orderData.shippingAddress.zip,
           state:
             (apiOrder as { shipping_address?: { state?: string } })?.shipping_address?.state ||
