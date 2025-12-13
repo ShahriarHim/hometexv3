@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { featuredProducts, newProducts, products } from "@/data/demo-data";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchPublicWithFallback } from "@/lib/api";
+import { env } from "@/lib/env";
+import type { Product } from "@/types";
 import { ArrowRight, Bath, BedDouble, Leaf, Sparkles } from "lucide-react";
 import Link from "next/link";
-import type { Product } from "@/types";
+import { useEffect, useMemo, useState } from "react";
 
 const tabConfig = [
   { id: "all", label: "All Products", icon: Sparkles },
@@ -18,19 +19,106 @@ const tabConfig = [
   { id: "new", label: "New In", icon: ArrowRight },
 ];
 
+interface APIProduct {
+  id: number;
+  name: string;
+  slug: string;
+  price: string;
+  original_price: number;
+  sell_price: {
+    price: number;
+    discount: number;
+    symbol: string;
+  };
+  stock: number;
+  primary_photo: string;
+  category: {
+    slug: string;
+  };
+  sub_category: {
+    slug: string;
+  };
+  child_sub_category?: {
+    slug: string;
+  };
+  discount_percent?: string;
+  status?: string;
+}
+
+interface APIResponse {
+  success: boolean;
+  message: string;
+  data: {
+    products: APIProduct[];
+  };
+}
+
 export const ProductShowcaseTabs = () => {
   const [value, setValue] = useState(tabConfig[0].id);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetchPublicWithFallback("/api/products/featured", env.apiBaseUrl);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch featured products");
+        }
+
+        const data: APIResponse = await response.json();
+
+        if (data.success && data.data.products) {
+          const transformedProducts: Product[] = data.data.products.map((product) => {
+            const discountPercent = product.sell_price.discount || 0;
+            const originalPrice = product.original_price || product.sell_price.price;
+            const salePrice = product.sell_price.price;
+
+            return {
+              id: product.id.toString(),
+              name: product.name,
+              slug: product.slug,
+              price: salePrice,
+              originalPrice: discountPercent > 0 ? originalPrice : undefined,
+              description: "",
+              category: product.category?.slug || "general",
+              subcategory: product.sub_category?.slug,
+              childSubcategory: product.child_sub_category?.slug,
+              images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
+              inStock: product.stock > 0,
+              rating: 4.0,
+              reviewCount: 5,
+              discount: discountPercent > 0 ? discountPercent : undefined,
+              isNew: false,
+              isFeatured: false,
+              stock: product.stock,
+            };
+          });
+
+          setFeaturedProducts(transformedProducts);
+        }
+      } catch (err) {
+        console.error("Error fetching featured products:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
 
   const grouped = useMemo<Record<string, Product[]>>(() => {
     const mapping: Record<string, Product[]> = {
       all: featuredProducts,
-      bedding: products.filter((item) => item.category === "bedding"),
-      bath: products.filter((item) => item.category === "bath"),
-      "living-decor": products.filter((item) => item.category === "living-decor"),
-      new: newProducts,
+      bedding: featuredProducts.filter((item) => item.category === "bedding"),
+      bath: featuredProducts.filter((item) => item.category === "bath"),
+      "living-decor": featuredProducts.filter((item) => item.category === "living-decor"),
+      new: featuredProducts.filter((item) => item.isNew || false),
     };
     return mapping;
-  }, []);
+  }, [featuredProducts]);
 
   return (
     <section className="py-16 bg-muted/30">
@@ -47,7 +135,7 @@ export const ProductShowcaseTabs = () => {
             </p>
           </div>
           <Button asChild variant="outline">
-            <Link href="/shop">
+            <Link href="/products">
               Explore All
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
@@ -79,18 +167,31 @@ export const ProductShowcaseTabs = () => {
 
           {tabConfig.map((tab) => (
             <TabsContent key={tab.id} value={tab.id} className="mt-8">
-              <Carousel opts={{ align: "start", loop: true }} className="relative">
-                <CarouselContent>
-                  {(grouped[tab.id] || []).map((product) => (
-                    <CarouselItem
-                      key={product.id}
-                      className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
-                    >
-                      <ProductCard product={product} />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              </Carousel>
+              {isLoading ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                    <p className="mt-4 text-gray-600">Loading products...</p>
+                  </div>
+                </div>
+              ) : (grouped[tab.id] || []).length === 0 ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <p className="text-muted-foreground">No products available in this category.</p>
+                </div>
+              ) : (
+                <Carousel opts={{ align: "start", loop: true }} className="relative">
+                  <CarouselContent>
+                    {(grouped[tab.id] || []).map((product) => (
+                      <CarouselItem
+                        key={product.id}
+                        className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                      >
+                        <ProductCard product={product} />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
+              )}
             </TabsContent>
           ))}
         </Tabs>

@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Autoplay } from "swiper/modules";
 import ProductCardOnSale from "@/components/products/ProductCardOnSale";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp } from "lucide-react";
-import type { Product } from "@/types";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
+import type { Product } from "@/types";
+import { ArrowRight, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import "swiper/css";
-import "swiper/css/navigation";
 import "swiper/css/autoplay";
+import "swiper/css/navigation";
+import { Autoplay, Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 interface APIProduct {
   id: number;
@@ -126,7 +126,7 @@ export const TrendingProducts = () => {
             </p>
           </div>
           <Button asChild variant="outline">
-            <Link href="/shop">
+            <Link href="/products?filter=trending">
               View All
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

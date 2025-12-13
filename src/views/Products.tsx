@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,19 +12,222 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { products, categories } from "@/data/demo-data";
-import { Grid3x3, LayoutGrid, List, Search, SlidersHorizontal } from "lucide-react";
+import { categories, products } from "@/data/demo-data";
+import { fetchPublicWithFallback } from "@/lib/api";
+import { env } from "@/lib/env";
+import type { Product } from "@/types";
+import { Grid3x3, LayoutGrid, List, Loader2, Search } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type ViewMode = "grid-5" | "grid-3" | "list";
 
+interface APIProduct {
+  id: number;
+  name: string;
+  slug: string;
+  price: string;
+  original_price: number;
+  sell_price: {
+    price: number;
+    discount: number;
+    symbol: string;
+  };
+  stock: number;
+  primary_photo: string;
+  category: {
+    slug: string;
+  };
+  sub_category: {
+    slug: string;
+  };
+  child_sub_category?: {
+    slug: string;
+  };
+}
+
+interface APIResponse {
+  success: boolean;
+  message: string;
+  data: {
+    products: APIProduct[];
+  };
+}
+
 const Products = () => {
+  const searchParams = useSearchParams();
+  const filterParam = searchParams.get("filter");
+  const isTrending = filterParam === "trending";
+  const isBestsellers = filterParam === "bestsellers";
+  const isOnSale = filterParam === "onsale";
+
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("featured");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid-3");
   const [priceRange, setPriceRange] = useState<string>("all");
+  const [apiProducts, setApiProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const filteredProducts = products.filter((p) => {
+  useEffect(() => {
+    if (isTrending) {
+      const fetchTrendingProducts = async () => {
+        try {
+          setLoading(true);
+          const response = await fetchPublicWithFallback("/api/products/trending", env.apiBaseUrl);
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch trending products");
+          }
+
+          const data: APIResponse = await response.json();
+
+          if (data.success && data.data.products) {
+            const transformedProducts: Product[] = data.data.products.map((product) => {
+              const discountPercent = product.sell_price.discount || 0;
+              const originalPrice = product.original_price || product.sell_price.price;
+              const salePrice = product.sell_price.price;
+
+              return {
+                id: product.id.toString(),
+                name: product.name,
+                slug: product.slug,
+                price: salePrice,
+                originalPrice: discountPercent > 0 ? originalPrice : undefined,
+                description: "",
+                category: product.category?.slug || "general",
+                subcategory: product.sub_category?.slug,
+                childSubcategory: product.child_sub_category?.slug,
+                images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
+                inStock: product.stock > 0,
+                rating: 4.0,
+                reviewCount: 5,
+                discount: discountPercent > 0 ? discountPercent : undefined,
+                isNew: false,
+                isFeatured: false,
+                stock: product.stock,
+              };
+            });
+
+            setApiProducts(transformedProducts);
+          }
+        } catch (err) {
+          console.error("Error fetching trending products:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchTrendingProducts();
+    } else if (isBestsellers) {
+      const fetchBestsellersProducts = async () => {
+        try {
+          setLoading(true);
+          const response = await fetchPublicWithFallback(
+            "/api/products/bestsellers",
+            env.apiBaseUrl
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch bestsellers products");
+          }
+
+          const data: APIResponse = await response.json();
+
+          if (data.success && data.data.products) {
+            const transformedProducts: Product[] = data.data.products.map((product) => {
+              const discountPercent = product.sell_price.discount || 0;
+              const originalPrice = product.original_price || product.sell_price.price;
+              const salePrice = product.sell_price.price;
+
+              return {
+                id: product.id.toString(),
+                name: product.name,
+                slug: product.slug,
+                price: salePrice,
+                originalPrice: discountPercent > 0 ? originalPrice : undefined,
+                description: "",
+                category: product.category?.slug || "general",
+                subcategory: product.sub_category?.slug,
+                childSubcategory: product.child_sub_category?.slug,
+                images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
+                inStock: product.stock > 0,
+                rating: 4.0,
+                reviewCount: 5,
+                discount: discountPercent > 0 ? discountPercent : undefined,
+                isNew: false,
+                isFeatured: false,
+                stock: product.stock,
+              };
+            });
+
+            setApiProducts(transformedProducts);
+          }
+        } catch (err) {
+          console.error("Error fetching bestsellers products:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchBestsellersProducts();
+    } else if (isOnSale) {
+      const fetchOnSaleProducts = async () => {
+        try {
+          setLoading(true);
+          const response = await fetchPublicWithFallback("/api/products/on-sale", env.apiBaseUrl);
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch on-sale products");
+          }
+
+          const data: APIResponse = await response.json();
+
+          if (data.success && data.data.products) {
+            const transformedProducts: Product[] = data.data.products.map((product) => {
+              const discountPercent = product.sell_price.discount || 0;
+              const originalPrice = product.original_price || product.sell_price.price;
+              const salePrice = product.sell_price.price;
+
+              return {
+                id: product.id.toString(),
+                name: product.name,
+                slug: product.slug,
+                price: salePrice,
+                originalPrice: discountPercent > 0 ? originalPrice : undefined,
+                description: "",
+                category: product.category?.slug || "general",
+                subcategory: product.sub_category?.slug,
+                childSubcategory: product.child_sub_category?.slug,
+                images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
+                inStock: product.stock > 0,
+                rating: 4.0,
+                reviewCount: 5,
+                discount: discountPercent > 0 ? discountPercent : undefined,
+                isNew: false,
+                isFeatured: false,
+                stock: product.stock,
+              };
+            });
+
+            setApiProducts(transformedProducts);
+          }
+        } catch (err) {
+          console.error("Error fetching on-sale products:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchOnSaleProducts();
+    } else {
+      setApiProducts([]);
+    }
+  }, [isTrending, isBestsellers, isOnSale]);
+
+  const sourceProducts = isTrending || isBestsellers || isOnSale ? apiProducts : products;
+
+  const filteredProducts = sourceProducts.filter((p) => {
     const matchesCategory = selectedCategory === "all" || p.category === selectedCategory;
     const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -65,9 +267,31 @@ const Products = () => {
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">All Products</h1>
-          <p className="text-muted-foreground">Browse our complete collection</p>
+          <h1 className="text-4xl font-bold mb-2">
+            {isTrending
+              ? "Hot Deals"
+              : isBestsellers
+                ? "Best Sellers"
+                : isOnSale
+                  ? "Products On Sale"
+                  : "All Products"}
+          </h1>
+          <p className="text-muted-foreground">
+            {isTrending
+              ? "Get Our Best Price"
+              : isBestsellers
+                ? "Discover our most popular products loved by thousands of customers"
+                : isOnSale
+                  ? "Don't miss out on these amazing deals! Limited time offers on selected products."
+                  : "Browse our complete collection"}
+          </p>
         </div>
+
+        {loading && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
         {/* Search & Filters - Sticky */}
         <div className="sticky top-16 z-40 bg-card border border-border rounded-lg p-4 mb-4 shadow-sm">
@@ -151,17 +375,21 @@ const Products = () => {
           </div>
         </div>
 
-        {/* Products Grid */}
-        <div className={`grid ${gridClass} gap-6`}>
-          {sortedProducts.map((product) => (
-            <ProductCard key={product.id} product={product} viewMode={viewMode} />
-          ))}
-        </div>
+        {!loading && (
+          <>
+            {/* Products Grid */}
+            <div className={`grid ${gridClass} gap-6`}>
+              {sortedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} viewMode={viewMode} />
+              ))}
+            </div>
 
-        {sortedProducts.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No products found</p>
-          </div>
+            {sortedProducts.length === 0 && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground text-lg">No products found</p>
+              </div>
+            )}
+          </>
         )}
       </main>
       <Footer />

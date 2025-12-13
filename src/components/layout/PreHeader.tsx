@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useTransition } from "react";
-import { Link } from "@/i18n/routing";
-import { useRouter, usePathname } from "@/i18n/routing";
-import { useLocale, useTranslations } from "next-intl";
-import { ChevronDown, User, Mail, Ticket, ShoppingCart } from "lucide-react";
-import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { ChevronDown, Mail, ShoppingCart, Ticket, User } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 // Dynamic Text Component logic inline to avoid extra files for now
 const TEXT_OPTIONS = [
@@ -43,6 +42,18 @@ const PreHeader = () => {
   const { items: cartItems, getTotalPrice } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const cartCount = cartItems.length;
+
+  // Get first name from user's name
+  const getFirstName = (name: string | undefined): string => {
+    if (!name) {
+      return "";
+    }
+    const firstName = name.split(" ")[0];
+    return firstName;
+  };
+
+  const accountLabel =
+    isAuthenticated && user?.name ? `${getFirstName(user.name)}'s Account` : t("account");
 
   // Scroll handler to hide PreHeader on scroll
   useEffect(() => {
@@ -110,7 +121,9 @@ const PreHeader = () => {
     setIsAccountDropdownOpen(false);
   };
 
-  if (!isVisible) return null;
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <div className="hidden md:block bg-[#d4ed30] pt-1 transition-all duration-300">
@@ -129,7 +142,7 @@ const PreHeader = () => {
                 className="flex items-center cursor-pointer hover:text-blue-500 pl-4"
               >
                 <User className="w-4 h-4 text-pink-500 mr-1" />
-                <span className="text-xs whitespace-nowrap">{t("account")}</span>
+                <span className="text-xs whitespace-nowrap">{accountLabel}</span>
                 <ChevronDown className="w-3 h-3 ml-1" />
               </Link>
 
@@ -147,7 +160,6 @@ const PreHeader = () => {
                             href="/account"
                             className="block px-4 py-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50"
                           >
-                            <div className="font-medium text-sm">{user?.name || "User"}</div>
                             <div className="text-xs text-gray-500">{tAccount("viewAccount")}</div>
                           </Link>
                           <button
