@@ -1,15 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import type { Product } from "@/types";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { ShoppingCart, Heart, Star } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
+import { generateProductUrl } from "@/lib/product-url";
+import type { Product } from "@/types";
+import { Heart, ShoppingCart, Star } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 interface ProductCardProps {
   product: Product;
@@ -41,7 +42,12 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
   };
 
   if (viewMode === "list") {
-    const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || "all"}/${product.id}`;
+    const productUrl = generateProductUrl({
+      category: product.category,
+      subcategory: product.subcategory,
+      childSubcategory: product.childSubcategory,
+      productId: product.id,
+    });
     return (
       <div className="group relative bg-card rounded-lg border border-border hover:shadow-lg transition-shadow p-4">
         <div className="flex gap-6">
@@ -117,7 +123,12 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
     );
   }
 
-  const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || "all"}/${product.id}`;
+  const productUrl = generateProductUrl({
+    category: product.category,
+    subcategory: product.subcategory,
+    childSubcategory: product.childSubcategory,
+    productId: product.id,
+  });
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">

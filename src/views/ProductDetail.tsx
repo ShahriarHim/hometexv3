@@ -3,7 +3,39 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useRecentViews } from "@/hooks/use-recent-views";
+import { trackEvent } from "@/lib/analytics";
+import { api, transformAPIProductToProduct } from "@/lib/api";
+import type { Product } from "@/types";
+import { useQuery } from "@tanstack/react-query";
+import {
+    AlertTriangle,
+    Check,
+    ChevronRight,
+    Heart,
+    MapPin,
+    Package,
+    Shield,
+    ShoppingCart,
+    Star,
+    Tag,
+    TrendingUp
+} from "lucide-react";
 import dynamic from "next/dynamic";
+import Head from "next/head";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 // Dynamic imports for better performance
 const MediaGallery = dynamic(
@@ -34,43 +66,18 @@ const ProductReviews = dynamic(
     ssr: false,
   }
 );
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCart } from "@/context/CartContext";
-import { useWishlist } from "@/context/WishlistContext";
-import { useRecentViews } from "@/hooks/use-recent-views";
-import { trackEvent } from "@/lib/analytics";
-import { api, transformAPIProductToProduct, type APIProduct } from "@/lib/api";
-import type { Product } from "@/types";
-import {
-  AlertTriangle,
-  Check,
-  ChevronRight,
-  Heart,
-  Loader2,
-  MapPin,
-  Package,
-  Shield,
-  ShoppingCart,
-  Star,
-  Tag,
-  TrendingUp,
-} from "lucide-react";
-import Head from "next/head";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
 
 const ProductDetailNew = () => {
-  const params = useParams<{ id?: string }>();
-  const id = params?.id;
+  const params = useParams<{ slug?: string[]; id?: string }>();
+  // Support both old route structure ([id]) and new catch-all route ([...slug])
+  let id: string | undefined;
+  if (params?.slug && Array.isArray(params.slug) && params.slug.length > 0) {
+    // New route structure: last segment is always product ID
+    id = params.slug[params.slug.length - 1];
+  } else {
+    // Fallback to old route structure
+    id = params?.id;
+  }
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const { addRecentView } = useRecentViews();

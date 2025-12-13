@@ -3,6 +3,7 @@
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
+import { generateProductUrl } from "@/lib/product-url";
 import { ChevronLeft, ChevronRight, Clock, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -98,7 +99,12 @@ const FloatingBar = () => {
   };
 
   const getProductUrl = (product: (typeof recentViews)[0]) => {
-    return `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any;
+    return generateProductUrl({
+      category: product.category,
+      subcategory: product.subcategory,
+      childSubcategory: product.childSubcategory,
+      productId: product.id,
+    });
   };
 
   const formatTimeAgo = (timestamp: number) => {

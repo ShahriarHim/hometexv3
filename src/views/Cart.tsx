@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "@/i18n/routing";
+import { generateProductUrl } from "@/lib/product-url";
 import { LogIn, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -78,7 +79,12 @@ const Cart = () => {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => {
-              const productUrl = `/products/${item.product.category}/${item.product.childSubcategory || item.product.subcategory || "all"}/${item.product.id}`;
+              const productUrl = generateProductUrl({
+                category: item.product.category,
+                subcategory: item.product.subcategory,
+                childSubcategory: item.product.childSubcategory,
+                productId: item.product.id,
+              });
               return (
                 <Card key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`}>
                   <CardContent className="p-6">

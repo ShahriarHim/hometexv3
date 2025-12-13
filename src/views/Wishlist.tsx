@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRouter } from "@/i18n/routing";
+import { generateProductUrl } from "@/lib/product-url";
 import { Heart, ShoppingCart, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -175,7 +176,12 @@ const Wishlist = () => {
         {/* Wishlist Items */}
         <div className="space-y-4">
           {items.map((item) => {
-            const productUrl = `/products/${item.product.category}/${item.product.childSubcategory || item.product.subcategory || "all"}/${item.product.id}`;
+            const productUrl = generateProductUrl({
+              category: item.product.category,
+              subcategory: item.product.subcategory,
+              childSubcategory: item.product.childSubcategory,
+              productId: item.product.id,
+            });
             return (
               <Card key={item.product.id} className="overflow-hidden">
                 <CardContent className="p-4">

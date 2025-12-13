@@ -5,6 +5,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
+import { generateProductUrl } from "@/lib/product-url";
 import type { Product as ProductType } from "@/types";
 import { Clock, Eye, Heart, ShoppingCart } from "lucide-react";
 import Link from "next/link";
@@ -72,6 +73,7 @@ const HotDeals = () => {
               star: 4, // Default star rating
               category_slug: product.category?.slug || "general",
               subcategory_slug: product.sub_category?.slug || "products",
+              child_subcategory_slug: product.child_sub_category?.slug,
               product_slug: product.child_sub_category?.slug || product.slug || "",
             };
           });
@@ -244,8 +246,12 @@ const HotDeals = () => {
               }}
             >
               {products.map((product, index) => {
-                const productUrl =
-                  `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+                const productUrl = generateProductUrl({
+                  category: product.category_slug,
+                  subcategory: product.subcategory_slug,
+                  childSubcategory: product.child_subcategory_slug,
+                  productId: product.id,
+                });
 
                 const handleProductClick = () => {
                   const productForTracking: ProductType = {
@@ -349,8 +355,12 @@ const HotDeals = () => {
               })}
 
               {products.map((product, index) => {
-                const productUrl =
-                  `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+                const productUrl = generateProductUrl({
+                  category: product.category_slug,
+                  subcategory: product.subcategory_slug,
+                  childSubcategory: product.child_subcategory_slug,
+                  productId: product.id,
+                });
 
                 const handleProductClickCloned = () => {
                   const productForTracking: ProductType = {
@@ -381,7 +391,7 @@ const HotDeals = () => {
                     onMouseLeave={() => handleProductHover(false)}
                   >
                     <Link
-                      href={productUrl}
+                      href={productUrl as any}
                       onClick={handleProductClickCloned}
                       className="block h-full"
                     >

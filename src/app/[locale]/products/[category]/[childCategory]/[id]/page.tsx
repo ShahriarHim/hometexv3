@@ -14,6 +14,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolved = await params;
   try {
+    // Support both old structure (childCategory could be subcategory or child-subcategory)
+    // and new structure where we extract product ID from the last segment
     const product = await api.products.getById(resolved.id);
     const name = product.data?.name || resolved.id;
     return {

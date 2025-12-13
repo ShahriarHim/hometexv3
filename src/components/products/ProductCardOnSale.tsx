@@ -5,6 +5,7 @@ import Image from "next/image";
 import React from "react";
 import Link from "next/link";
 import { Flame, Star } from "lucide-react";
+import { generateProductUrl } from "@/lib/product-url";
 import PriceView from "./PriceView";
 import Title from "./Title";
 import ProductSideMenu from "./ProductSideMenu";
@@ -21,14 +22,19 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
     addRecentView(product);
   };
 
+  const productUrl = generateProductUrl({
+    category: product.category,
+    subcategory: product.subcategory,
+    childSubcategory: product.childSubcategory,
+    productId: product.id,
+  });
+
   return (
     <div className="text-sm border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden">
       <div className="relative overflow-hidden bg-gray-50 rounded-t-lg">
         {product?.images && product.images.length > 0 && (
           <Link
-            href={
-              `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any
-            }
+            href={productUrl as any}
             onClick={handleProductClick}
           >
             <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center">
@@ -82,9 +88,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
           </p>
         )}
         <Link
-          href={
-            `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any
-          }
+          href={productUrl as any}
           onClick={handleProductClick}
           className="hover:text-[#2d8659] transition-colors"
         >

@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { categories, products } from "@/data/demo-data";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
 import type { Product } from "@/types";
@@ -225,7 +224,7 @@ const Products = () => {
     }
   }, [isTrending, isBestsellers, isOnSale]);
 
-  const sourceProducts = isTrending || isBestsellers || isOnSale ? apiProducts : products;
+  const sourceProducts = isTrending || isBestsellers || isOnSale ? apiProducts : [];
 
   const filteredProducts = sourceProducts.filter((p) => {
     const matchesCategory = selectedCategory === "all" || p.category === selectedCategory;
@@ -312,11 +311,6 @@ const Products = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.slug}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
               </SelectContent>
             </Select>
 

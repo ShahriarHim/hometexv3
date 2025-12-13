@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Eye, X, ChevronLeft, ChevronRight, Trash2, Clock } from "lucide-react";
 import { useRecentViews } from "@/hooks/use-recent-views";
+import { generateProductUrl } from "@/lib/product-url";
 import { Button } from "@/components/ui/button";
 
 interface RecentViewProps {
@@ -65,7 +66,12 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
   };
 
   const getProductUrl = (product: (typeof recentViews)[0]) => {
-    return `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any;
+    return generateProductUrl({
+      category: product.category,
+      subcategory: product.subcategory,
+      childSubcategory: product.childSubcategory,
+      productId: product.id,
+    });
   };
 
   const formatTimeAgo = (timestamp: number) => {
