@@ -1,41 +1,37 @@
 "use client";
 
-import Link from "next/link";
-import Head from "next/head";
-import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { Button } from "@/components/ui/button";
+import { Header } from "@/components/layout/Header";
+import { MediaGallery } from "@/components/products/MediaGallery";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductCard } from "@/components/products/ProductCard";
-import { MediaGallery } from "@/components/products/MediaGallery";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { trackEvent } from "@/lib/analytics";
+import { api, type APIProduct } from "@/lib/api";
 import {
-  ShoppingCart,
-  Heart,
-  Star,
-  Truck,
-  Shield,
-  Package,
-  ArrowLeft,
-  Loader2,
-  MapPin,
-  Clock,
+  AlertTriangle,
   Award,
   Check,
   ChevronRight,
-  AlertTriangle,
-  Info,
+  Heart,
+  Loader2,
+  MapPin,
+  Package,
+  Shield,
+  ShoppingCart,
+  Star,
   Tag,
   TrendingUp,
+  Truck,
 } from "lucide-react";
-import { api, type APIProduct } from "@/lib/api";
-import { trackEvent } from "@/lib/analytics";
+import Head from "next/head";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const ProductDetailNew = () => {
@@ -178,10 +174,12 @@ const ProductDetailNew = () => {
   );
 
   // Get available values for each attribute
-  const getAvailableAttributeValues = (attrKey: string) => {
+  const getAvailableAttributeValues = (attrKey: string): string[] => {
     return Array.from(
       new Set(
-        product.variations.filter((v) => v.attributes[attrKey]).map((v) => v.attributes[attrKey])
+        product.variations
+          .map((v) => v.attributes[attrKey])
+          .filter((value): value is string => value !== undefined)
       )
     );
   };
