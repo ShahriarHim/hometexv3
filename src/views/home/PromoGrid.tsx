@@ -5,7 +5,7 @@ export const PromoGrid = () => {
   return (
     <div className="max-w-screen-xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-0">
       {/* First Grid */}
-      <div className="bg-[#00ffffbf] border border-solid border-gray-300 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 border bg-sky-blue flex items-center">
+      <div className="bg-info/75 border border-solid border-gray-300 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 flex items-center">
         <div className="w-full h-full">
           <img
             src={promoTiles[0]?.image || "/images/22L.png"}
@@ -17,7 +17,7 @@ export const PromoGrid = () => {
           <h2 className="text-2xl font-bold mb-2 font-kaushan">
             {promoTiles[0]?.title || "Clothes"}
           </h2>
-          <p className="text-gray-700 bg-[#f3f30ad1] px-2">
+          <p className="text-text-primary bg-primary-light px-2 rounded">
             {promoTiles[0]?.badge || "save to 40% off"}
           </p>
           <p className="text-gray-700 mt-2 text-3xl">{promoTiles[0]?.subtitle || "Big Discount"}</p>
@@ -30,7 +30,7 @@ export const PromoGrid = () => {
         </div>
       </div>
       {/* Second Grid */}
-      <div className="bg-[#f53c78] p-4 border border-solid border-gray-300 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 p-4 flex flex-col items-center">
+      <div className="bg-error p-4 border border-solid border-gray-300 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 flex flex-col items-center">
         <div className="text-center m-8">
           <h2 className="text-1xl font-bold mb-2">{promoTiles[1]?.title || "End Of Season"}</h2>
           <p className="text-5xl mb-4">SALE</p>
@@ -43,12 +43,12 @@ export const PromoGrid = () => {
         </div>
       </div>
       {/* Third Grid */}
-      <div className="bg-[#f3f30ad1] border border-solid border-gray-300 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 border bg-sky-blue flex items-center">
+      <div className="bg-primary-light border border-solid border-gray-300 relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 flex items-center">
         <div className="w-1/2 mx-4 whitespace-nowrap text-center">
           <h2 className="text-2xl font-bold mb-2 font-kaushan">
             {promoTiles[2]?.title || "Sunglasses"}
           </h2>
-          <p className="text-gray-700 bg-[#00ffffbf] px-2">
+          <p className="text-text-primary bg-info/75 px-2 rounded">
             {promoTiles[2]?.badge || "Buy 1 get 1 Free"}
           </p>
           <p className="text-gray-700 text-3xl mt-2">{promoTiles[2]?.subtitle || "New Arrivals"}</p>

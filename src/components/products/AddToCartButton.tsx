@@ -1,9 +1,9 @@
 "use client";
 
-import type { Product } from "@/types";
-import { cn } from "@/lib/utils";
-import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { cn } from "@/lib/utils";
+import type { Product } from "@/types";
+import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import PriceFormatter from "./PriceFormatter";
 import QuantityButtons from "./QuantityButtons";
@@ -18,11 +18,34 @@ const AddToCartButton = ({ product, className }: Props) => {
 
   const cartItem = items.find((item) => item.product.id === product.id);
   const itemCount = cartItem?.quantity || 0;
-  const isOutOfStock = !product.inStock;
+
+  // Helper to extract numeric price from string or number
+  const getNumericPrice = (price: number | string | undefined): number => {
+    if (typeof price === "number") {
+      return price;
+    }
+    if (typeof price === "string") {
+      const cleaned = price.replace(/[^0-9.]/g, "");
+      const parsed = parseFloat(cleaned);
+      return !isNaN(parsed) && parsed > 0 ? parsed : 0;
+    }
+    return 0;
+  };
+
+  // Determine stock - handle both number stock and boolean inStock
+  const productStock =
+    typeof product.stock === "number"
+      ? product.stock
+      : product.inStock === true
+        ? 100
+        : product.inStock === false
+          ? 0
+          : 50;
+
+  const isOutOfStock = productStock === 0;
+  const numericPrice = getNumericPrice(product.price);
 
   const handleAddToCart = () => {
-    const productStock = product.stock ?? (product.inStock ? 100 : 0);
-
     if (productStock > itemCount) {
       addToCart(product, 1);
     } else {
@@ -41,8 +64,8 @@ const AddToCartButton = ({ product, className }: Props) => {
           <div className="flex items-center justify-between border-t border-gray-200 pt-3">
             <span className="text-sm font-bold text-gray-900">Subtotal</span>
             <PriceFormatter
-              amount={product?.price ? product?.price * itemCount : 0}
-              className="text-[#2d8659] font-bold text-lg"
+              amount={numericPrice * itemCount}
+              className="text-price font-bold text-lg"
             />
           </div>
         </div>
@@ -51,7 +74,7 @@ const AddToCartButton = ({ product, className }: Props) => {
           onClick={handleAddToCart}
           disabled={isOutOfStock}
           className={cn(
-            "w-full h-12 rounded-md bg-[#2d8659] text-white shadow-sm border-0 font-bold text-base tracking-wide hover:bg-[#2d8659]/90 active:bg-[#2d8659]/95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 px-4 py-3",
+            "w-full h-12 rounded-md bg-accent text-accent-foreground shadow-sm border-0 font-bold text-base tracking-wide hover:bg-accent-hover active:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 px-4 py-3",
             className
           )}
         >

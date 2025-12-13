@@ -131,7 +131,9 @@ export const HeroShowcase = () => {
                         className={`${style.opacity} ${style.width} h-full animate-fadeInColumn ${style.delay} ${
                           idx === 0 ? "rounded-l-2xl" : ""
                         }`}
-                        style={{ backgroundColor: slide.accentPalette.left[idx] || "#E8FE00" }}
+                        style={{
+                          backgroundColor: slide.accentPalette.left[idx] || "hsl(var(--primary))",
+                        }}
                       />
                     ))}
                   </div>
@@ -199,7 +201,8 @@ export const HeroShowcase = () => {
                           idx === 4 ? "rounded-r-2xl" : ""
                         }`}
                         style={{
-                          backgroundColor: slide.accentPalette.right[idx] || "#C5CEE8",
+                          backgroundColor:
+                            slide.accentPalette.right[idx] || "hsl(var(--secondary-light))",
                         }}
                       />
                     ))}

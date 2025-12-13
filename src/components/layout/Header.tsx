@@ -1,5 +1,6 @@
 "use client";
 
+import ChatPopup from "@/components/ChatPopup";
 import PreHeader from "@/components/layout/PreHeader";
 import SearchPopup from "@/components/layout/SearchPopup";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,6 @@ import { useEffect, useState } from "react";
 import { CategoriesMenuBar } from "./header/CategoriesMenuBar";
 import { CategoriesMenuBarSkeleton } from "./header/CategoriesMenuBarSkeleton";
 import { HeaderActions } from "./header/HeaderActions";
-import ChatPopup from "@/components/ChatPopup";
 import { HeaderLogo } from "./header/HeaderLogo";
 import { MobileMenu } from "./header/MobileMenu";
 import { ShowCategoriesButton } from "./header/ShowCategoriesButton";
@@ -87,7 +87,7 @@ export const Header = () => {
 
   return (
     <>
-      {showPopup && <SearchPopup onClose={closePopup} />}
+      <SearchPopup isOpen={showPopup} onClose={closePopup} />
       {isChatOpen && <ChatPopup onClose={() => setIsChatOpen(false)} />}
       <PreHeader />
       <header

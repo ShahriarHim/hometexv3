@@ -1,4 +1,3 @@
-import React from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -7,8 +6,8 @@ interface Props {
 }
 
 const PriceFormatter = ({ amount, className }: Props) => {
-  if (amount === undefined || amount === null) {
-    return null;
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return <span className={cn("font-medium", className)}>0৳</span>;
   }
 
   return <span className={cn("font-medium", className)}>{amount.toLocaleString()}৳</span>;
