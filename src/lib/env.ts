@@ -20,26 +20,15 @@ const isProduction = nodeEnv === "production";
 
 // Determine API base URL based on environment
 const getApiBaseUrl = (): string => {
-  // If explicitly set via env var, use that
-  const explicitApiUrl = getOptionalEnvVar("NEXT_PUBLIC_API_BASE_URL", "");
-  if (explicitApiUrl) {
-    return explicitApiUrl;
-  }
+  // Check if user explicitly wants local API
+  const useLocalApi = getOptionalEnvVar("NEXT_PUBLIC_USE_LOCAL_API", "false") === "true";
 
-  // Auto-detect based on environment and hostname
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    // Use localhost API in development or when on localhost
-    if (isDevelopment || hostname === "localhost" || hostname === "127.0.0.1") {
-      return getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000");
-    }
-  } else if (isDevelopment) {
-    // Server-side in development
+  if (useLocalApi) {
     return getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000");
   }
 
-  // Production fallback
-  return "https://www.hometexbd.ltd";
+  // Use production API
+  return getOptionalEnvVar("NEXT_PUBLIC_API_BASE_URL", "http://123.176.58.209");
 };
 
 // Export env object - using explicit object literal for Turbopack compatibility
