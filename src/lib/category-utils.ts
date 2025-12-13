@@ -28,7 +28,10 @@ export function findCategoryBySlug(categories: CategoryTree[], slug: string) {
 
   if (!foundCategory) {
     console.warn(`Category not found for slug: ${slug}`);
-    console.log("Available categories:", categories.map(c => ({ id: c.id, name: c.name, slug: createSlug(c.name) })));
+    console.log(
+      "Available categories:",
+      categories.map((c) => ({ id: c.id, name: c.name, slug: createSlug(c.name) }))
+    );
   }
 
   return foundCategory;
@@ -43,7 +46,7 @@ export function getCategoryTitle(
     console.warn("No API category found, using default title");
     return {
       pageTitle: "Category",
-      pageDescription: "Browse our collection"
+      pageDescription: "Browse our collection",
     };
   }
 

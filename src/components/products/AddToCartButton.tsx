@@ -18,23 +18,30 @@ const AddToCartButton = ({ product, className }: Props) => {
 
   const cartItem = items.find((item) => item.product.id === product.id);
   const itemCount = cartItem?.quantity || 0;
-  
+
   // Helper to extract numeric price from string or number
   const getNumericPrice = (price: number | string | undefined): number => {
-    if (typeof price === 'number') return price;
-    if (typeof price === 'string') {
-      const cleaned = price.replace(/[^0-9.]/g, '');
+    if (typeof price === "number") {
+      return price;
+    }
+    if (typeof price === "string") {
+      const cleaned = price.replace(/[^0-9.]/g, "");
       const parsed = parseFloat(cleaned);
       return !isNaN(parsed) && parsed > 0 ? parsed : 0;
     }
     return 0;
   };
-  
+
   // Determine stock - handle both number stock and boolean inStock
-  const productStock = typeof product.stock === 'number' 
-    ? product.stock 
-    : (product.inStock === true ? 100 : (product.inStock === false ? 0 : 50));
-  
+  const productStock =
+    typeof product.stock === "number"
+      ? product.stock
+      : product.inStock === true
+        ? 100
+        : product.inStock === false
+          ? 0
+          : 50;
+
   const isOutOfStock = productStock === 0;
   const numericPrice = getNumericPrice(product.price);
 

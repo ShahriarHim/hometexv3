@@ -2,8 +2,6 @@
  * Product Types
  */
 
-import type { PaginatedResponse } from "./common";
-
 // Product
 export interface Product {
   id: number;

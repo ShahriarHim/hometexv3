@@ -189,7 +189,11 @@ export const TrendingProducts = () => {
           >
             {products.map((product) => (
               <SwiperSlide key={product.id}>
-                <GenericProductCard product={product} showSaleLabel={false} showTrendingIcon={true} />
+                <GenericProductCard
+                  product={product}
+                  showSaleLabel={false}
+                  showTrendingIcon={true}
+                />
               </SwiperSlide>
             ))}
           </Swiper>

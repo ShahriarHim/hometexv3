@@ -3,9 +3,9 @@
  * Implements industry-standard pagination with React Query's useInfiniteQuery
  */
 
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { productService } from "@/services/api/product.service";
 import type { ProductQueryParams, ProductsResponse } from "@/types/api/product";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 interface UseInfiniteProductSearchParams {
   searchTerm?: string;
@@ -19,7 +19,7 @@ interface UseInfiniteProductSearchParams {
 
 /**
  * Hook for infinite scroll product search with pagination
- * 
+ *
  * @example
  * ```tsx
  * const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteProductSearch({
@@ -39,7 +39,7 @@ export function useInfiniteProductSearch({
 }: UseInfiniteProductSearchParams = {}) {
   return useInfiniteQuery<ProductsResponse, Error>({
     queryKey: ["products", "infinite", searchTerm, category, perPage, sort, minPrice, maxPrice],
-    
+
     queryFn: async ({ pageParam = 1 }) => {
       const params: ProductQueryParams = {
         page: pageParam as number,
@@ -55,7 +55,7 @@ export function useInfiniteProductSearch({
     },
 
     initialPageParam: 1,
-    
+
     getNextPageParam: (lastPage, allPages) => {
       // Check if there are more pages
       if (!lastPage?.data?.products || lastPage.data.products.length === 0) {
@@ -63,7 +63,9 @@ export function useInfiniteProductSearch({
       }
 
       const pagination = lastPage.data.pagination;
-      if (!pagination) return undefined;
+      if (!pagination) {
+        return undefined;
+      }
 
       // Use has_more flag or check if current_page < last_page
       if (pagination.has_more || pagination.current_page < pagination.last_page) {
