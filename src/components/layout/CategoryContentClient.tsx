@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { categories, products } from "@/data/demo-data";
 import { Link } from "@/i18n/routing";
 import type { CategoryTree } from "@/types/api";
+import Image from "next/image";
 
 interface CategoryContentClientProps {
   slug: string;
@@ -31,11 +32,39 @@ export function CategoryContentClient({
     ? products.filter((p) => p.category === demoCategory.slug)
     : products;
 
+  // Get the current category image
+  let categoryImage: string | null = null;
+  if (apiCategory) {
+    if (childId && subId) {
+      const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
+      const child = sub?.child_categories.find((c) => c.id === Number(childId));
+      categoryImage = child?.image || null;
+    } else if (subId) {
+      const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
+      categoryImage = sub?.image || null;
+    } else {
+      categoryImage = apiCategory.image || null;
+    }
+  }
+
   return (
     <>
       {/* Category Hero */}
       <div className="bg-gradient-to-br from-background to-muted py-16">
         <div className="container mx-auto px-4 text-center">
+          {categoryImage && (
+            <div className="mb-6 flex justify-center">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                <Image
+                  src={categoryImage}
+                  alt={pageTitle}
+                  fill
+                  className="object-cover"
+                  sizes="128px"
+                />
+              </div>
+            </div>
+          )}
           <Badge className="mb-4 bg-sage text-white">{categoryProducts.length} Products</Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{pageTitle}</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{pageDescription}</p>

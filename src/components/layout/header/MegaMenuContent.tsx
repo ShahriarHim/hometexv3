@@ -75,7 +75,10 @@ export const MegaMenuContent = ({
                       {category.sub.map((sub) => (
                         <li key={sub.id} className="space-y-1">
                           <Link
-                            href={`/categories/${createCategorySlug(category.name)}/${createCategorySlug(sub.name)}`}
+                            href={{
+                              pathname: `/categories/${createCategorySlug(category.name)}`,
+                              query: { sub: sub.id.toString() },
+                            }}
                             className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5 group/sub"
                           >
                             <span className="group-hover/sub:translate-x-0.5 transition-transform">
@@ -88,7 +91,10 @@ export const MegaMenuContent = ({
                               {sub.child.map((child) => (
                                 <li key={child.id}>
                                   <Link
-                                    href={`/categories/${createCategorySlug(category.name)}/${createCategorySlug(sub.name)}/${createCategorySlug(child.name)}`}
+                                    href={{
+                                      pathname: `/categories/${createCategorySlug(category.name)}`,
+                                      query: { sub: sub.id.toString(), child: child.id.toString() },
+                                    }}
                                     className="text-[11px] text-muted-foreground/80 hover:text-primary transition-colors flex items-center gap-1 group/child"
                                   >
                                     <span className="w-1 h-1 rounded-full bg-muted-foreground/40 group-hover/child:bg-primary transition-colors" />

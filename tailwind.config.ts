@@ -25,21 +25,83 @@ const config: Config = {
         display: ["var(--font-quicksand)", "Quicksand", "system-ui", "sans-serif"],
       },
       colors: {
+        /* ===== Core System Colors ===== */
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        surface: "hsl(var(--surface))",
+
+        /* ===== Primary Brand Colors ===== */
         primary: {
           DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
+          active: "hsl(var(--primary-active))",
           light: "hsl(var(--primary-light))",
-          dark: "hsl(var(--primary-dark))",
+          foreground: "hsl(var(--primary-foreground))",
         },
+
+        /* ===== Secondary Colors ===== */
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
+          hover: "hsl(var(--secondary-hover))",
+          light: "hsl(var(--secondary-light))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+
+        /* ===== Accent Colors ===== */
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          hover: "hsl(var(--accent-hover))",
+          light: "hsl(var(--accent-light))",
+          foreground: "hsl(var(--accent-foreground))",
+          secondary: "hsl(var(--accent-secondary))",
+          "secondary-hover": "hsl(var(--accent-secondary-hover))",
+          "secondary-light": "hsl(var(--accent-secondary-light))",
+        },
+
+        /* ===== Text Colors ===== */
+        text: {
+          primary: "hsl(var(--text-primary))",
+          secondary: "hsl(var(--text-secondary))",
+          tertiary: "hsl(var(--text-tertiary))",
+          muted: "hsl(var(--text-muted))",
+        },
+
+        /* ===== Semantic Colors ===== */
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          light: "hsl(var(--success-light))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          light: "hsl(var(--warning-light))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        error: {
+          DEFAULT: "hsl(var(--error))",
+          light: "hsl(var(--error-light))",
+          foreground: "hsl(var(--error-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          light: "hsl(var(--info-light))",
+          foreground: "hsl(var(--info-foreground))",
+        },
+
+        /* ===== E-commerce Specific ===== */
+        price: "hsl(var(--price))",
+        discount: "hsl(var(--discount))",
+        badge: "hsl(var(--badge))",
+        stock: {
+          high: "hsl(var(--stock-high))",
+          low: "hsl(var(--stock-low))",
+          out: "hsl(var(--stock-out))",
+        },
+
+        /* ===== Legacy Support (shadcn/ui) ===== */
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
@@ -47,10 +109,6 @@ const config: Config = {
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -60,24 +118,6 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sage: {
-          DEFAULT: "hsl(var(--sage))",
-          light: "hsl(var(--sage-light))",
-        },
-        cream: "hsl(var(--cream))",
-        "warm-gray": "hsl(var(--warm-gray))",
-        shop: {
-          dark_green: "#2d8659",
-          light_green: "#93D991",
-          orange: "#fb6c08",
-          light_bg: "#f8f9fa",
-        },
-        darkBlue: "#1e3a5f",
-        lightText: "#ababab",
-        lightColor: "#f5f5f5",
-        lightGreen: "#93D991",
-        darkColor: "#333333",
-        lightBg: "#ffffff",
       },
       borderRadius: {
         lg: "var(--radius)",

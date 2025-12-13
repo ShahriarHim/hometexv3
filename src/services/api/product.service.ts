@@ -92,7 +92,7 @@ export const productService = {
    * Use this for initial full menu load
    */
   getMenu: async (): Promise<MenuResponse> => {
-    const response = await fetchPublicWithFallback("/api/v1/categories/tree", env.apiBaseUrl, {
+    const response = await fetchPublicWithFallback("/api/v1/categories/tree?refresh=true", env.apiBaseUrl, {
       method: "GET",
       headers: {
         Accept: "application/json",

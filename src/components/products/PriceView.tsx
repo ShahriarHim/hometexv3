@@ -1,5 +1,5 @@
-import { twMerge } from "tailwind-merge";
 import { cn } from "@/lib/utils";
+import { twMerge } from "tailwind-merge";
 import PriceFormatter from "./PriceFormatter";
 
 interface Props {
@@ -17,10 +17,7 @@ const PriceView = ({ price, originalPrice, discount, className }: Props) => {
   return (
     <div className="flex items-center justify-between gap-5">
       <div className="flex items-center gap-3">
-        <PriceFormatter
-          amount={price}
-          className={cn("text-[#2d8659] font-bold text-xl", className)}
-        />
+        <PriceFormatter amount={price} className={cn("text-price font-bold text-xl", className)} />
         {displayOriginalPrice && displayOriginalPrice > (price || 0) && (
           <PriceFormatter
             amount={displayOriginalPrice}

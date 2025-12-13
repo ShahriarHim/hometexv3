@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, Play, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { trackEvent } from "@/lib/analytics";
+import { ChevronLeft, ChevronRight, Maximize2, Play, X } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface MediaItem {
   type: "image" | "video";
@@ -26,6 +27,28 @@ interface MediaGalleryProps {
   productId: string;
   productName: string;
 }
+
+// Helper function to check and fix image URLs
+const getValidImageUrl = (url: string | null | undefined): string => {
+  // Handle null, undefined, or non-string values
+  if (!url || typeof url !== "string") {
+    console.warn("Invalid URL provided to getValidImageUrl:", url);
+    return "/placeholder.svg";
+  }
+
+  // If it's a localhost URL, replace it with placeholder
+  if (url.includes("localhost") || url.includes("127.0.0.1")) {
+    console.warn("Localhost URL detected in product image:", url);
+    return "/placeholder.svg";
+  }
+
+  // If it doesn't start with http/https, assume it's a relative path
+  if (!url.startsWith("http")) {
+    return url.startsWith("/") ? url : `/${url}`;
+  }
+
+  return url;
+};
 
 export const MediaGallery = ({
   images,
@@ -107,11 +130,16 @@ export const MediaGallery = ({
         {/* Main Display */}
         <div className="relative aspect-square bg-muted rounded-lg overflow-hidden group">
           {currentMedia?.type === "image" ? (
-            <img
-              src={currentMedia.url || "/placeholder.svg"}
-              alt={productName}
-              className="w-full h-full object-cover"
-            />
+            <div className="relative w-full h-full">
+              <Image
+                src={getValidImageUrl(currentMedia.url)}
+                alt={productName}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority
+              />
+            </div>
           ) : currentMedia?.type === "video" ? (
             <div className="relative w-full h-full">
               {playingVideo === currentMedia.id ? (
@@ -122,11 +150,15 @@ export const MediaGallery = ({
                 )
               ) : (
                 <>
-                  <img
-                    src={currentMedia.thumbnail || "/placeholder.svg"}
-                    alt={currentMedia.title || "Video thumbnail"}
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={getValidImageUrl(currentMedia.thumbnail || "")}
+                      alt={currentMedia.title || "Video thumbnail"}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
                   <Button
                     size="lg"
                     className="absolute inset-0 m-auto w-16 h-16 rounded-full"
@@ -196,10 +228,16 @@ export const MediaGallery = ({
                 }`}
                 aria-label={item.type === "video" ? `Video ${idx + 1}` : `Image ${idx + 1}`}
               >
-                <img
-                  src={item.type === "image" ? item.url : item.thumbnail}
-                  alt={item.type === "video" ? item.title : `${productName} ${idx + 1}`}
-                  className="w-full h-full object-cover"
+                <Image
+                  src={getValidImageUrl(item.type === "image" ? item.url : item.thumbnail || "")}
+                  alt={
+                    item.type === "video"
+                      ? item.title || "Video thumbnail"
+                      : `${productName} ${idx + 1}`
+                  }
+                  fill
+                  className="object-cover"
+                  sizes="20vw"
                 />
                 {item.type === "video" && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -217,11 +255,15 @@ export const MediaGallery = ({
         <DialogContent className="max-w-7xl h-[90vh] p-0">
           <div className="relative w-full h-full flex items-center justify-center bg-black">
             {currentMedia?.type === "image" ? (
-              <img
-                src={currentMedia.url}
-                alt={productName}
-                className="max-w-full max-h-full object-contain"
-              />
+              <div className="relative w-full h-full">
+                <Image
+                  src={getValidImageUrl(currentMedia.url)}
+                  alt={productName}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                />
+              </div>
             ) : currentMedia?.type === "video" ? (
               <div className="w-full h-full flex items-center justify-center">
                 {renderVideoEmbed(

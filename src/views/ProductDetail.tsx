@@ -3,27 +3,6 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
-import dynamic from "next/dynamic";
-
-// Dynamic imports for better performance
-const MediaGallery = dynamic(() => import("@/components/products/MediaGallery").then((mod) => ({ default: mod.MediaGallery })), {
-  loading: () => <div className="aspect-square bg-muted animate-pulse rounded-lg" />,
-  ssr: true,
-});
-
-const PriceDropNotification = dynamic(() => import("@/components/products/PriceDropNotification"), {
-  ssr: false,
-});
-
-const ProductCard = dynamic(() => import("@/components/products/ProductCard").then((mod) => ({ default: mod.ProductCard })), {
-  loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg" />,
-  ssr: true,
-});
-
-const ProductReviews = dynamic(() => import("@/components/products/ProductReviews").then((mod) => ({ default: mod.ProductReviews })), {
-  loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg" />,
-  ssr: false,
-});
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,14 +14,14 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
 import { trackEvent } from "@/lib/analytics";
-import { api, transformAPIProductToProduct, type APIProduct } from "@/lib/api";
+import { api, transformAPIProductToProduct } from "@/lib/api";
 import type { Product } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   Check,
   ChevronRight,
   Heart,
-  Loader2,
   MapPin,
   Package,
   Shield,
@@ -51,12 +30,42 @@ import {
   Tag,
   TrendingUp,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Head from "next/head";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+
+// Dynamic imports for better performance
+const MediaGallery = dynamic(
+  () => import("@/components/products/MediaGallery").then((mod) => ({ default: mod.MediaGallery })),
+  {
+    loading: () => <div className="aspect-square bg-muted animate-pulse rounded-lg" />,
+    ssr: true,
+  }
+);
+
+const PriceDropNotification = dynamic(() => import("@/components/products/PriceDropNotification"), {
+  ssr: false,
+});
+
+const ProductCard = dynamic(
+  () => import("@/components/products/ProductCard").then((mod) => ({ default: mod.ProductCard })),
+  {
+    loading: () => <div className="h-96 bg-muted animate-pulse rounded-lg" />,
+    ssr: true,
+  }
+);
+
+const ProductReviews = dynamic(
+  () =>
+    import("@/components/products/ProductReviews").then((mod) => ({ default: mod.ProductReviews })),
+  {
+    loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg" />,
+    ssr: false,
+  }
+);
 
 const ProductDetailNew = () => {
   const params = useParams<{ id?: string }>();
@@ -98,10 +107,7 @@ const ProductDetailNew = () => {
   const product = productResponse?.data;
 
   // Fetch similar products in parallel (non-blocking)
-  const {
-    data: similarProductsResponse,
-    isLoading: similarProductsLoading,
-  } = useQuery({
+  const { data: similarProductsResponse, isLoading: similarProductsLoading } = useQuery({
     queryKey: ["similar-products", id],
     queryFn: async () => {
       if (!id) return null;
@@ -139,7 +145,12 @@ const ProductDetailNew = () => {
     }
   }, [product, addRecentView]);
 
-  const error = productError instanceof Error ? productError.message : productError ? String(productError) : null;
+  const error =
+    productError instanceof Error
+      ? productError.message
+      : productError
+        ? String(productError)
+        : null;
 
   if (loading) {
     return (
@@ -503,8 +514,76 @@ const ProductDetailNew = () => {
             {/* Media Gallery */}
             <div>
               <MediaGallery
-                images={product.media.gallery?.map((g: any) => g.url || g) || [product.brand.logo]}
-                videos={product.media.videos}
+                images={(() => {
+                  // Try to get images from various sources in priority order
+                  const galleryImages =
+                    product.media?.gallery
+                      ?.map((g: any) => {
+                        if (typeof g === "string") return g;
+                        return g?.url || g?.image_url || g?.path || null;
+                      })
+                      .filter(Boolean) || [];
+
+                  const primaryImage =
+                    product.media?.primary_image ||
+                    (product as any).primary_photo ||
+                    (product as any).primary_image;
+                  const thumbnailImage = product.media?.thumbnail || (product as any).thumbnail;
+                  const featuredImage = (product as any).featured_image;
+                  const brandLogo = product.brand?.logo;
+
+                  // Extract URL string from image objects
+                  const extractUrl = (img: any): string | null => {
+                    if (!img) return null;
+                    if (typeof img === "string") return img;
+                    return img?.url || img?.image_url || img?.path || null;
+                  };
+
+                  console.log("Product images debug:", {
+                    productId: product.id,
+                    productName: product.name,
+                    galleryImages,
+                    galleryCount: galleryImages.length,
+                    primaryImage,
+                    primaryImageUrl: extractUrl(primaryImage),
+                    thumbnailImage,
+                    featuredImage,
+                    brandLogo,
+                  });
+
+                  // Return first available image source with priority
+                  if (galleryImages.length > 0) {
+                    console.log("Using gallery images:", galleryImages);
+                    return galleryImages;
+                  }
+
+                  const primaryUrl = extractUrl(primaryImage);
+                  if (primaryUrl) {
+                    console.log("Using primary image URL:", primaryUrl);
+                    return [primaryUrl];
+                  }
+
+                  const featuredUrl = extractUrl(featuredImage);
+                  if (featuredUrl) {
+                    console.log("Using featured image URL:", featuredUrl);
+                    return [featuredUrl];
+                  }
+
+                  const thumbnailUrl = extractUrl(thumbnailImage);
+                  if (thumbnailUrl) {
+                    console.log("Using thumbnail image URL:", thumbnailUrl);
+                    return [thumbnailUrl];
+                  }
+
+                  if (brandLogo) {
+                    console.log("Using brand logo fallback:", brandLogo);
+                    return [brandLogo];
+                  }
+
+                  console.warn("No images found, using placeholder");
+                  return ["/placeholder.svg"];
+                })()}
+                videos={product.media?.videos || []}
                 productId={product.id.toString()}
                 productName={product.name}
               />
