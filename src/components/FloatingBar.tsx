@@ -17,6 +17,7 @@ import {
   FaShoppingCart,
   FaWhatsapp,
 } from "react-icons/fa";
+import { toast } from "sonner";
 import CartPopup from "./CartPopup";
 import ChatPopup from "./ChatPopup";
 import WishlistPopup from "./WishlistPopup";
@@ -31,7 +32,7 @@ const FloatingBar = () => {
   const [showLocationPanel, setShowLocationPanel] = useState(false);
 
   // Get cart and wishlist data from context
-  const { getTotalItems, getTotalPrice } = useCart();
+  const { getTotalItems, getTotalPrice, setIsCartPopupOpen } = useCart();
   const { items: wishlistItems } = useWishlist();
   const { recentViews, removeRecentView, clearRecentViews } = useRecentViews();
 
@@ -40,6 +41,11 @@ const FloatingBar = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 8;
   const totalPages = Math.ceil(recentViews.length / productsPerPage);
+
+  // Sync cart popup state with context to suppress toast notifications
+  useEffect(() => {
+    setIsCartPopupOpen(isCartOpen);
+  }, [isCartOpen, setIsCartPopupOpen]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -60,15 +66,28 @@ const FloatingBar = () => {
     };
   }, []);
 
-  // Placeholder handlers
-  const handleCartClick = () => setIsCartOpen(!isCartOpen);
-  const handleWishClick = () => setIsWishOpen(!isWishOpen);
+  // Placeholder handlers - dismiss toasts when opening popups
+  const handleCartClick = () => {
+    toast.dismiss();
+    setIsCartOpen(!isCartOpen);
+  };
+  const handleWishClick = () => {
+    toast.dismiss();
+    setIsWishOpen(!isWishOpen);
+  };
   const handleRecentlyViewedClick = () => {
+    toast.dismiss();
     setShowRecentlyViewed(!showRecentlyViewed);
     setCurrentPage(1);
   };
-  const handleGetCurrentLocation = () => setShowLocationPanel(!showLocationPanel);
-  const handleChatToggle = () => setIsChatVisible(!isChatVisible);
+  const handleGetCurrentLocation = () => {
+    toast.dismiss();
+    setShowLocationPanel(!showLocationPanel);
+  };
+  const handleChatToggle = () => {
+    toast.dismiss();
+    setIsChatVisible(!isChatVisible);
+  };
 
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(1, prev - 1));
@@ -78,7 +97,7 @@ const FloatingBar = () => {
     setCurrentPage((prev) => Math.min(totalPages, prev + 1));
   };
 
-  const getProductUrl = (product: typeof recentViews[0]) => {
+  const getProductUrl = (product: (typeof recentViews)[0]) => {
     return `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any;
   };
 
@@ -100,7 +119,10 @@ const FloatingBar = () => {
     {
       icon: <FaListUl />,
       tooltip: "All Categories",
-      onClick: () => setShowCategoriesPopup(true),
+      onClick: () => {
+        toast.dismiss();
+        setShowCategoriesPopup(true);
+      },
       className: "floating-btn-first",
       badge: null,
     },
@@ -135,7 +157,10 @@ const FloatingBar = () => {
     {
       icon: <FaArrowUp />,
       tooltip: "Back to Top",
-      onClick: scrollToTop,
+      onClick: () => {
+        toast.dismiss();
+        scrollToTop();
+      },
       className: "floating-btn-last",
       badge: null,
     },
@@ -261,9 +286,7 @@ const FloatingBar = () => {
                   <div className="bg-gray-100 rounded-full p-6 mb-4">
                     <FaEye className="w-12 h-12 text-gray-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No Recent Views
-                  </h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Recent Views</h3>
                   <p className="text-gray-600 max-w-md">
                     Products you view will appear here. Start browsing to see your recent views!
                   </p>
