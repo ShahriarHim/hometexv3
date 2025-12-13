@@ -1,6 +1,6 @@
 "use client";
 
-import ProductCardOnSale from "@/components/products/ProductCardOnSale";
+import GenericProductCard from "@/components/products/GenericProductCard";
 import { Button } from "@/components/ui/button";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
@@ -187,7 +187,7 @@ export const OnSaleProducts = () => {
           >
             {products.map((product) => (
               <SwiperSlide key={product.id}>
-                <ProductCardOnSale product={product} />
+                <GenericProductCard product={product} showSaleLabel={true} showTrendingIcon={false} />
               </SwiperSlide>
             ))}
           </Swiper>

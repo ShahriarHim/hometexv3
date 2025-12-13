@@ -496,7 +496,7 @@ const FloatingBar = () => {
           position: absolute;
           top: -5px;
           right: -5px;
-          background-color: #ff4444;
+          background-color: hsl(var(--error));
           color: white;
           border-radius: 50%;
           width: 18px;
@@ -513,7 +513,7 @@ const FloatingBar = () => {
           position: absolute;
           top: -3px;
           right: -3px;
-          background-color: #ff4444;
+          background-color: hsl(var(--error));
           color: white;
           border-radius: 50%;
           width: 16px;
@@ -605,9 +605,9 @@ const FloatingBar = () => {
         }
 
         .popup-header {
-          background: linear-gradient(to right, #d4ed30, #a8c423);
+          background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary-hover)));
           padding: 1.5rem;
-          color: white;
+          color: hsl(var(--primary-foreground));
           text-align: center;
           position: relative;
           overflow: hidden;
@@ -654,7 +654,7 @@ const FloatingBar = () => {
         .popup-content {
           display: flex;
           height: calc(70vh - 90px);
-          background: #fff;
+          background: hsl(var(--background));
         }
 
         .close-btn {
@@ -683,8 +683,8 @@ const FloatingBar = () => {
         }
 
         .whatsapp-btn {
-          background-color: #25d366;
-          color: white;
+          background-color: hsl(var(--success));
+          color: hsl(var(--success-foreground));
           border-radius: 50%;
           width: 45px;
           height: 45px;
@@ -696,7 +696,7 @@ const FloatingBar = () => {
         }
 
         .whatsapp-btn:hover {
-          background-color: #128c7e;
+          background-color: hsl(var(--accent-hover));
         }
 
         /* Recently Viewed Styles */
@@ -704,7 +704,7 @@ const FloatingBar = () => {
           box-shadow:
             0 8px 40px rgba(40, 167, 69, 0.1),
             0 1.5px 8px rgba(0, 0, 0, 0.04);
-          border: 1.5px solid #e5e7eb;
+          border: 1.5px solid hsl(var(--border));
         }
 
         @keyframes fade-in {
@@ -786,8 +786,8 @@ const FloatingBar = () => {
           display: flex;
           align-items: center;
           padding: 1rem 1.25rem 0.75rem 1.25rem;
-          border-bottom: 1px solid #f3f4f6;
-          background: linear-gradient(90deg, #f8f9fa 60%, #fff 100%);
+          border-bottom: 1px solid hsl(var(--border));
+          background: linear-gradient(90deg, hsl(var(--surface)) 60%, hsl(var(--background)) 100%);
           position: relative;
           min-height: 56px;
         }
@@ -795,8 +795,12 @@ const FloatingBar = () => {
           width: 34px;
           height: 34px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #d4ed30 60%, #a8c423 100%);
-          color: #fff;
+          background: linear-gradient(
+            135deg,
+            hsl(var(--primary)) 60%,
+            hsl(var(--primary-hover)) 100%
+          );
+          color: hsl(var(--primary-foreground));
           display: flex;
           align-items: center;
           justify-content: center;
@@ -808,7 +812,7 @@ const FloatingBar = () => {
         .location-modal-title {
           font-size: 1.08rem;
           font-weight: 600;
-          color: #222;
+          color: hsl(var(--text-primary));
           flex: 1;
           letter-spacing: 0.01em;
         }
@@ -819,8 +823,8 @@ const FloatingBar = () => {
           width: 28px;
           height: 28px;
           border-radius: 50%;
-          background: #f3f4f6;
-          color: #7c7c7c;
+          background: hsl(var(--muted));
+          color: hsl(var(--text-tertiary));
           border: none;
           display: flex;
           align-items: center;

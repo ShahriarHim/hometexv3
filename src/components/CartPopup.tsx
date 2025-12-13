@@ -137,7 +137,7 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Bottom section */}
-        <div className="absolute bottom-0 left-0 right-0 bg-[rgba(51,51,51,0.95)]">
+        <div className="absolute bottom-0 left-0 right-0 bg-secondary/95">
           <div className="p-4 border-t border-gray-600">
             <div className="text-lg font-semibold mb-3 text-right">
               Total: ৳{getTotalPrice().toLocaleString()}

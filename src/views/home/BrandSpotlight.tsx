@@ -1,11 +1,11 @@
 "use client";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
+import { brandSpotlight } from "@/data/migration-content";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { brandSpotlight } from "@/data/migration-content";
+import { Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 export const BrandSpotlight = () => {
   return (
@@ -30,7 +30,7 @@ export const BrandSpotlight = () => {
       >
         {brandSpotlight.map((item, index) => (
           <SwiperSlide key={item.id || index}>
-            <div className="bg-[#17b4cd3b]">
+            <div className="bg-info/20">
               <div className="grid-item relative group">
                 <div className="flex">
                   <div className="w-1/2">

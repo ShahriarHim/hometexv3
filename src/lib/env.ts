@@ -18,6 +18,7 @@ const nodeEnv = getOptionalEnvVar("NODE_ENV", "development");
 const isDevelopment = nodeEnv === "development";
 const isProduction = nodeEnv === "production";
 
+
 // Determine API base URL based on environment
 const getApiBaseUrl = (): string => {
   // Check if user explicitly wants local API
@@ -40,6 +41,7 @@ export const env = Object.freeze({
   // API Configuration
   apiBaseUrl: getApiBaseUrl(),
   apiLocalUrl: getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000"),
+
 
   // Environment
   nodeEnv,

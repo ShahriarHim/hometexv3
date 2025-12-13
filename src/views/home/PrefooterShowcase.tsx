@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { blogHighlight, storeSummary } from "@/data/migration-content";
-import { FaAngleLeft, FaAngleRight, FaUser, FaComments } from "react-icons/fa";
+import Link from "next/link";
+import { FaAngleLeft, FaAngleRight, FaComments, FaUser } from "react-icons/fa";
 
 export const PrefooterShowcase = () => {
   return (
@@ -77,7 +77,7 @@ export const PrefooterShowcase = () => {
                       <Link
                         key={social.id}
                         href={social.href as any}
-                        className="w-5 h-5 hover:text-[#0000ff]"
+                        className="w-5 h-5 hover:text-info"
                         target="_blank"
                         rel="noopener noreferrer"
                       >

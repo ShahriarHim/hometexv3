@@ -503,8 +503,70 @@ const ProductDetailNew = () => {
             {/* Media Gallery */}
             <div>
               <MediaGallery
-                images={product.media.gallery?.map((g: any) => g.url || g) || [product.brand.logo]}
-                videos={product.media.videos}
+                images={(() => {
+                  // Try to get images from various sources in priority order
+                  const galleryImages = product.media?.gallery?.map((g: any) => {
+                    if (typeof g === 'string') return g;
+                    return g?.url || g?.image_url || g?.path || null;
+                  }).filter(Boolean) || [];
+
+                  const primaryImage = product.media?.primary_image || (product as any).primary_photo || (product as any).primary_image;
+                  const thumbnailImage = product.media?.thumbnail || (product as any).thumbnail;
+                  const featuredImage = (product as any).featured_image;
+                  const brandLogo = product.brand?.logo;
+
+                  // Extract URL string from image objects
+                  const extractUrl = (img: any): string | null => {
+                    if (!img) return null;
+                    if (typeof img === 'string') return img;
+                    return img?.url || img?.image_url || img?.path || null;
+                  };
+
+                  console.log("Product images debug:", {
+                    productId: product.id,
+                    productName: product.name,
+                    galleryImages,
+                    galleryCount: galleryImages.length,
+                    primaryImage,
+                    primaryImageUrl: extractUrl(primaryImage),
+                    thumbnailImage,
+                    featuredImage,
+                    brandLogo
+                  });
+
+                  // Return first available image source with priority
+                  if (galleryImages.length > 0) {
+                    console.log("Using gallery images:", galleryImages);
+                    return galleryImages;
+                  }
+
+                  const primaryUrl = extractUrl(primaryImage);
+                  if (primaryUrl) {
+                    console.log("Using primary image URL:", primaryUrl);
+                    return [primaryUrl];
+                  }
+
+                  const featuredUrl = extractUrl(featuredImage);
+                  if (featuredUrl) {
+                    console.log("Using featured image URL:", featuredUrl);
+                    return [featuredUrl];
+                  }
+
+                  const thumbnailUrl = extractUrl(thumbnailImage);
+                  if (thumbnailUrl) {
+                    console.log("Using thumbnail image URL:", thumbnailUrl);
+                    return [thumbnailUrl];
+                  }
+
+                  if (brandLogo) {
+                    console.log("Using brand logo fallback:", brandLogo);
+                    return [brandLogo];
+                  }
+
+                  console.warn("No images found, using placeholder");
+                  return ["/placeholder.svg"];
+                })()}
+                videos={product.media?.videos || []}
                 productId={product.id.toString()}
                 productName={product.name}
               />

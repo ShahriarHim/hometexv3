@@ -136,7 +136,7 @@ const PreHeader = () => {
   }
 
   return (
-    <div className="hidden md:block bg-[#d4ed30] pt-1 transition-all duration-300">
+    <div className="hidden md:block bg-primary pt-1 transition-all duration-300">
       <div className="container pb-1 w-full mx-auto">
         <div className="flex justify-between items-center">
           {/* Left Section - Account & Corporate */}
