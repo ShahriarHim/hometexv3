@@ -8,25 +8,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "@/i18n/routing";
+import { usePathname, useRouter } from "@/i18n/routing";
 import { env } from "@/lib/env";
 import { orderService, userService } from "@/services/api";
-import type {
-  CustomerOrderSummary,
-  InvoiceResponse,
-  TrackingResponse,
-} from "@/types/api/order";
+import type { CustomerOrderSummary, InvoiceResponse, TrackingResponse } from "@/types/api/order";
 import { FileText, Heart, Loader2, Package, RefreshCcw, Settings, Truck, User } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 interface UserProfile {
+  id?: number;
   name?: string;
   email?: string;
   phone?: string;
   address?: string;
-  [key: string]: string | undefined;
+  [key: string]: string | number | undefined;
 }
 
 const Account = () => {
@@ -92,6 +89,7 @@ const Account = () => {
         // Map the API response to our UserProfile interface
         const userData = response.user;
         const mappedProfile: UserProfile = {
+          id: userData.id,
           name: userData.name || `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
           email: userData.email,
           phone: userData.phone,
@@ -119,37 +117,75 @@ const Account = () => {
   // Sync tab with query string without causing loops
   const handleTabChange = (nextTab: string) => {
     setActiveTab(nextTab);
-    const next = new URLSearchParams(window.location.search);
+    // Use router.replace with pathname and query params separately
+    // pathname from i18n routing doesn't include locale, router handles it
+    const next = new URLSearchParams(searchParams.toString());
     next.set("tab", nextTab);
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    router.replace(`${pathname}?${next.toString()}` as any, { scroll: false });
   };
+
+  // Sync activeTab with URL query parameter when it changes externally
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, activeTab]);
 
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!isAuthenticated || !user?.id || activeTab !== "orders") {
+      if (!isAuthenticated || activeTab !== "orders") {
         return;
       }
+
+      // Wait for profile to load before fetching orders
+      if (isLoading) {
+        return;
+      }
+
+      // Get customer ID from userProfile (preferred) or fallback to user.id
+      const customerId = userProfile?.id ? userProfile.id : user?.id ? Number(user.id) : null;
+
+      // Validate customer ID
+      if (!customerId || isNaN(customerId) || customerId <= 0) {
+        setOrdersError("Unable to load orders: Invalid customer ID");
+        setOrdersLoading(false);
+        return;
+      }
+
       setOrdersLoading(true);
       setOrdersError(null);
       try {
-        const response = await orderService.getCustomerOrders(Number(user.id));
+        const response = await orderService.getCustomerOrders(customerId);
         if (!response.success) {
-          throw new Error(response.message || "Failed to load orders");
+          let errorMessage = response.message || "Failed to load orders";
+          if (errorMessage.toLowerCase().includes("customer not found")) {
+            errorMessage = "no order found, need shopping? click here";
+          }
+          throw new Error(errorMessage);
         }
         setOrders(response.data || []);
       } catch (err) {
-        setOrdersError(err instanceof Error ? err.message : "Failed to load orders");
+        let errorMessage = err instanceof Error ? err.message : "Failed to load orders";
+        if (errorMessage.toLowerCase().includes("customer not found")) {
+          errorMessage = "no order found, need shopping? click here";
+        }
+        setOrdersError(errorMessage);
       } finally {
         setOrdersLoading(false);
       }
     };
 
     fetchOrders();
-  }, [activeTab, isAuthenticated, user]);
+  }, [activeTab, isAuthenticated, user, userProfile, isLoading]);
 
   const formatError = (payload: unknown): string => {
     if (!payload || typeof payload !== "object") return "Something went wrong";
-    const maybeResp = payload as { message?: string; error?: string; errors?: Record<string, string[]> };
+    const maybeResp = payload as {
+      message?: string;
+      error?: string;
+      errors?: Record<string, string[]>;
+    };
     if (maybeResp.errors && Object.keys(maybeResp.errors).length > 0) {
       const first = Object.values(maybeResp.errors)[0];
       if (first?.[0]) return first[0];
@@ -181,9 +217,7 @@ const Account = () => {
         throw new Error(formatError(response));
       }
       const statusLabel =
-        response.data?.delivery_status ||
-        response.data?.status?.toString() ||
-        "Status unavailable";
+        response.data?.delivery_status || response.data?.status?.toString() || "Status unavailable";
       setTrackingStatus((prev) => ({ ...prev, [order.order_number]: statusLabel }));
     } catch (err) {
       setTrackingStatus((prev) => ({
@@ -223,13 +257,27 @@ const Account = () => {
       );
     }
     if (ordersError) {
+      const isNoOrderError = ordersError.toLowerCase().includes("no order found");
       return (
         <div className="text-center py-8">
-          <p className="text-destructive mb-4">{ordersError}</p>
-          <Button onClick={() => setActiveTab("orders")}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Retry
-          </Button>
+          {isNoOrderError ? (
+            <>
+              <p className="text-muted-foreground mb-4">
+                No order found, need shopping?{" "}
+                <Link href="/shop" className="text-primary underline hover:text-primary/80">
+                  click here
+                </Link>
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-destructive mb-4">{ordersError}</p>
+              <Button onClick={() => setActiveTab("orders")}>
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </>
+          )}
         </div>
       );
     }
@@ -306,7 +354,8 @@ const Account = () => {
               </div>
               {trackingStatus[order.order_number] && (
                 <div className="text-sm text-muted-foreground">
-                  Current delivery status: <span className="text-foreground">{trackingStatus[order.order_number]}</span>
+                  Current delivery status:{" "}
+                  <span className="text-foreground">{trackingStatus[order.order_number]}</span>
                 </div>
               )}
             </CardContent>
@@ -322,7 +371,7 @@ const Account = () => {
       <main className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">My Account</h1>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
@@ -394,9 +443,7 @@ const Account = () => {
               <CardHeader>
                 <CardTitle>Order History</CardTitle>
               </CardHeader>
-              <CardContent>
-                {renderOrders()}
-              </CardContent>
+              <CardContent>{renderOrders()}</CardContent>
             </Card>
           </TabsContent>
 
