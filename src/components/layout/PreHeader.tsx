@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { userService } from "@/services/api";
 import { ChevronDown, Mail, ShoppingCart, Ticket, User } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -37,23 +38,32 @@ const PreHeader = () => {
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
   const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const [isVisible, setIsVisible] = useState(true);
+  const [userType, setUserType] = useState<string | undefined>(undefined);
 
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { items: cartItems, getTotalPrice } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
   const cartCount = cartItems.length;
 
-  // Get first name from user's name
-  const getFirstName = (name: string | undefined): string => {
-    if (!name) {
-      return "";
-    }
-    const firstName = name.split(" ")[0];
-    return firstName;
-  };
+  // Fetch user profile to get user_type
+  useEffect(() => {
+    const fetchUserType = async () => {
+      if (isAuthenticated) {
+        try {
+          const profileResponse = await userService.getProfile();
+          setUserType(profileResponse.user?.user_type);
+        } catch (error) {
+          console.error("Failed to fetch user profile:", error);
+        }
+      } else {
+        setUserType(undefined);
+      }
+    };
 
-  const accountLabel =
-    isAuthenticated && user?.name ? `${getFirstName(user.name)}'s Account` : t("account");
+    fetchUserType();
+  }, [isAuthenticated]);
+
+  const accountLabel = isAuthenticated && user?.name ? user.name : t("account");
 
   // Scroll handler to hide PreHeader on scroll
   useEffect(() => {
@@ -139,11 +149,16 @@ const PreHeader = () => {
             >
               <Link
                 href="/account"
-                className="flex items-center cursor-pointer hover:text-blue-500 pl-4"
+                className="flex flex-col cursor-pointer hover:text-blue-500 pl-4"
               >
-                <User className="w-4 h-4 text-pink-500 mr-1" />
-                <span className="text-xs whitespace-nowrap">{accountLabel}</span>
-                <ChevronDown className="w-3 h-3 ml-1" />
+                <div className="flex items-center">
+                  <User className="w-4 h-4 text-pink-500 mr-1" />
+                  <span className="text-xs whitespace-nowrap">{accountLabel}</span>
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </div>
+                {userType && (
+                  <span className="text-[10px] text-gray-600 ml-[21px] capitalize">{userType}</span>
+                )}
               </Link>
 
               {isAccountDropdownOpen && (

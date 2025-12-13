@@ -1,7 +1,7 @@
 "use client";
 
-import { ApiError, authService } from "@/services/api";
 import { clearRecentViewsStorage } from "@/hooks/use-recent-views";
+import { ApiError, authService, userService } from "@/services/api";
 import React, { createContext, startTransition, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -149,9 +149,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Invalid response: authentication token not found");
       }
 
+      // Try to fetch user profile to get the real customer ID
+      let userId: string = `user-${Date.now()}`; // Fallback temporary ID
+      try {
+        const profileResponse = await userService.getProfile();
+        if (profileResponse.user?.id) {
+          userId = String(profileResponse.user.id);
+        }
+      } catch (profileError) {
+        // If profile fetch fails, use temporary ID - user can still proceed
+        // The checkout page will try to fetch profile again if needed
+        console.warn("Could not fetch user profile after signup:", profileError);
+      }
+
       // Create user object from response
       const newUser = {
-        id: `user-${Date.now()}`, // Temporary ID since API doesn't return user ID in this structure
+        id: userId,
         email: signupData.email,
         name: userName || `${signupData.first_name} ${signupData.last_name}`.trim(),
         token: token,
@@ -164,23 +177,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success(message || "Account created successfully!");
     } catch (error) {
       const extractError = (err: unknown): string => {
-        if (!err) return "Signup failed. Please try again.";
+        if (!err) {
+          return "Signup failed. Please try again.";
+        }
         const tryParse = (payload: Record<string, unknown>): string | null => {
           if (payload.errors && typeof payload.errors === "object") {
             const first = Object.values(payload.errors as Record<string, string[]>)[0];
-            if (first?.[0]) return first[0];
+            if (first?.[0]) {
+              return first[0];
+            }
           }
           if (payload.error && typeof payload.error === "object") {
             const first = Object.values(payload.error as Record<string, string[]>)[0];
-            if (Array.isArray(first) && first[0]) return first[0] as string;
+            if (Array.isArray(first) && first[0]) {
+              return first[0] as string;
+            }
           }
-          if (payload.message && typeof payload.message === "string") return payload.message;
+          if (payload.message && typeof payload.message === "string") {
+            return payload.message;
+          }
           return null;
         };
 
         if (err instanceof ApiError && err.response && typeof err.response === "object") {
           const parsed = tryParse(err.response as Record<string, unknown>);
-          if (parsed) return parsed;
+          if (parsed) {
+            return parsed;
+          }
         }
 
         if (err instanceof Error) {
@@ -189,7 +212,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (typeof err === "object") {
           const parsed = tryParse(err as Record<string, unknown>);
-          if (parsed) return parsed;
+          if (parsed) {
+            return parsed;
+          }
         }
 
         return "Signup failed. Please try again.";
@@ -241,6 +266,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       localStorage.removeItem("hometex-user");
       localStorage.removeItem("hometex-auth-token");
+      localStorage.removeItem("hometex-cart");
+      localStorage.removeItem("hometex-wishlist");
+      localStorage.removeItem("hometex-orders");
       clearRecentViewsStorage(); // Clear recent views on logout
       toast.success("Logged out successfully");
       // Redirect to home
