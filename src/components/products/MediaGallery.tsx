@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, Play, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { trackEvent } from "@/lib/analytics";
+import { ChevronLeft, ChevronRight, Maximize2, Play, X } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 interface MediaItem {
   type: "image" | "video";
@@ -31,7 +31,7 @@ interface MediaGalleryProps {
 // Helper function to check and fix image URLs
 const getValidImageUrl = (url: string | null | undefined): string => {
   // Handle null, undefined, or non-string values
-  if (!url || typeof url !== 'string') {
+  if (!url || typeof url !== "string") {
     console.warn("Invalid URL provided to getValidImageUrl:", url);
     return "/placeholder.svg";
   }
@@ -230,7 +230,11 @@ export const MediaGallery = ({
               >
                 <Image
                   src={getValidImageUrl(item.type === "image" ? item.url : item.thumbnail || "")}
-                  alt={item.type === "video" ? item.title || "Video thumbnail" : `${productName} ${idx + 1}`}
+                  alt={
+                    item.type === "video"
+                      ? item.title || "Video thumbnail"
+                      : `${productName} ${idx + 1}`
+                  }
                   fill
                   className="object-cover"
                   sizes="20vw"

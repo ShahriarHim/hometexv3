@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import GenericProductCard from "@/components/products/GenericProductCard";
+import { ProductGridSkeleton } from "@/components/ui/ProductCardSkeleton";
+import { useInfiniteProductSearchFlat } from "@/hooks/useInfiniteProductSearch";
+import { productService } from "@/services/api/product.service";
+import type { CategoryTree } from "@/types/api/product";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { productService } from "@/services/api/product.service";
-import { useInfiniteProductSearchFlat } from "@/hooks/useInfiniteProductSearch";
-import { ProductGridSkeleton } from "@/components/ui/ProductCardSkeleton";
-import GenericProductCard from "@/components/products/GenericProductCard";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "../../styles/SearchPopup.module.css";
-import type { CategoryTree } from "@/types/api/product";
 
 interface SearchPopupProps {
   isOpen: boolean;
@@ -128,16 +128,13 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
   // Don't render if not open
   if (!isOpen) {
     return null;
-  };
+  }
 
   return (
     <div className={styles.popup} onClick={handleOverlayClick}>
       <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
         {/* Close Button */}
-        <button 
-          className={styles.closeButton} 
-          onClick={handleExplicitClose}
-        >
+        <button className={styles.closeButton} onClick={handleExplicitClose}>
           &times;
         </button>
 
@@ -148,14 +145,16 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
 
           {/* Search Area */}
           <div className={styles.searchRow}>
-            <select 
+            <select
               className={styles.categorySelect}
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               <option value="">All categories</option>
               {categories.map((cat) => (
-                <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                <option key={cat.id} value={cat.slug}>
+                  {cat.name}
+                </option>
               ))}
             </select>
             <input
@@ -242,10 +241,12 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
             // Show products when searching with infinite scroll
             <>
               <h2 className={styles.popularTitle}>
-                Search Results 
-                {totalCount > 0 && <span className={styles.resultCount}> ({totalCount} products)</span>}
+                Search Results
+                {totalCount > 0 && (
+                  <span className={styles.resultCount}> ({totalCount} products)</span>
+                )}
               </h2>
-              
+
               {isLoading ? (
                 <ProductGridSkeleton count={20} />
               ) : isError ? (
@@ -259,7 +260,11 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
                     {products.map((product) => (
                       <div key={product.id}>
-                        <GenericProductCard product={product} showSaleLabel={true} showTrendingIcon={true} />
+                        <GenericProductCard
+                          product={product}
+                          showSaleLabel={true}
+                          showTrendingIcon={true}
+                        />
                       </div>
                     ))}
                   </div>

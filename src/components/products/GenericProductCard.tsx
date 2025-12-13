@@ -46,10 +46,10 @@ interface GenericProductCardProps {
  * Generic Product Card Component
  * Handles both API and UI product formats with smart field extraction
  */
-const GenericProductCard = ({ 
-  product, 
+const GenericProductCard = ({
+  product,
   showSaleLabel = true,
-  showTrendingIcon = true 
+  showTrendingIcon = true,
 }: GenericProductCardProps) => {
   const { addRecentView } = useRecentViews();
 
@@ -104,10 +104,15 @@ const GenericProductCard = ({
   };
 
   // Determine stock - handle both number and boolean inStock
-  const stock = typeof product.stock === 'number' 
-    ? product.stock 
-    : (product.inStock === true ? 100 : (product.inStock === false ? 0 : 50));
-  
+  const stock =
+    typeof product.stock === "number"
+      ? product.stock
+      : product.inStock === true
+        ? 100
+        : product.inStock === false
+          ? 0
+          : 50;
+
   const discount = getDiscount();
   const status = discount > 0 ? "sale" : "trending";
   const categoryName = getCategoryName();
@@ -185,7 +190,7 @@ const GenericProductCard = ({
             {categoryName}
           </p>
         )}
-        
+
         <Link
           // @ts-expect-error - Next.js href typing issue with dynamic routes
           href={productUrl}
@@ -210,9 +215,7 @@ const GenericProductCard = ({
               />
             ))}
           </div>
-          <p className="text-gray-600 text-sm font-medium">
-            {product.reviewCount || 5} Reviews
-          </p>
+          <p className="text-gray-600 text-sm font-medium">{product.reviewCount || 5} Reviews</p>
         </div>
 
         <PriceView

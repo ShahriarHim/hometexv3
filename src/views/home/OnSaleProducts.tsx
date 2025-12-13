@@ -187,7 +187,11 @@ export const OnSaleProducts = () => {
           >
             {products.map((product) => (
               <SwiperSlide key={product.id}>
-                <GenericProductCard product={product} showSaleLabel={true} showTrendingIcon={false} />
+                <GenericProductCard
+                  product={product}
+                  showSaleLabel={true}
+                  showTrendingIcon={false}
+                />
               </SwiperSlide>
             ))}
           </Swiper>
