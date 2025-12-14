@@ -54,8 +54,8 @@ If the script doesn't work, run these commands manually:
 # Navigate to project
 cd ~/hometexv3
 
-# Install dependencies
-npm install --production
+# Install dependencies (including devDependencies needed for build)
+npm install
 
 # Build application
 npm run build
