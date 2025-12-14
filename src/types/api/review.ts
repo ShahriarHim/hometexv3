@@ -55,4 +55,3 @@ export interface UpdateReviewRequest {
   comment?: string;
   title?: string;
 }
-

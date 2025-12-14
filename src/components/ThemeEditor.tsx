@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Copy, Download, Palette, RotateCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface ColorVariable {
   name: string;
@@ -169,16 +169,8 @@ export default function ThemeEditor() {
 
   const categories = ["All", ...Array.from(new Set(colors.map((c) => c.category)))];
 
-  // Apply colors to CSS variables in real-time
-  useEffect(() => {
-    colors.forEach((color) => {
-      const hsl = hexToHSL(color.value);
-      document.documentElement.style.setProperty(color.variable, hsl);
-    });
-  }, [colors]);
-
   // Convert HEX to HSL
-  function hexToHSL(hex: string): string {
+  const hexToHSL = useCallback((hex: string): string => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!result) {
       return "0 0% 50%";
@@ -207,6 +199,9 @@ export default function ThemeEditor() {
         case b:
           h = ((r - g) / d + 4) / 6;
           break;
+        default:
+          h = 0;
+          break;
       }
     }
 
@@ -215,7 +210,15 @@ export default function ThemeEditor() {
     l = Math.round(l * 100);
 
     return `${h} ${s}% ${l}%`;
-  }
+  }, []);
+
+  // Apply colors to CSS variables in real-time
+  useEffect(() => {
+    colors.forEach((color) => {
+      const hsl = hexToHSL(color.value);
+      document.documentElement.style.setProperty(color.variable, hsl);
+    });
+  }, [colors, hexToHSL]);
 
   // Update color
   const updateColor = (variable: string, newValue: string) => {
@@ -256,6 +259,7 @@ export default function ThemeEditor() {
 
   // Reset to defaults
   const resetColors = () => {
+    // eslint-disable-next-line no-alert
     if (confirm("Reset all colors to default values?")) {
       window.location.reload();
     }

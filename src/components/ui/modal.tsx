@@ -1,6 +1,6 @@
-import * as React from "react";
-import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
+import * as React from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -29,7 +29,9 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+      }
     };
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
@@ -41,7 +43,9 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

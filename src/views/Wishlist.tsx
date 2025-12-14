@@ -23,8 +23,7 @@ const Wishlist = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/" as any);
-      return;
+      router.replace("/");
     }
   }, [isAuthenticated, router]);
 
@@ -189,7 +188,7 @@ const Wishlist = () => {
                     />
 
                     {/* Product Image */}
-                    <Link href={productUrl as any} className="flex-shrink-0">
+                    <Link href={productUrl as never} className="flex-shrink-0">
                       <img
                         src={item.product.images[0] || "/placeholder.svg"}
                         alt={item.product.name}
@@ -199,7 +198,7 @@ const Wishlist = () => {
 
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
-                      <Link href={productUrl as any}>
+                      <Link href={productUrl as never}>
                         <h3 className="font-semibold text-lg hover:text-primary transition-colors line-clamp-2">
                           {item.product.name}
                         </h3>

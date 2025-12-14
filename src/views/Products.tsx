@@ -234,9 +234,13 @@ const Products = () => {
       p.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     let matchesPrice = true;
-    if (priceRange === "0-50") matchesPrice = p.price < 50;
-    else if (priceRange === "50-100") matchesPrice = p.price >= 50 && p.price < 100;
-    else if (priceRange === "100+") matchesPrice = p.price >= 100;
+    if (priceRange === "0-50") {
+      matchesPrice = p.price < 50;
+    } else if (priceRange === "50-100") {
+      matchesPrice = p.price >= 50 && p.price < 100;
+    } else if (priceRange === "100+") {
+      matchesPrice = p.price >= 100;
+    }
 
     return matchesCategory && matchesSearch && matchesPrice;
   });

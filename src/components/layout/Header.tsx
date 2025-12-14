@@ -132,7 +132,7 @@ export const Header = () => {
             <HeaderActions
               onSearchClick={handleSearchClick}
               onChatToggle={() => setIsChatOpen(!isChatOpen)}
-              isChatOpen={isChatOpen}
+              _isChatOpen={isChatOpen}
             />
           </div>
 

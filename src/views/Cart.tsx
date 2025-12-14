@@ -39,7 +39,7 @@ const Cart = () => {
 
   const handleLogin = () => {
     setShowLoginDialog(false);
-    router.push("/auth" as any);
+    router.push("/auth");
   };
 
   if (items.length === 0) {
@@ -90,7 +90,7 @@ const Cart = () => {
                       />
                       <div className="flex-1">
                         <Link
-                          href={productUrl as any}
+                          href={productUrl as never}
                           className="font-semibold hover:text-primary transition-colors"
                         >
                           {item.product.name}
@@ -198,7 +198,8 @@ const Cart = () => {
               Login Required
             </DialogTitle>
             <DialogDescription>
-              You need to be logged in to proceed to checkout. Please login to continue with your order.
+              You need to be logged in to proceed to checkout. Please login to continue with your
+              order.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col sm:flex-row gap-2">

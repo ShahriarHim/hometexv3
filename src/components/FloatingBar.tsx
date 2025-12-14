@@ -98,16 +98,33 @@ const FloatingBar = () => {
   };
 
   const getProductUrl = (product: (typeof recentViews)[0]) => {
-    return `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any;
+    return `/products/${product.category}/${product.subcategory || "all"}/${product.id}`;
   };
 
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // Update every minute
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
   const formatTimeAgo = (timestamp: number) => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return "Just now";
+    const seconds = Math.floor((currentTime - timestamp) / 1000);
+    if (seconds < 60) {
+      return "Just now";
+    }
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) {
+      return `${hours}h ago`;
+    }
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
   };
@@ -299,7 +316,7 @@ const FloatingBar = () => {
                       className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 bg-white"
                     >
                       <Link
-                        href={getProductUrl(product)}
+                        href={getProductUrl(product) as never}
                         onClick={() => setShowRecentlyViewed(false)}
                         className="flex gap-4 p-4"
                       >
@@ -423,7 +440,7 @@ const FloatingBar = () => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .floating-bar {
           position: fixed;
           right: 5px;

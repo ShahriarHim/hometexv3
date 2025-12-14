@@ -30,7 +30,7 @@ export const PrefooterShowcase = () => {
                       "Hey guys, many of you ask us about the details on everyday outfits, so we thought we would collect them here with a few bonus pics. We hope you will like the idea! There are so many e..."}
                   </p>
                   <Link
-                    href={(blogHighlight.href || "#") as any}
+                    href={(blogHighlight.href || "#") as never}
                     className="bg-yellow-500 mt-5 text-black px-5 py-2 rounded-sm justify-items-center inline-block"
                   >
                     Read More
@@ -76,7 +76,7 @@ export const PrefooterShowcase = () => {
                     {storeSummary.socials.map((social) => (
                       <Link
                         key={social.id}
-                        href={social.href as any}
+                        href={social.href as never}
                         className="w-5 h-5 hover:text-info"
                         target="_blank"
                         rel="noopener noreferrer"

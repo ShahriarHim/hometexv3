@@ -77,16 +77,12 @@ export const orderService = {
    * Get orders for a specific customer
    */
   getCustomerOrders: async (customerId: number): Promise<CustomerOrdersResponse> => {
-    const response = await fetchWithFallback(
-      `/api/orders/customer/${customerId}`,
-      env.apiBaseUrl,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
+    const response = await fetchWithFallback(`/api/orders/customer/${customerId}`, env.apiBaseUrl, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
     return handleApiResponse<CustomerOrdersResponse>(response);
   },

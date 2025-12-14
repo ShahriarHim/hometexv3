@@ -92,13 +92,17 @@ export const productService = {
    * Use this for initial full menu load
    */
   getMenu: async (): Promise<MenuResponse> => {
-    const response = await fetchPublicWithFallback("/api/v1/categories/tree?refresh=true", env.apiBaseUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-      cache: "no-store",
-    });
+    const response = await fetchPublicWithFallback(
+      "/api/v1/categories/tree?refresh=true",
+      env.apiBaseUrl,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      }
+    );
 
     return handleApiResponse<MenuResponse>(response);
   },
@@ -244,20 +248,22 @@ export const productService = {
       // Filter successful responses and extract product data
       const products = results
         .filter((result) => result.success && result.data)
-        .map((result) => result.data);
+        .map((result) => result.data)
+        .filter((p): p is NonNullable<typeof p> => p !== undefined);
 
       return {
         success: true,
         message: "Products retrieved successfully",
         data: {
-          products: {
-            data: products,
+          products: products,
+          pagination: {
             current_page: 1,
             last_page: 1,
             per_page: products.length,
             total: products.length,
             from: 1,
             to: products.length,
+            has_more: false,
           },
         },
       };

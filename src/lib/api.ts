@@ -22,8 +22,6 @@ export {
   fetchPublicWithFallback,
   fetchWithFallback,
   getAuthToken,
-  getCachedBaseUrl,
-  resetBaseUrlCache,
 } from "@/services/api/client";
 
 // Re-export services with legacy API structure

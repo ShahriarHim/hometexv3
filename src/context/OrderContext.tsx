@@ -273,6 +273,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     // Debug: inspect outbound payload for troubleshooting API validation
+    // eslint-disable-next-line no-console
     console.log("createOrder payload", payload);
 
     try {
@@ -283,7 +284,9 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         throw new ApiError(response.message || "Order submission failed", 400, response);
       }
 
-      const apiOrder = (response as { data?: unknown; order?: unknown }).data || response.order;
+      const apiOrder =
+        (response as { data?: unknown; order?: unknown }).data ||
+        (response as { order?: unknown }).order;
       const normalizedOrder =
         (apiOrder as { id?: string | number; order_number?: string; orderNumber?: string }) || {};
 
@@ -331,12 +334,12 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             (apiOrder as { shipping_address?: { email?: string } })?.shipping_address?.email ||
             orderData.shippingAddress.email,
         },
-        createdAt:
-          (apiOrder as { created_at?: string })?.created_at?.toString() &&
-          new Date((apiOrder as { created_at?: string })?.created_at as string),
-        updatedAt:
-          (apiOrder as { updated_at?: string })?.updated_at?.toString() &&
-          new Date((apiOrder as { updated_at?: string })?.updated_at as string),
+        createdAt: (apiOrder as { created_at?: string })?.created_at
+          ? new Date((apiOrder as { created_at?: string }).created_at as string)
+          : new Date(),
+        updatedAt: (apiOrder as { updated_at?: string })?.updated_at
+          ? new Date((apiOrder as { updated_at?: string }).updated_at as string)
+          : new Date(),
       };
 
       setOrders((prev) => [newOrder, ...prev]);

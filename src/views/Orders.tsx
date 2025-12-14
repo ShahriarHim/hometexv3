@@ -18,8 +18,7 @@ const Orders = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/" as any);
-      return;
+      router.replace("/");
     }
   }, [isAuthenticated, router]);
 
@@ -69,7 +68,7 @@ const Orders = () => {
               <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
               <h2 className="text-2xl font-semibold mb-2">No orders yet</h2>
               <p className="text-muted-foreground mb-6">Start shopping to see your orders here</p>
-              <Button onClick={() => router.push("/products" as any)}>Browse Products</Button>
+              <Button onClick={() => router.push("/products")}>Browse Products</Button>
             </CardContent>
           </Card>
         ) : (
@@ -98,7 +97,7 @@ const Orders = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push(`/orders/${order.id}` as any)}
+                        onClick={() => router.push(`/orders/${order.id}`)}
                       >
                         View Details
                       </Button>
