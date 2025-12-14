@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, startTransition } from "react";
 import styles from "@/styles/CookiesPopup.module.css";
+import React, { startTransition, useEffect, useState } from "react";
 
 interface CookiePreferences {
   necessary: boolean;
@@ -42,7 +42,9 @@ const CookiesPopup: React.FC<CookiesPopupProps> = ({ onClose }) => {
   const handleToggle = (type: keyof CookiePreferences) => {
     setPreferences((prev) => {
       // "Necessary" is always true, so skip toggling it
-      if (type === "necessary") return prev;
+      if (type === "necessary") {
+        return prev;
+      }
       const newPreferences = { ...prev, [type]: !prev[type] };
       localStorage.setItem("cookiePreferences", JSON.stringify(newPreferences));
       return newPreferences;

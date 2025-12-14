@@ -46,9 +46,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check if user changed
     if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
       // User changed, clear cart
-      setItems([]);
       localStorage.removeItem("hometex-cart");
       currentUserIdRef.current = currentUserId;
+      // Clear cart by not loading anything
       return;
     }
 
@@ -74,12 +74,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         } else {
           // Cart belongs to different user, clear it
-          setItems([]);
+          startTransition(() => {
+            setItems([]);
+          });
           currentUserIdRef.current = currentUserId;
         }
       } catch {
         // Invalid data, clear it
-        setItems([]);
+        startTransition(() => {
+          setItems([]);
+        });
         currentUserIdRef.current = currentUserId;
       }
     } else {

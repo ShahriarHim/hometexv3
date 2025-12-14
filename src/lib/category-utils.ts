@@ -3,16 +3,18 @@ import type { CategoryTree } from "@/types/api";
 
 export async function getCategoryData() {
   try {
+    // eslint-disable-next-line no-console
     console.log("Fetching categories from API...");
     const response = await productService.getMenu();
+    // eslint-disable-next-line no-console
     console.log("API Response:", { success: response.success, dataCount: response.data?.length });
 
     if (response.success && response.data) {
+      // eslint-disable-next-line no-console
       console.log("Categories fetched successfully:", response.data.length, "categories");
       return response.data;
-    } else {
-      console.error("API returned unsuccessful response:", response);
     }
+    console.error("API returned unsuccessful response:", response);
   } catch (error) {
     console.error("Error fetching categories:", error);
     if (error instanceof Error) {
@@ -28,6 +30,7 @@ export function findCategoryBySlug(categories: CategoryTree[], slug: string) {
 
   if (!foundCategory) {
     console.warn(`Category not found for slug: ${slug}`);
+    // eslint-disable-next-line no-console
     console.log(
       "Available categories:",
       categories.map((c) => ({ id: c.id, name: c.name, slug: createSlug(c.name) }))

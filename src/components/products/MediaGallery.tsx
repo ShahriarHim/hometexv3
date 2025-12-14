@@ -83,9 +83,15 @@ export const MediaGallery = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowLeft") handlePrevious();
-    if (e.key === "ArrowRight") handleNext();
-    if (e.key === "Escape") setLightboxOpen(false);
+    if (e.key === "ArrowLeft") {
+      handlePrevious();
+    }
+    if (e.key === "ArrowRight") {
+      handleNext();
+    }
+    if (e.key === "Escape") {
+      setLightboxOpen(false);
+    }
   };
 
   const handleVideoPlay = (videoId: number, type: string) => {

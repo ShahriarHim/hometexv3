@@ -8,6 +8,7 @@ import type { Product } from "@/types";
 import { ArrowRight, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { Swiper as SwiperClass } from "swiper";
 import "swiper/css";
 import "swiper/css/autoplay";
 import "swiper/css/navigation";
@@ -52,7 +53,7 @@ export const TrendingProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [swiperInstance, setSwiperInstance] = useState<any>(null);
+  const [_swiperInstance, setSwiperInstance] = useState<SwiperClass | null>(null);
 
   useEffect(() => {
     const fetchTrendingProducts = async () => {

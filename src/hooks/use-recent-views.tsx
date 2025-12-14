@@ -33,7 +33,9 @@ export const clearRecentViewsStorage = () => {
 
 // Helper function to load recent views from localStorage
 const loadRecentViews = (): RecentViewItem[] => {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") {
+    return [];
+  }
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -47,12 +49,7 @@ const loadRecentViews = (): RecentViewItem[] => {
 };
 
 export const useRecentViews = () => {
-  const [recentViews, setRecentViews] = useState<RecentViewItem[]>([]);
-
-  // Load initial data
-  useEffect(() => {
-    setRecentViews(loadRecentViews());
-  }, []);
+  const [recentViews, setRecentViews] = useState<RecentViewItem[]>(() => loadRecentViews());
 
   // Listen for storage changes (cross-tab sync)
   useEffect(() => {
@@ -77,7 +74,9 @@ export const useRecentViews = () => {
   }, []);
 
   const addRecentView = useCallback((product: Product) => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
 
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -109,11 +108,15 @@ export const useRecentViews = () => {
   }, []);
 
   const removeRecentView = useCallback((productId: string) => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
 
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) return;
+      if (!stored) {
+        return;
+      }
 
       const items: RecentViewItem[] = JSON.parse(stored);
       const filtered = items.filter((item) => item.id !== productId);
@@ -128,7 +131,9 @@ export const useRecentViews = () => {
   }, []);
 
   const clearRecentViews = useCallback(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
 
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -147,4 +152,3 @@ export const useRecentViews = () => {
     clearRecentViews,
   };
 };
-

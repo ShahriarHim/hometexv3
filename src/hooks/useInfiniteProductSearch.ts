@@ -51,12 +51,12 @@ export function useInfiniteProductSearch({
         ...(maxPrice && { max_price: maxPrice }),
       };
 
-      return await productService.getProducts(params);
+      return productService.getProducts(params);
     },
 
     initialPageParam: 1,
 
-    getNextPageParam: (lastPage, allPages) => {
+    getNextPageParam: (lastPage, _allPages) => {
       // Check if there are more pages
       if (!lastPage?.data?.products || lastPage.data.products.length === 0) {
         return undefined;

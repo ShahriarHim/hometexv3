@@ -1,4 +1,4 @@
-import ThemeEditor from '@/components/ThemeEditor';
+import ThemeEditor from "@/components/ThemeEditor";
 
 export default function ThemeEditorPage() {
   return <ThemeEditor />;

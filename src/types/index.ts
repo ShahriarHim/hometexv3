@@ -32,7 +32,7 @@ export interface ProductVariant {
   attributes: {
     Size?: string;
     Color?: string;
-    [key: string]: any;
+    [key: string]: string | undefined;
   };
   pricing: {
     regular_price: number;
@@ -43,7 +43,7 @@ export interface ProductVariant {
     stock_status: string;
     stock_quantity: number;
   };
-  media: any[];
+  media: Array<{ url?: string; type?: string; [key: string]: unknown }>;
   weight: number;
   dimensions: {
     length: number;

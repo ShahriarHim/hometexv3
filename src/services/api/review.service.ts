@@ -48,7 +48,9 @@ export const reviewService = {
     }
 
     if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
       console.log("Creating review with payload:", payload);
+      // eslint-disable-next-line no-console
       console.log("API URL:", env.apiBaseUrl);
     }
 
@@ -62,15 +64,18 @@ export const reviewService = {
     });
 
     if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
       console.log("Review creation response status:", response.status, response.statusText);
       // Clone response for logging without consuming the original
       const clonedResponse = response.clone();
       clonedResponse
         .json()
         .then((data) => {
+          // eslint-disable-next-line no-console
           console.log("Review creation response data:", data);
         })
         .catch(() => {
+          // eslint-disable-next-line no-console
           console.log("Could not parse response as JSON");
         });
     }
@@ -81,7 +86,10 @@ export const reviewService = {
   /**
    * Update an existing review
    */
-  updateReview: async (reviewId: string | number, data: UpdateReviewRequest): Promise<ReviewResponse> => {
+  updateReview: async (
+    reviewId: string | number,
+    data: UpdateReviewRequest
+  ): Promise<ReviewResponse> => {
     const response = await fetchWithFallback(`/api/update-review/${reviewId}`, env.apiBaseUrl, {
       method: "PUT",
       headers: {
@@ -111,4 +119,3 @@ export const reviewService = {
     return handleApiResponse<ApiResponse<null>>(response);
   },
 };
-

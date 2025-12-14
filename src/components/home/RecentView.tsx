@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Eye, X, ChevronLeft, ChevronRight, Trash2, Clock } from "lucide-react";
-import { useRecentViews } from "@/hooks/use-recent-views";
 import { Button } from "@/components/ui/button";
+import { useRecentViews } from "@/hooks/use-recent-views";
+import { ChevronLeft, ChevronRight, Clock, Eye, Trash2, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import React, { useEffect, useRef, useState } from "react";
 
 interface RecentViewProps {
   className?: string;
@@ -33,9 +33,9 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
         document.body.style.overflow = "unset";
         window.removeEventListener("keydown", handleEscape);
       };
-    } else {
-      document.body.style.overflow = "unset";
     }
+    document.body.style.overflow = "unset";
+    return undefined;
   }, [isOpen]);
 
   useEffect(() => {
@@ -51,6 +51,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
         window.removeEventListener("mousedown", handleClickOutside);
       };
     }
+    return undefined;
   }, [isOpen]);
 
   const startIndex = (currentPage - 1) * productsPerPage;
@@ -64,17 +65,34 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
     setCurrentPage((prev) => Math.min(totalPages, prev + 1));
   };
 
-  const getProductUrl = (product: typeof recentViews[0]) => {
-    return `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any;
+  const getProductUrl = (product: (typeof recentViews)[0]) => {
+    return `/products/${product.category}/${product.subcategory || "all"}/${product.id}`;
   };
 
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // Update every minute
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
   const formatTimeAgo = (timestamp: number) => {
-    const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return "Just now";
+    const seconds = Math.floor((currentTime - timestamp) / 1000);
+    if (seconds < 60) {
+      return "Just now";
+    }
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
+    if (hours < 24) {
+      return `${hours}h ago`;
+    }
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
   };
@@ -143,9 +161,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
                   <div className="bg-gray-100 rounded-full p-6 mb-4">
                     <Eye className="w-12 h-12 text-gray-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No Recent Views
-                  </h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Recent Views</h3>
                   <p className="text-gray-600 max-w-md">
                     Products you view will appear here. Start browsing to see your recent views!
                   </p>
@@ -158,7 +174,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
                       className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 bg-white"
                     >
                       <Link
-                        href={getProductUrl(product)}
+                        href={getProductUrl(product) as never}
                         onClick={() => setIsOpen(false)}
                         className="flex gap-4 p-4"
                       >
@@ -255,4 +271,3 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
 };
 
 export default RecentView;
-

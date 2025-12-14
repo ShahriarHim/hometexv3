@@ -29,7 +29,7 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
   }, [isOpen, onClose]);
 
   const handleViewWishlistClick = () => {
-    router.push("/account/wishlist" as any);
+    router.push("/account/wishlist" as never);
     onClose();
   };
 
@@ -38,7 +38,9 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="relative z-[999999]">
@@ -148,7 +150,7 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes slide-in {
           from {
             transform: translateX(100%);

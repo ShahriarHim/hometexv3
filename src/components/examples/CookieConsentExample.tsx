@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import { useCookieConsent } from "@/hooks/useCookieConsent";
+import React from "react";
 
 /**
  * Example component demonstrating how to use the useCookieConsent hook
@@ -9,7 +9,13 @@ import { useCookieConsent } from "@/hooks/useCookieConsent";
  * analytics, marketing scripts, or other tracking tools
  */
 const CookieConsentExample: React.FC = () => {
-  const { preferences, isLoaded, isAllowed, hasConsent, resetPreferences } = useCookieConsent();
+  const {
+    preferences: _preferences,
+    isLoaded,
+    isAllowed,
+    hasConsent,
+    resetPreferences,
+  } = useCookieConsent();
 
   // Wait for preferences to load
   if (!isLoaded) {

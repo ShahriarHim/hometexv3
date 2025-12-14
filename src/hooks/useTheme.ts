@@ -101,7 +101,10 @@ export function useTheme() {
         root.style.setProperty(`--${key}`, value);
       });
 
-      setCurrentTheme(savedTheme);
+      // Use queueMicrotask to defer setState
+      queueMicrotask(() => {
+        setCurrentTheme(savedTheme);
+      });
     }
   }, []);
 

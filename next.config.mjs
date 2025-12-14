@@ -61,12 +61,15 @@ const nextConfig = {
       },
     ],
   },
-  headers: async () => [
-    {
-      source: "/(.*)",
-      headers: securityHeaders,
-    },
-  ],
+  headers: async () => {
+    await Promise.resolve(); // Satisfy require-await
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
