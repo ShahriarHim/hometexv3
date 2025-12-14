@@ -36,9 +36,9 @@ if ! command -v pm2 &> /dev/null; then
     fi
 fi
 
-# Install dependencies
-echo -e "${GREEN}Installing dependencies...${NC}"
-npm install --production
+# Install dependencies (including devDependencies needed for build)
+echo -e "${GREEN}Installing dependencies (including devDependencies for build)...${NC}"
+npm install
 
 # Build application
 echo -e "${GREEN}Building application...${NC}"
