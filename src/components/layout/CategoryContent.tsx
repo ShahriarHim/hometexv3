@@ -1,9 +1,9 @@
 "use client";
 
-import { ProductCard } from "@/components/products/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/routing";
 import { productService } from "@/services/api";
+import type { Product } from "@/types";
 import type { CategoryTree } from "@/types/api";
 import { useEffect, useState } from "react";
 import { CategoryPageSkeleton } from "./CategoryPageSkeleton";
@@ -61,7 +61,8 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
   }
 
   // Products will be fetched via API in CategoryContentClient
-  const categoryProducts: never[] = [];
+  // This component is legacy - products are handled in CategoryContentClient
+  const categoryProducts: Product[] = [];
 
   if (loading) {
     return <CategoryPageSkeleton />;
@@ -132,17 +133,9 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
 
       {/* Products */}
       <div className="container mx-auto px-4 py-8">
-        {categoryProducts.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No products found in this category.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categoryProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
+        <div className="text-center py-16">
+          <p className="text-muted-foreground text-lg">No products found in this category.</p>
+        </div>
       </div>
     </>
   );
