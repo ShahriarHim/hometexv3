@@ -34,19 +34,47 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Load wishlist from localStorage and handle user changes
   useEffect(() => {
-    const currentUserId = user?.id || null;
-    const savedWishlist = localStorage.getItem("hometex-wishlist");
+    // Get userId from user context or localStorage (to handle race conditions)
+    let currentUserId: string | null = null;
+    if (user?.id) {
+      currentUserId = String(user.id);
+    } else {
+      // Try to get userId from localStorage if user context hasn't loaded yet
+      try {
+        const savedUser = localStorage.getItem("hometex-user");
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser?.id) {
+            currentUserId = String(parsedUser.id);
+          }
+        }
+      } catch {
+        // Ignore errors parsing user from localStorage
+      }
+    }
 
-    // Check if user changed
-    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
-      // User changed, clear wishlist
+    const previousUserId = currentUserIdRef.current;
+
+    // Detect user change: any change in user ID (including null transitions)
+    const userChanged = previousUserId !== currentUserId;
+
+    if (userChanged && previousUserId !== null) {
+      // User changed from a logged-in state - clear state and localStorage immediately
+      startTransition(() => {
+        setItems([]);
+      });
       localStorage.removeItem("hometex-wishlist");
       currentUserIdRef.current = currentUserId;
-      // Clear wishlist by not loading anything
-      return;
+
+      // If logging out (currentUserId is null), we're done
+      if (currentUserId === null) {
+        return;
+      }
+      // Otherwise, continue to load new user's wishlist below
     }
 
     // Load from localStorage if available
+    const savedWishlist = localStorage.getItem("hometex-wishlist");
     if (savedWishlist) {
       try {
         const parsed = JSON.parse(savedWishlist);
@@ -60,17 +88,36 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           wishlistData = parsed as WishlistStorage;
         }
 
-        // Only load wishlist if it belongs to the current user or if no user is logged in
-        if (wishlistData.userId === currentUserId || (!currentUserId && !wishlistData.userId)) {
-          startTransition(() => {
-            setItems(wishlistData.items || []);
-            currentUserIdRef.current = currentUserId;
-          });
+        // Validate: Only load wishlist if it belongs to the current user
+        // If logged in, wishlist must have matching userId
+        // If logged out, wishlist must have userId: null
+        const isValidForCurrentUser =
+          currentUserId === null
+            ? wishlistData.userId === null
+            : wishlistData.userId === currentUserId;
+
+        // eslint-disable-next-line no-console
+        console.log("[WishlistContext] Validation:", {
+          isValidForCurrentUser,
+          currentUserId,
+          wishlistUserId: wishlistData.userId,
+        });
+
+        if (isValidForCurrentUser) {
+          // eslint-disable-next-line no-console
+          console.log(
+            "[WishlistContext] Loading wishlist - items count:",
+            wishlistData.items?.length || 0
+          );
+          // Update ref first, then set items to prevent race conditions
+          currentUserIdRef.current = currentUserId;
+          setItems(wishlistData.items || []);
         } else {
           // Wishlist belongs to different user, clear it
           startTransition(() => {
             setItems([]);
           });
+          localStorage.removeItem("hometex-wishlist");
           currentUserIdRef.current = currentUserId;
         }
       } catch {
@@ -78,15 +125,41 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         startTransition(() => {
           setItems([]);
         });
+        localStorage.removeItem("hometex-wishlist");
         currentUserIdRef.current = currentUserId;
       }
     } else {
+      // No saved wishlist, just update the ref
       currentUserIdRef.current = currentUserId;
     }
   }, [user?.id]);
 
   useEffect(() => {
-    const currentUserId = user?.id || null;
+    // Get userId from user context or localStorage (to handle race conditions)
+    let currentUserId: string | null = null;
+    if (user?.id) {
+      currentUserId = String(user.id);
+    } else {
+      // Try to get userId from localStorage if user context hasn't loaded yet
+      try {
+        const savedUser = localStorage.getItem("hometex-user");
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser?.id) {
+            currentUserId = String(parsedUser.id);
+          }
+        }
+      } catch {
+        // Ignore errors parsing user from localStorage
+      }
+    }
+
+    // Don't save if user changed but we haven't updated the ref yet (race condition prevention)
+    if (currentUserIdRef.current !== currentUserId) {
+      return;
+    }
+
+    // Only save if we have items or if we're explicitly clearing (empty array with matching user)
     const wishlistData: WishlistStorage = {
       userId: currentUserId,
       items,

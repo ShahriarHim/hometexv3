@@ -89,9 +89,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("No authentication token received");
       }
 
-      // Create user object from response
+      // Create user object from response - ensure ID is properly converted to string
+      const userId = userData.id ? String(userData.id) : null;
+      if (!userId) {
+        throw new Error("Invalid response: user ID not found");
+      }
+
       const loggedInUser = {
-        id: String(userData.id),
+        id: userId,
         email: String(userData.email || ""),
         name: String(
           userData.name || `${userData.first_name || ""} ${userData.last_name || ""}`.trim()
@@ -277,13 +282,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // ignore API errors on logout
     } finally {
-      setUser(null);
+      // Clear localStorage FIRST to prevent race conditions with context effects
       localStorage.removeItem("hometex-user");
       localStorage.removeItem("hometex-auth-token");
       localStorage.removeItem("hometex-cart");
       localStorage.removeItem("hometex-wishlist");
       localStorage.removeItem("hometex-orders");
       clearRecentViewsStorage(); // Clear recent views on logout
+
+      // Then clear user state - this will trigger context effects to clear their state
+      setUser(null);
+
       toast.success("Logged out successfully");
       // Redirect to home
       window.location.href = "/";

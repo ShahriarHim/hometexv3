@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/common/EmptyState";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -47,16 +48,13 @@ const Cart = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-16">
-          <Card className="max-w-md mx-auto text-center">
-            <CardContent className="pt-16 pb-16">
-              <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
-              <p className="text-muted-foreground mb-6">Start adding some products to your cart</p>
-              <Button asChild>
-                <Link href="/shop">Continue Shopping</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={ShoppingBag}
+            title="Your cart is empty"
+            description="Start adding some products to your cart"
+            actionLabel="Continue Shopping"
+            actionHref="/shop"
+          />
         </main>
         <Footer />
       </div>

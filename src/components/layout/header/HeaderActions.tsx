@@ -14,7 +14,7 @@ interface HeaderActionsProps {
   _isChatOpen?: boolean;
 }
 
-export const HeaderActions = ({ onSearchClick, onChatToggle, _isChatOpen }: HeaderActionsProps) => {
+const HeaderActions = ({ onSearchClick, onChatToggle, _isChatOpen }: HeaderActionsProps) => {
   const t = useTranslations("navigation");
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
@@ -108,3 +108,5 @@ export const HeaderActions = ({ onSearchClick, onChatToggle, _isChatOpen }: Head
     </div>
   );
 };
+
+export { HeaderActions };
