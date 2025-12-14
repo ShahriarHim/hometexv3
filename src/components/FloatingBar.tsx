@@ -30,11 +30,17 @@ const FloatingBar = () => {
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [showRecentlyViewed, setShowRecentlyViewed] = useState(false);
   const [showLocationPanel, setShowLocationPanel] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Get cart and wishlist data from context
   const { getTotalItems, getTotalPrice, setIsCartPopupOpen } = useCart();
   const { items: wishlistItems } = useWishlist();
   const { recentViews, removeRecentView, clearRecentViews } = useRecentViews();
+
+  // Track mount state to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const cartItemsCount = getTotalItems();
   const totalPrice = getTotalPrice();
@@ -162,14 +168,14 @@ const FloatingBar = () => {
       tooltip: "Wishlist",
       onClick: handleWishClick,
       className: "floating-btn-middle",
-      badge: wishlistItems.length,
+      badge: mounted ? wishlistItems.length : null,
     },
     {
       icon: <FaEye />,
       tooltip: "Recently Viewed",
       onClick: handleRecentlyViewedClick,
       className: "floating-btn-middle",
-      badge: recentViews.length > 0 ? recentViews.length : null,
+      badge: mounted && recentViews.length > 0 ? recentViews.length : null,
     },
     {
       icon: <FaArrowUp />,
@@ -191,7 +197,7 @@ const FloatingBar = () => {
           <button className="floating-btn-cart green-btn" onClick={handleCartClick}>
             <FaShoppingCart style={{ fontSize: "20px" }} />
             <span className="cart-text">৳{totalPrice}</span>
-            {cartItemsCount > 0 && <span className="cart-badge">{cartItemsCount}</span>}
+            {mounted && cartItemsCount > 0 && <span className="cart-badge">{cartItemsCount}</span>}
           </button>
         </div>
 

@@ -28,20 +28,13 @@ interface UseInfiniteProductSearchParams {
  * });
  * ```
  */
-export function useInfiniteProductSearch({
-  searchTerm,
-  category,
-  perPage = 20,
-  sort,
-  minPrice,
-  maxPrice,
-  enabled = true,
-}: UseInfiniteProductSearchParams = {}) {
+export function useInfiniteProductSearch(options: UseInfiniteProductSearchParams = {}) {
+  const { searchTerm, category, perPage = 20, sort, minPrice, maxPrice, enabled = true } = options;
   return useInfiniteQuery<ProductsResponse, Error>({
     queryKey: ["products", "infinite", searchTerm, category, perPage, sort, minPrice, maxPrice],
 
     queryFn: async ({ pageParam = 1 }) => {
-      const params: ProductQueryParams = {
+      const queryParams: ProductQueryParams = {
         page: pageParam as number,
         per_page: perPage,
         ...(searchTerm && { search: searchTerm }),
@@ -51,7 +44,7 @@ export function useInfiniteProductSearch({
         ...(maxPrice && { max_price: maxPrice }),
       };
 
-      return productService.getProducts(params);
+      return productService.getProducts(queryParams);
     },
 
     initialPageParam: 1,

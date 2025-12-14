@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/common/EmptyState";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -93,16 +94,13 @@ const Wishlist = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-16">
-          <Card className="max-w-md mx-auto text-center">
-            <CardContent className="pt-16 pb-16">
-              <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mb-2">Your wishlist is empty</h2>
-              <p className="text-muted-foreground mb-6">Save items you love for later</p>
-              <Button asChild>
-                <Link href="/shop">Continue Shopping</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={Heart}
+            title="Your wishlist is empty"
+            description="Save items you love for later"
+            actionLabel="Continue Shopping"
+            actionHref="/shop"
+          />
         </main>
         <Footer />
       </div>

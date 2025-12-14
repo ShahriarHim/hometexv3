@@ -99,19 +99,45 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Load orders from localStorage and handle user changes
   useEffect(() => {
-    const currentUserId = user?.id || null;
-    const savedOrders = localStorage.getItem("hometex-orders");
+    // Get userId from user context or localStorage (to handle race conditions)
+    let currentUserId: string | null = null;
+    if (user?.id) {
+      currentUserId = String(user.id);
+    } else {
+      // Try to get userId from localStorage if user context hasn't loaded yet
+      try {
+        const savedUser = localStorage.getItem("hometex-user");
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser?.id) {
+            currentUserId = String(parsedUser.id);
+          }
+        }
+      } catch {
+        // Ignore errors parsing user from localStorage
+      }
+    }
 
-    // Check if user changed
-    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
-      // User changed, clear orders
+    const previousUserId = currentUserIdRef.current;
+
+    // Detect user change: any change in user ID (including null transitions)
+    const userChanged = previousUserId !== currentUserId;
+
+    if (userChanged && previousUserId !== null) {
+      // User changed from a logged-in state - clear state and localStorage immediately
       setOrders([]);
       localStorage.removeItem("hometex-orders");
       currentUserIdRef.current = currentUserId;
-      return;
+
+      // If logging out (currentUserId is null), we're done
+      if (currentUserId === null) {
+        return;
+      }
+      // Otherwise, continue to load new user's orders below
     }
 
     // Load from localStorage if available
+    const savedOrders = localStorage.getItem("hometex-orders");
     if (savedOrders) {
       try {
         const parsed = JSON.parse(savedOrders);
@@ -125,13 +151,18 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           ordersData = parsed as OrdersStorage;
         }
 
-        // Only load orders if they belong to the current user or if no user is logged in
-        if (ordersData.userId === currentUserId || (!currentUserId && !ordersData.userId)) {
+        // Validate: Only load orders if they belong to the current user
+        // If logged in, orders must have matching userId
+        // If logged out, orders must have userId: null
+        const isValidForCurrentUser =
+          currentUserId === null ? ordersData.userId === null : ordersData.userId === currentUserId;
+
+        if (isValidForCurrentUser) {
           startTransition(() => {
-            // Filter orders to only include those belonging to current user
+            // Filter orders to only include those belonging to current user (extra safety check)
             const userOrders =
               ordersData.orders?.filter(
-                (order) => !currentUserId || order.userId === currentUserId
+                (order) => currentUserId === null || order.userId === currentUserId
               ) || [];
             setOrders(userOrders);
             currentUserIdRef.current = currentUserId;
@@ -139,22 +170,50 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } else {
           // Orders belong to different user, clear them
           setOrders([]);
+          localStorage.removeItem("hometex-orders");
           currentUserIdRef.current = currentUserId;
         }
       } catch {
         // Invalid data, clear it
         setOrders([]);
+        localStorage.removeItem("hometex-orders");
         currentUserIdRef.current = currentUserId;
       }
     } else {
+      // No saved orders, just update the ref
       currentUserIdRef.current = currentUserId;
     }
   }, [user?.id]);
 
   useEffect(() => {
-    const currentUserId = user?.id || null;
+    // Get userId from user context or localStorage (to handle race conditions)
+    let currentUserId: string | null = null;
+    if (user?.id) {
+      currentUserId = String(user.id);
+    } else {
+      // Try to get userId from localStorage if user context hasn't loaded yet
+      try {
+        const savedUser = localStorage.getItem("hometex-user");
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser?.id) {
+            currentUserId = String(parsedUser.id);
+          }
+        }
+      } catch {
+        // Ignore errors parsing user from localStorage
+      }
+    }
+
+    // Don't save if user changed but we haven't updated the ref yet (race condition prevention)
+    if (currentUserIdRef.current !== currentUserId) {
+      return;
+    }
+
     // Only save orders that belong to current user
-    const userOrders = orders.filter((order) => !currentUserId || order.userId === currentUserId);
+    const userOrders = orders.filter(
+      (order) => currentUserId === null || order.userId === currentUserId
+    );
     const ordersData: OrdersStorage = {
       userId: currentUserId,
       orders: userOrders,

@@ -40,19 +40,56 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load cart from localStorage and handle user changes
   useEffect(() => {
-    const currentUserId = user?.id || null;
-    const savedCart = localStorage.getItem("hometex-cart");
+    // Get userId from user context or localStorage (to handle race conditions)
+    let currentUserId: string | null = null;
+    if (user?.id) {
+      currentUserId = String(user.id);
+    } else {
+      // Try to get userId from localStorage if user context hasn't loaded yet
+      try {
+        const savedUser = localStorage.getItem("hometex-user");
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser?.id) {
+            currentUserId = String(parsedUser.id);
+          }
+        }
+      } catch {
+        // Ignore errors parsing user from localStorage
+      }
+    }
 
-    // Check if user changed
-    if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
-      // User changed, clear cart
+    const previousUserId = currentUserIdRef.current;
+
+    // Detect user change: only treat it as a change if previousUserId was NOT null
+    // This prevents clearing cart on initial load when previousUserId starts as null
+    const userChanged = previousUserId !== null && previousUserId !== currentUserId;
+
+    if (userChanged) {
+      // User actually changed (not initial load) - clear state and localStorage
+      startTransition(() => {
+        setItems([]);
+      });
       localStorage.removeItem("hometex-cart");
       currentUserIdRef.current = currentUserId;
-      // Clear cart by not loading anything
+
+      // If logging out (currentUserId is null), we're done
+      if (currentUserId === null) {
+        return;
+      }
+      // Otherwise, continue to load new user's cart below
+    } else if (previousUserId === currentUserId && previousUserId !== null) {
+      // User hasn't changed and we've already loaded (not initial mount) - don't reload
+      // eslint-disable-next-line no-console
+      console.log("[CartContext] User unchanged - skipping reload");
       return;
     }
 
+    // Update ref to current user (for both initial load and user changes)
+    currentUserIdRef.current = currentUserId;
+
     // Load from localStorage if available
+    const savedCart = localStorage.getItem("hometex-cart");
     if (savedCart) {
       try {
         const parsed = JSON.parse(savedCart);
@@ -66,17 +103,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           cartData = parsed as CartStorage;
         }
 
-        // Only load cart if it belongs to the current user or if no user is logged in
-        if (cartData.userId === currentUserId || (!currentUserId && !cartData.userId)) {
+        // Validate: Only load cart if it belongs to the current user
+        // If logged in, cart must have matching userId
+        // If logged out, cart must have userId: null
+        const isValidForCurrentUser =
+          currentUserId === null ? cartData.userId === null : cartData.userId === currentUserId;
+
+        if (isValidForCurrentUser) {
+          // Update ref first, then set items to prevent race conditions
+          currentUserIdRef.current = currentUserId;
           startTransition(() => {
             setItems(cartData.items || []);
-            currentUserIdRef.current = currentUserId;
           });
         } else {
           // Cart belongs to different user, clear it
           startTransition(() => {
             setItems([]);
           });
+          localStorage.removeItem("hometex-cart");
           currentUserIdRef.current = currentUserId;
         }
       } catch {
@@ -84,16 +128,43 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         startTransition(() => {
           setItems([]);
         });
+        localStorage.removeItem("hometex-cart");
         currentUserIdRef.current = currentUserId;
       }
     } else {
+      // No saved cart, just update the ref
       currentUserIdRef.current = currentUserId;
     }
   }, [user?.id]);
 
   // Save cart to localStorage whenever it changes
+  // Only save if user is logged in or if it's a guest cart (user is null and items exist)
   useEffect(() => {
-    const currentUserId = user?.id || null;
+    // Get userId from user context or localStorage (to handle race conditions)
+    let currentUserId: string | null = null;
+    if (user?.id) {
+      currentUserId = String(user.id);
+    } else {
+      // Try to get userId from localStorage if user context hasn't loaded yet
+      try {
+        const savedUser = localStorage.getItem("hometex-user");
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser?.id) {
+            currentUserId = String(parsedUser.id);
+          }
+        }
+      } catch {
+        // Ignore errors parsing user from localStorage
+      }
+    }
+
+    // Don't save if user changed but we haven't updated the ref yet (race condition prevention)
+    if (currentUserIdRef.current !== currentUserId) {
+      return;
+    }
+
+    // Only save if we have items or if we're explicitly clearing (empty array with matching user)
     const cartData: CartStorage = {
       userId: currentUserId,
       items,
