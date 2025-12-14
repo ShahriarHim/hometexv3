@@ -13,10 +13,10 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Check if running as root
+# Check if running as root (warn but allow for sudo usage)
 if [ "$EUID" -eq 0 ]; then
-   echo -e "${RED}Please do not run as root${NC}"
-   exit 1
+   echo -e "${YELLOW}Warning: Running as root. Consider running without sudo.${NC}"
+   echo -e "${YELLOW}Continuing anyway...${NC}"
 fi
 
 # Check Node.js version
@@ -29,7 +29,11 @@ fi
 # Check if PM2 is installed
 if ! command -v pm2 &> /dev/null; then
     echo -e "${YELLOW}PM2 not found. Installing...${NC}"
-    npm install -g pm2
+    if [ "$EUID" -eq 0 ]; then
+        npm install -g pm2
+    else
+        sudo npm install -g pm2
+    fi
 fi
 
 # Install dependencies
