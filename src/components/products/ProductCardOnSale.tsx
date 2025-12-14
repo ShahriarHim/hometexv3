@@ -1,16 +1,15 @@
 "use client";
 
+import { useRecentViews } from "@/hooks/use-recent-views";
 import type { Product } from "@/types";
+import { Flame, Star } from "lucide-react";
 import Image from "next/image";
-import React from "react";
 import Link from "next/link";
 import { Flame, Star } from "lucide-react";
 import { generateProductUrl } from "@/lib/product-url";
 import PriceView from "./PriceView";
-import Title from "./Title";
 import ProductSideMenu from "./ProductSideMenu";
-import AddToCartButton from "./AddToCartButton";
-import { useRecentViews } from "@/hooks/use-recent-views";
+import Title from "./Title";
 
 const ProductCardOnSale = ({ product }: { product: Product }) => {
   const stock = product.stock ?? (product.inStock ? 100 : 0);
@@ -51,8 +50,8 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
               {stock > 0 && (
                 <div className="absolute bottom-2 right-2 z-10 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#93D991] animate-pulse"></div>
-                    <span className="text-xs font-bold text-[#2d8659]">{stock} in stock</span>
+                    <div className="w-2 h-2 rounded-full bg-stock-high animate-pulse"></div>
+                    <span className="text-xs font-bold text-stock-high">{stock} in stock</span>
                   </div>
                 </div>
               )}
@@ -74,10 +73,14 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
           </p>
         ) : (
           <Link
-            href={"/deal"}
-            className="absolute top-2 left-2 z-10 border-2 border-[#fb6c08] bg-white/95 backdrop-blur-sm p-2 rounded-full hover:bg-[#fb6c08]/10 transition-colors shadow-md"
+            href="/deal"
+            className="absolute top-2 left-2 z-10 border-2 border-accent-secondary bg-white/95 backdrop-blur-sm p-2 rounded-full hover:bg-accent-secondary/10 transition-colors shadow-md"
           >
-            <Flame size={20} fill="#fb6c08" className="text-[#fb6c08]" />
+            <Flame
+              size={20}
+              fill="hsl(var(--accent-secondary))"
+              className="text-accent-secondary"
+            />
           </Link>
         )}
       </div>
@@ -90,7 +93,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
         <Link
           href={productUrl as any}
           onClick={handleProductClick}
-          className="hover:text-[#2d8659] transition-colors"
+          className="hover:text-accent transition-colors"
         >
           <Title className="text-base line-clamp-2 font-bold text-gray-900 leading-snug">
             {product?.name}
@@ -103,7 +106,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
                 key={index}
                 className={`h-5 w-5 ${
                   index < Math.floor(product.rating || 4)
-                    ? "text-[#93D991] fill-[#93D991]"
+                    ? "text-warning fill-warning"
                     : "text-gray-300 fill-gray-300"
                 }`}
               />

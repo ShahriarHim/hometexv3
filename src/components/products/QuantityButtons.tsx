@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import type { Product } from "@/types";
+import { Minus, Plus } from "lucide-react";
 
 interface Props {
   product: Product;
@@ -34,7 +33,7 @@ const QuantityButtons = ({ product }: Props) => {
       <Button
         variant="outline"
         size="icon"
-        className="h-9 w-9 border-2 border-gray-300 hover:border-[#93D991] hover:bg-[#93D991]/10 disabled:opacity-50"
+        className="h-9 w-9 border-2 border-gray-300 hover:border-accent hover:bg-accent/10 disabled:opacity-50"
         onClick={handleDecrease}
         disabled={quantity <= 1}
       >
@@ -44,7 +43,7 @@ const QuantityButtons = ({ product }: Props) => {
       <Button
         variant="outline"
         size="icon"
-        className="h-9 w-9 border-2 border-[#93D991] bg-[#93D991]/10 hover:bg-[#93D991] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+        className="h-9 w-9 border-2 border-accent bg-accent/10 hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={handleIncrease}
         disabled={productStock <= quantity}
       >

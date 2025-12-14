@@ -1,10 +1,10 @@
 "use client";
 
+import { useWishlist } from "@/context/WishlistContext";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
-import { useWishlist } from "@/context/WishlistContext";
 import { Heart } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 
 const ProductSideMenu = ({ product, className }: { product: Product; className?: string }) => {
@@ -32,7 +32,7 @@ const ProductSideMenu = ({ product, className }: { product: Product; className?:
         onClick={handleFavorite}
         className={`p-2 rounded-full transition-all duration-200 ${
           isInWishlist
-            ? "bg-[#2d8659] text-white shadow-sm"
+            ? "bg-accent text-accent-foreground shadow-sm"
             : "bg-white text-gray-900 border border-gray-300 hover:bg-gray-50"
         }`}
       >

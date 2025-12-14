@@ -2,7 +2,7 @@ import { infoHighlights } from "@/data/migration-content";
 
 export const InfoHighlights = () => {
   return (
-    <div className="bg-[#d9614e42]" suppressHydrationWarning>
+    <div className="bg-accent-secondary-light" suppressHydrationWarning>
       <div className="max-w-screen-xl mx-auto px-3 mb-5 relative" suppressHydrationWarning>
         <div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6 relative"

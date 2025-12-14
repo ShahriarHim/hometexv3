@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/routing";
 import type { CategoryTree } from "@/types/api";
+import Image from "next/image";
 
 interface CategoryContentClientProps {
   slug: string;
@@ -30,6 +31,19 @@ export function CategoryContentClient({
       {/* Category Hero */}
       <div className="bg-gradient-to-br from-background to-muted py-16">
         <div className="container mx-auto px-4 text-center">
+          {categoryImage && (
+            <div className="mb-6 flex justify-center">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                <Image
+                  src={categoryImage}
+                  alt={pageTitle}
+                  fill
+                  className="object-cover"
+                  sizes="128px"
+                />
+              </div>
+            </div>
+          )}
           <Badge className="mb-4 bg-sage text-white">{categoryProducts.length} Products</Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{pageTitle}</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{pageDescription}</p>

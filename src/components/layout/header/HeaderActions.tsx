@@ -76,7 +76,7 @@ export const HeaderActions = ({ onSearchClick, onChatToggle, isChatOpen }: Heade
       </Button>
 
       {/* Account, Wishlist, Cart Icons */}
-      <Link
+      {/* <Link
         href="/account"
         className="hidden md:flex items-center justify-center p-2 hover:text-primary transition-colors"
       >
@@ -105,7 +105,7 @@ export const HeaderActions = ({ onSearchClick, onChatToggle, isChatOpen }: Heade
             {cartCount}
           </span>
         )}
-      </Link>
+      </Link> */}
     </div>
   );
 };
