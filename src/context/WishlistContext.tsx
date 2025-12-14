@@ -111,7 +111,9 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           );
           // Update ref first, then set items to prevent race conditions
           currentUserIdRef.current = currentUserId;
-          setItems(wishlistData.items || []);
+          startTransition(() => {
+            setItems(wishlistData.items || []);
+          });
         } else {
           // Wishlist belongs to different user, clear it
           startTransition(() => {

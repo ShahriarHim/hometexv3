@@ -6,7 +6,7 @@ import { useRecentViews } from "@/hooks/use-recent-views";
 import { ChevronLeft, ChevronRight, Clock, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import {
   FaArrowUp,
   FaEye,
@@ -39,7 +39,9 @@ const FloatingBar = () => {
 
   // Track mount state to prevent hydration mismatch
   useEffect(() => {
-    setMounted(true);
+    startTransition(() => {
+      setMounted(true);
+    });
   }, []);
 
   const cartItemsCount = getTotalItems();

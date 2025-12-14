@@ -120,7 +120,7 @@ interface APIProduct {
     key?: string;
     value?: string;
   }>;
-  attributes?: Array<any>;
+  attributes?: Array<unknown>;
 }
 
 interface Product {
@@ -265,7 +265,9 @@ export const transformHeroBannerToSlideV2 = (banner: HeroBannerV2Input): HeroSli
  */
 // Helper function to extract numeric value from price string (e.g., "650৳" -> 650)
 const extractNumericPrice = (price: number | string | undefined): number => {
-  if (typeof price === "number") return price;
+  if (typeof price === "number") {
+    return price;
+  }
   if (typeof price === "string") {
     // Remove currency symbols and whitespace, extract number
     const numeric = price.replace(/[^\d.]/g, "");
@@ -277,7 +279,9 @@ const extractNumericPrice = (price: number | string | undefined): number => {
 
 // Helper function to extract numeric value from discount percent (e.g., "10%" -> 10)
 const extractNumericDiscount = (discount: number | string | undefined): number => {
-  if (typeof discount === "number") return discount;
+  if (typeof discount === "number") {
+    return discount;
+  }
   if (typeof discount === "string") {
     // Remove % symbol and extract number
     const numeric = discount.replace(/[^\d.]/g, "");
