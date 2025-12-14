@@ -13,48 +13,48 @@
  * node .\scripts\find-hardcoded-colors.js
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const searchDirs = ['src/components', 'src/views', 'src/app'];
+const searchDirs = ["src/components", "src/views", "src/app"];
 
 // Patterns to find hardcoded colors
 const patterns = [
-  /bg-\[#[0-9a-fA-F]+\]/g,          // bg-[#hex]
-  /text-\[#[0-9a-fA-F]+\]/g,        // text-[#hex]
-  /border-\[#[0-9a-fA-F]+\]/g,      // border-[#hex]
-  /bg-\[rgba?\([^\]]+\)\]/g,        // bg-[rgba()]
-  /text-\[rgba?\([^\]]+\)\]/g,      // text-[rgba()]
+  /bg-\[#[0-9a-fA-F]+\]/g, // bg-[#hex]
+  /text-\[#[0-9a-fA-F]+\]/g, // text-[#hex]
+  /border-\[#[0-9a-fA-F]+\]/g, // border-[#hex]
+  /bg-\[rgba?\([^\]]+\)\]/g, // bg-[rgba()]
+  /text-\[rgba?\([^\]]+\)\]/g, // text-[rgba()]
   /#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}/g, // Direct hex in strings
 ];
 
 // Color migration suggestions
 const suggestions = {
-  '#2d8659': 'accent (emerald green)',
-  '#93D991': 'accent-light',
-  '#fb6c08': 'accent-secondary (orange)',
-  '#E8FE00': 'primary',
-  '#e8fe00': 'primary',
-  '#C5CEE8': 'secondary-light',
-  '#c5cee8': 'secondary-light',
-  '#d4ed30': 'primary',
-  '#00ffff': 'Consider using info or accent',
-  '#f53c78': 'Consider using error or accent-secondary',
-  '#f3f30a': 'primary-light',
-  '#333333': 'text-primary or secondary',
-  '#ababab': 'text-tertiary',
-  '#f5f5f5': 'surface or surface-dark',
+  "#2d8659": "accent (emerald green)",
+  "#93D991": "accent-light",
+  "#fb6c08": "accent-secondary (orange)",
+  "#E8FE00": "primary",
+  "#e8fe00": "primary",
+  "#C5CEE8": "secondary-light",
+  "#c5cee8": "secondary-light",
+  "#d4ed30": "primary",
+  "#00ffff": "Consider using info or accent",
+  "#f53c78": "Consider using error or accent-secondary",
+  "#f3f30a": "primary-light",
+  "#333333": "text-primary or secondary",
+  "#ababab": "text-tertiary",
+  "#f5f5f5": "surface or surface-dark",
 };
 
 function searchFile(filePath) {
-  const content = fs.readFileSync(filePath, 'utf-8');
+  const content = fs.readFileSync(filePath, "utf-8");
   const matches = [];
 
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     const found = content.match(pattern);
     if (found) {
       matches.push(...found);
@@ -67,7 +67,7 @@ function searchFile(filePath) {
 function walkDirectory(dir, results = []) {
   const files = fs.readdirSync(dir);
 
-  files.forEach(file => {
+  files.forEach((file) => {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
 
@@ -84,15 +84,17 @@ function walkDirectory(dir, results = []) {
   return results;
 }
 
-console.log('🔍 Searching for hardcoded colors...\n');
+// eslint-disable-next-line no-console
+console.log("🔍 Searching for hardcoded colors...\n");
 
 let totalFiles = 0;
 let totalMatches = 0;
 
-searchDirs.forEach(dir => {
+searchDirs.forEach((dir) => {
   const fullPath = path.join(path.dirname(__dirname), dir);
 
   if (!fs.existsSync(fullPath)) {
+    // eslint-disable-next-line no-console
     console.log(`⚠️  Directory not found: ${dir}`);
     return;
   }
@@ -100,22 +102,27 @@ searchDirs.forEach(dir => {
   const results = walkDirectory(fullPath);
 
   if (results.length > 0) {
+    // eslint-disable-next-line no-console
     console.log(`\n📁 ${dir}/`);
-    console.log('─'.repeat(80));
+    // eslint-disable-next-line no-console
+    console.log("─".repeat(80));
 
     results.forEach(({ file, matches }) => {
       totalFiles++;
       totalMatches += matches.length;
 
       const relativePath = path.relative(path.dirname(__dirname), file);
+      // eslint-disable-next-line no-console
       console.log(`\n📄 ${relativePath}`);
 
-      matches.forEach(match => {
+      matches.forEach((match) => {
+        // eslint-disable-next-line no-console
         console.log(`   ${match}`);
 
         // Check for suggestions
         const colorCode = match.match(/#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}/)?.[0];
         if (colorCode && suggestions[colorCode.toLowerCase()]) {
+          // eslint-disable-next-line no-console
           console.log(`   → Suggestion: ${suggestions[colorCode.toLowerCase()]}`);
         }
       });
@@ -123,23 +130,36 @@ searchDirs.forEach(dir => {
   }
 });
 
-console.log(`\n\n${'═'.repeat(80)}`);
+// eslint-disable-next-line no-console
+console.log(`\n\n${"═".repeat(80)}`);
+// eslint-disable-next-line no-console
 console.log(`\n📊 Summary:`);
+// eslint-disable-next-line no-console
 console.log(`   Files with hardcoded colors: ${totalFiles}`);
+// eslint-disable-next-line no-console
 console.log(`   Total hardcoded color instances: ${totalMatches}`);
 
 if (totalMatches > 0) {
-  console.log('\n💡 Migration Guide:');
-  console.log('   1. Replace bg-[#hex] with bg-primary, bg-accent, etc.');
-  console.log('   2. Replace text-[#hex] with text-primary, text-accent, etc.');
-  console.log('   3. Use semantic names: text-price, bg-success, etc.');
-  console.log('   4. Refer to COLOR_SYSTEM_GUIDE.md for complete mapping');
-  console.log('\n   Common replacements:');
+  // eslint-disable-next-line no-console
+  console.log("\n💡 Migration Guide:");
+  // eslint-disable-next-line no-console
+  console.log("   1. Replace bg-[#hex] with bg-primary, bg-accent, etc.");
+  // eslint-disable-next-line no-console
+  console.log("   2. Replace text-[#hex] with text-primary, text-accent, etc.");
+  // eslint-disable-next-line no-console
+  console.log("   3. Use semantic names: text-price, bg-success, etc.");
+  // eslint-disable-next-line no-console
+  console.log("   4. Refer to COLOR_SYSTEM_GUIDE.md for complete mapping");
+  // eslint-disable-next-line no-console
+  console.log("\n   Common replacements:");
   Object.entries(suggestions).forEach(([color, suggestion]) => {
+    // eslint-disable-next-line no-console
     console.log(`   ${color} → ${suggestion}`);
   });
 } else {
-  console.log('\n✅ No hardcoded colors found! Great job!');
+  // eslint-disable-next-line no-console
+  console.log("\n✅ No hardcoded colors found! Great job!");
 }
 
-console.log(`\n${'═'.repeat(80)}\n`);
+// eslint-disable-next-line no-console
+console.log(`\n${"═".repeat(80)}\n`);

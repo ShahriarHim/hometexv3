@@ -45,14 +45,9 @@ const Account = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/" as any);
-      return;
+      router.replace("/");
     }
   }, [isAuthenticated, router]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -114,16 +109,6 @@ const Account = () => {
     fetchUserProfile();
   }, [isAuthenticated, user]);
 
-  // Sync tab with query string without causing loops
-  const handleTabChange = (nextTab: string) => {
-    setActiveTab(nextTab);
-    // Use router.replace with pathname and query params separately
-    // pathname from i18n routing doesn't include locale, router handles it
-    const next = new URLSearchParams(searchParams.toString());
-    next.set("tab", nextTab);
-    router.replace(`${pathname}?${next.toString()}` as any, { scroll: false });
-  };
-
   // Sync activeTab with URL query parameter when it changes externally
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -179,8 +164,24 @@ const Account = () => {
     fetchOrders();
   }, [activeTab, isAuthenticated, user, userProfile, isLoading]);
 
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Sync tab with query string without causing loops
+  const handleTabChange = (nextTab: string) => {
+    setActiveTab(nextTab);
+    // Use router.replace with pathname and query params separately
+    // pathname from i18n routing doesn't include locale, router handles it
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("tab", nextTab);
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  };
+
   const formatError = (payload: unknown): string => {
-    if (!payload || typeof payload !== "object") return "Something went wrong";
+    if (!payload || typeof payload !== "object") {
+      return "Something went wrong";
+    }
     const maybeResp = payload as {
       message?: string;
       error?: string;
@@ -188,20 +189,26 @@ const Account = () => {
     };
     if (maybeResp.errors && Object.keys(maybeResp.errors).length > 0) {
       const first = Object.values(maybeResp.errors)[0];
-      if (first?.[0]) return first[0];
+      if (first?.[0]) {
+        return first[0];
+      }
     }
     if (maybeResp.error) {
       try {
         const parsed = JSON.parse(maybeResp.error);
         if (parsed && typeof parsed === "object") {
           const firstParsed = Object.values(parsed)[0];
-          if (typeof firstParsed === "string") return firstParsed;
+          if (typeof firstParsed === "string") {
+            return firstParsed;
+          }
         }
       } catch {
         return maybeResp.error;
       }
     }
-    if (maybeResp.message) return maybeResp.message;
+    if (maybeResp.message) {
+      return maybeResp.message;
+    }
     return "Something went wrong";
   };
 
@@ -349,7 +356,9 @@ const Account = () => {
                   Invoice
                 </Button>
                 <Button asChild variant="ghost" size="sm">
-                  <Link href={`/orders/${order.order_number}`}>View Details</Link>
+                  <Link href={`/orders/${order.order_number}` as unknown as "/orders"}>
+                    View Details
+                  </Link>
                 </Button>
               </div>
               {trackingStatus[order.order_number] && (
@@ -455,7 +464,7 @@ const Account = () => {
               <CardContent>
                 <p className="text-muted-foreground mb-4">View and manage your saved items</p>
                 <Button asChild>
-                  <Link href="/account/wishlist">View Wishlist</Link>
+                  <Link href={"/account/wishlist" as unknown as "/account"}>View Wishlist</Link>
                 </Button>
               </CardContent>
             </Card>

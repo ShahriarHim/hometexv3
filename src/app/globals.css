@@ -19,12 +19,12 @@
 
     /* ===== PRIMARY - Caramel (Warm & Sophisticated) ===== */
     --primary: 65 100% 50%; /* #E8FE00 - Main brand color */
-  --primary-hover: 58 90% 42%; /* #cbc50b - Hover state */
-  --primary-active: 116 100% 41%; /* #0ed100 - Active state */
-  --primary-light: 31 51% 92%; /* #F5EBE0 - Light tint */
-  --secondary: 225 43% 84%; /* #C5CEE8 - Professional anchor */
-  --secondary-hover: 217 47% 15%; /* #15233A - Hover state */
-  --secondary-light: 218 31% 93%; /* #E8ECF3 - Light tint */
+    --primary-hover: 58 90% 42%; /* #cbc50b - Hover state */
+    --primary-active: 116 100% 41%; /* #0ed100 - Active state */
+    --primary-light: 31 51% 92%; /* #F5EBE0 - Light tint */
+    --secondary: 225 43% 84%; /* #C5CEE8 - Professional anchor */
+    --secondary-hover: 217 47% 15%; /* #15233A - Hover state */
+    --secondary-light: 218 31% 93%; /* #E8ECF3 - Light tint */
     --secondary-foreground: 0 0% 100%; /* White text on navy */
 
     /* ===== ACCENT - Vibrant CTAs ===== */

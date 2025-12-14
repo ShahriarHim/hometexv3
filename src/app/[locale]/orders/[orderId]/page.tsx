@@ -7,7 +7,7 @@ type Params = Promise<{
 
 export default async function OrderTrackingPage(props: { params: Params }) {
   // Await the params as per Next.js 15 requirements
-  const params = await props.params;
+  const _params = await props.params;
 
   return <OrderTrackingView />;
 }

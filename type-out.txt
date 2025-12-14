@@ -1,0 +1,10 @@
+
+> hometex-v3@0.2.1 type-check
+> tsc --noEmit
+
+src/components/products/ProductCardOnSale.tsx(28,13): error TS2322: Type '`/products/${string}/${string}/${string}`' is not assignable to type 'UrlObject | RouteImpl<`/products/${string}/${string}/${string}`>'.
+src/views/Cart.tsx(93,27): error TS2322: Type 'string' is not assignable to type 'UrlObject | RouteImpl<string>'.
+src/views/ProductDetail.tsx(556,5): error TS2304: Cannot find name 'router'.
+src/views/ProductDetail.tsx(1344,38): error TS2345: Argument of type '(similarProduct: Product) => JSX.Element' is not assignable to parameter of type '(value: Product, index: number, array: Product[]) => Element'.
+  Types of parameters 'similarProduct' and 'value' are incompatible.
+    Type 'Product' is missing the following properties from type 'Product': inStock, reviewCount

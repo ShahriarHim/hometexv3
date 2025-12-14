@@ -1,6 +1,6 @@
-import Link from "next/link";
-import type { Route } from "next";
 import StaticPage from "@/views/StaticPage";
+import type { Route } from "next";
+import Link from "next/link";
 
 const links: Array<{ label: string; href: Route | string }> = [
   { label: "Home", href: "/" as Route },
@@ -23,7 +23,7 @@ export default function SitemapPage() {
       <ul className="grid grid-cols-2 gap-3 text-foreground">
         {links.map((link) => (
           <li key={link.href}>
-            <Link href={link.href as any} className="hover:text-primary transition-colors">
+            <Link href={link.href as never} className="hover:text-primary transition-colors">
               {link.label}
             </Link>
           </li>

@@ -26,7 +26,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
         {product?.images && product.images.length > 0 && (
           <Link
             href={
-              `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any
+              `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as never
             }
             onClick={handleProductClick}
           >
@@ -86,7 +86,7 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
         )}
         <Link
           href={
-            `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as any
+            `/products/${product.category}/${product.subcategory || "all"}/${product.id}` as never as never
           }
           onClick={handleProductClick}
           className="hover:text-accent transition-colors"

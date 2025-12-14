@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
-import type { Product } from "@/types";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { ShoppingCart, Heart, Star } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
+import type { Product } from "@/types";
+import { Heart, ShoppingCart, Star } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 interface ProductCardProps {
   product: Product;
@@ -46,7 +46,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
       <div className="group relative bg-card rounded-lg border border-border hover:shadow-lg transition-shadow p-4">
         <div className="flex gap-6">
           <Link
-            href={productUrl as any}
+            href={productUrl as never}
             onClick={handleProductClick}
             className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg"
           >
@@ -62,7 +62,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
           </Link>
 
           <div className="flex-1 flex flex-col">
-            <Link href={productUrl as any} onClick={handleProductClick}>
+            <Link href={productUrl as never} onClick={handleProductClick}>
               <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
                 {product.name}
               </h3>
@@ -121,7 +121,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-      <Link href={productUrl as any} onClick={handleProductClick}>
+      <Link href={productUrl as never} onClick={handleProductClick}>
         <div className="relative aspect-square overflow-hidden bg-muted">
           <img
             src={product.primary_photo || product.images[0] || "/placeholder.svg"}
@@ -143,7 +143,7 @@ export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) 
         </div>
       </Link>
       <CardContent className="p-4">
-        <Link href={productUrl as any} onClick={handleProductClick}>
+        <Link href={productUrl as never} onClick={handleProductClick}>
           <h3 className="font-medium text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
             {product.name}
           </h3>

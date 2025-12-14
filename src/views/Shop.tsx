@@ -1,7 +1,7 @@
 "use client";
 
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,14 +11,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useEffect } from "react";
 import { api, transformAPIProductToProduct } from "@/lib/api";
 import type { Product } from "@/types";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type SortOption =
+  | "price_asc"
+  | "price_desc"
+  | "newest"
+  | "popular"
+  | "featured"
+  | "price-low"
+  | "price-high"
+  | "rating";
 
 const Shop = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("featured");
+  const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,15 +44,33 @@ const Shop = () => {
         setLoading(true);
         setError(null);
 
+        // Map frontend sort options to API sort options
+        const apiSortMap: Record<
+          SortOption,
+          "price_asc" | "price_desc" | "newest" | "popular" | undefined
+        > = {
+          featured: undefined,
+          "price-low": "price_asc",
+          "price-high": "price_desc",
+          price_asc: "price_asc",
+          price_desc: "price_desc",
+          newest: "newest",
+          popular: "popular",
+          rating: undefined,
+        };
+
         const response = await api.products.getAll({
           page: currentPage,
           per_page: perPage,
           category: selectedCategory !== "all" ? selectedCategory : undefined,
-          sort: sortBy,
+          sort: apiSortMap[sortBy],
         });
 
         if (response.success && response.data.products) {
-          const transformedProducts = response.data.products.map(transformAPIProductToProduct);
+          // Transform products using the transform function
+          const transformedProducts = response.data.products.map((p) =>
+            transformAPIProductToProduct(p as Parameters<typeof transformAPIProductToProduct>[0])
+          );
 
           // Apply client-side sorting if needed
           const sortedProducts = [...transformedProducts].sort((a, b) => {
@@ -81,7 +109,7 @@ const Shop = () => {
   };
 
   const handleSortChange = (value: string) => {
-    setSortBy(value);
+    setSortBy(value as SortOption);
     setCurrentPage(1); // Reset to first page when sort changes
   };
 

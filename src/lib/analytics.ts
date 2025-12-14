@@ -30,7 +30,7 @@ type AnalyticsEvent =
       event: "variant_select";
       product_id: string;
       variant_id: number;
-      attributes: Record<string, any>;
+      attributes: Record<string, string | number | boolean>;
     }
   | { event: "promo_view" | "promo_click"; promo_id: string; product_id: string }
   | { event: "product_share"; product_id: string; channel: string }
@@ -39,6 +39,7 @@ type AnalyticsEvent =
 export const trackEvent = (eventData: AnalyticsEvent) => {
   // Send to analytics service (Google Analytics, Mixpanel, etc.)
   if (typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
     console.log("[Analytics]", eventData);
 
     // Example: Google Analytics 4
@@ -57,7 +58,7 @@ export const trackEvent = (eventData: AnalyticsEvent) => {
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
-    fbq?: (...args: any[]) => void;
+    gtag?: (...args: unknown[]) => void;
+    fbq?: (...args: unknown[]) => void;
   }
 }

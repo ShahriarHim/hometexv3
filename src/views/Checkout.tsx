@@ -45,9 +45,9 @@ const Checkout = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace("/" as any);
+      router.replace("/");
     } else if (items.length === 0) {
-      router.replace("/cart" as any);
+      router.replace("/cart");
     }
   }, [isAuthenticated, items.length, router]);
 
@@ -139,7 +139,7 @@ const Checkout = () => {
       });
 
       clearCart();
-      router.push(`/orders/${order.id}` as any);
+      router.push(`/orders/${order.id}`);
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(formatApiError(error));

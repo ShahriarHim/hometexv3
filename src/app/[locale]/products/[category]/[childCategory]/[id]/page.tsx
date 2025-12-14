@@ -15,10 +15,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const resolved = await params;
   try {
     const product = await api.products.getById(resolved.id);
-    const name = product.data?.name || resolved.id;
+    const productData = product.data as
+      | {
+          name?: string;
+          description?: string;
+          seo?: { meta_description?: string };
+          meta_description?: string;
+        }
+      | undefined;
+    const name = productData?.name || resolved.id;
     return {
       title: `${name} | Hometex`,
-      description: product.data?.seo?.meta_description || product.data?.description || undefined,
+      description:
+        productData?.seo?.meta_description ||
+        productData?.meta_description ||
+        productData?.description ||
+        undefined,
     };
   } catch {
     return {
@@ -29,7 +41,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductDetailPage(props: { params: PageProps["params"] }) {
   // Await the params as per Next.js 15 requirements
-  const params = await props.params;
+  const _params = await props.params;
 
   return <ProductDetailView />;
 }
