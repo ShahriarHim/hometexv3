@@ -2,10 +2,14 @@
 
 import { ProductCard } from "@/components/products/ProductCard";
 import { Badge } from "@/components/ui/badge";
-import { categories, products } from "@/data/demo-data";
 import { Link } from "@/i18n/routing";
+import { transformAPIProductToProduct } from "@/lib/transforms";
+import { productService } from "@/services/api";
+import type { Product } from "@/types";
 import type { CategoryTree } from "@/types/api";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { CategoryPageSkeleton } from "./CategoryPageSkeleton";
 
 interface CategoryContentClientProps {
   slug: string;
@@ -24,13 +28,77 @@ export function CategoryContentClient({
   pageTitle,
   pageDescription,
 }: CategoryContentClientProps) {
-  // Fallback to demo data if API category not found
-  const demoCategory = categories.find((c) => c.slug === slug);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filter products based on category/subcategory/child
-  const categoryProducts = demoCategory
-    ? products.filter((p) => p.category === demoCategory.slug)
-    : products;
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!apiCategory) {
+        setLoading(false);
+        return;
+      }
+
+      // Validate that subId and childId exist in the category tree
+      if (subId) {
+        const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
+        if (!sub) {
+          console.warn(`Subcategory ${subId} not found in category ${apiCategory.id}`);
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
+
+        if (childId) {
+          const child = sub.child_categories.find((c) => c.id === Number(childId));
+          if (!child) {
+            console.warn(`Child category ${childId} not found in subcategory ${subId}`);
+            setProducts([]);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      setLoading(true);
+      try {
+        const params: {
+          category_id: number;
+          sub_category?: number;
+          child_sub_category_id?: number;
+        } = {
+          category_id: apiCategory.id,
+        };
+
+        if (subId) {
+          params.sub_category = Number(subId);
+        }
+
+        if (childId) {
+          params.child_sub_category_id = Number(childId);
+        }
+
+        const response = await productService.getProducts(params);
+
+        if (response.success && response.data?.products) {
+          const transformedProducts = response.data.products.map((apiProduct) =>
+            transformAPIProductToProduct(
+              apiProduct as Parameters<typeof transformAPIProductToProduct>[0]
+            )
+          );
+          setProducts(transformedProducts);
+        } else {
+          setProducts([]);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [apiCategory, subId, childId]);
 
   // Get the current category image
   let categoryImage: string | null = null;
@@ -45,6 +113,18 @@ export function CategoryContentClient({
     } else {
       categoryImage = apiCategory.image || null;
     }
+  }
+
+  if (loading) {
+    return <CategoryPageSkeleton />;
+  }
+
+  if (!apiCategory) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <p className="text-muted-foreground text-lg">Category not found.</p>
+      </div>
+    );
   }
 
   return (
@@ -65,28 +145,11 @@ export function CategoryContentClient({
               </div>
             </div>
           )}
-          <Badge className="mb-4 bg-sage text-white">{categoryProducts.length} Products</Badge>
+          <Badge className="mb-4 bg-sage text-white">{products.length} Products</Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{pageTitle}</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{pageDescription}</p>
         </div>
       </div>
-
-      {/* Subcategories */}
-      {demoCategory?.subcategories && demoCategory.subcategories.length > 0 && (
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-wrap gap-2 justify-center">
-            {demoCategory.subcategories.map((sub) => (
-              <Badge
-                key={sub.id}
-                variant="outline"
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
-                {sub.name}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* API Subcategories */}
       {apiCategory && !subId && (
@@ -142,13 +205,13 @@ export function CategoryContentClient({
 
       {/* Products */}
       <div className="container mx-auto px-4 py-8">
-        {categoryProducts.length === 0 ? (
+        {products.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground text-lg">No products found in this category.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categoryProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

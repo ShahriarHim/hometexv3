@@ -12,10 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { categories, products } from "@/data/demo-data";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
+import { productService } from "@/services/api";
 import type { Product } from "@/types";
+import type { CategoryTree } from "@/types/api";
 import { Grid3x3, LayoutGrid, List, Loader2, Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -67,7 +68,23 @@ const Products = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("grid-3");
   const [priceRange, setPriceRange] = useState<string>("all");
   const [apiProducts, setApiProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await productService.getMenu();
+        if (response.success && response.data) {
+          setCategories(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (isTrending) {
@@ -225,7 +242,7 @@ const Products = () => {
     }
   }, [isTrending, isBestsellers, isOnSale]);
 
-  const sourceProducts = isTrending || isBestsellers || isOnSale ? apiProducts : products;
+  const sourceProducts = apiProducts;
 
   const filteredProducts = sourceProducts.filter((p) => {
     const matchesCategory = selectedCategory === "all" || p.category === selectedCategory;

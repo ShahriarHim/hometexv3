@@ -2,7 +2,6 @@
 
 import { ProductCard } from "@/components/products/ProductCard";
 import { Badge } from "@/components/ui/badge";
-import { categories, products } from "@/data/demo-data";
 import { Link } from "@/i18n/routing";
 import { productService } from "@/services/api";
 import type { CategoryTree } from "@/types/api";
@@ -42,12 +41,9 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
 
   const apiCategory = apiCategories.find((c) => createSlug(c.name) === slug);
 
-  // Fallback to demo data if API category not found
-  const demoCategory = categories.find((c) => c.slug === slug);
-
   // Determine current page title and description
-  let pageTitle = apiCategory?.name || demoCategory?.name || "Category";
-  let pageDescription = demoCategory?.description || "Browse our collection";
+  let pageTitle = apiCategory?.name || "Category";
+  let pageDescription = "Browse our collection";
 
   if (childId && apiCategory) {
     const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
@@ -64,10 +60,8 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
     }
   }
 
-  // Filter products based on category/subcategory/child
-  const categoryProducts = demoCategory
-    ? products.filter((p) => p.category === demoCategory.slug)
-    : products;
+  // Products will be fetched via API in CategoryContentClient
+  const categoryProducts: never[] = [];
 
   if (loading) {
     return <CategoryPageSkeleton />;
@@ -83,23 +77,6 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{pageDescription}</p>
         </div>
       </div>
-
-      {/* Subcategories */}
-      {demoCategory?.subcategories && demoCategory.subcategories.length > 0 && (
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-wrap gap-2 justify-center">
-            {demoCategory.subcategories.map((sub) => (
-              <Badge
-                key={sub.id}
-                variant="outline"
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-              >
-                {sub.name}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* API Subcategories */}
       {apiCategory && !subId && (
