@@ -32,6 +32,15 @@ export const productService = {
     if (params?.category) {
       queryParams.append("category", params.category);
     }
+    if (params?.category_id) {
+      queryParams.append("category_id", params.category_id.toString());
+    }
+    if (params?.sub_category) {
+      queryParams.append("sub_category", params.sub_category.toString());
+    }
+    if (params?.child_sub_category_id) {
+      queryParams.append("child_sub_category_id", params.child_sub_category_id.toString());
+    }
     if (params?.sort) {
       queryParams.append("sort", params.sort);
     }

@@ -76,6 +76,9 @@ export interface ProductQueryParams {
   page?: number;
   per_page?: number;
   category?: string;
+  category_id?: number;
+  sub_category?: number;
+  child_sub_category_id?: number;
   sort?: "price_asc" | "price_desc" | "newest" | "popular";
   min_price?: number;
   max_price?: number;

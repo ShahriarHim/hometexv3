@@ -34,6 +34,7 @@ interface APIProduct {
   slug?: string;
   description?: string;
   short_description?: string;
+  // Support both nested pricing object and flat price fields
   pricing?: {
     regular_price?: number;
     sale_price?: number;
@@ -43,26 +44,51 @@ interface APIProduct {
       value?: number;
     };
   };
+  // Flat price fields (actual API structure)
+  price?: number | string; // Can be "650৳" or 650
+  original_price?: number;
+  regular_price?: number;
+  sale_price?: number;
+  final_price?: number;
+  discount_percent?: number | string; // Can be "10%" or 10
+  sell_price?: {
+    price?: number;
+    discount?: number;
+    symbol?: string;
+  };
+  cost?: string | number;
   inventory?: {
     stock_status?: string;
     stock_quantity?: number;
   };
+  // Support both nested inventory and flat fields
+  stock_status?: "in_stock" | "out_of_stock" | "backorder" | "Active" | "Inactive";
+  stock_quantity?: number;
+  stock?: number;
   media?: {
     gallery?: Array<{ url?: string } | string>;
   };
+  // Support flat images array
+  images?: string[];
+  thumbnail?: string;
+  primary_photo?: string; // Actual API field for main image
   category?: {
+    id?: number;
     name?: string;
     slug?: string;
   };
   sub_category?: {
+    id?: number;
     name?: string;
     slug?: string;
   };
   child_sub_category?: {
+    id?: number;
     name?: string;
     slug?: string;
   };
   brand?: {
+    id?: number;
     name?: string;
     logo?: string;
   };
@@ -70,10 +96,18 @@ interface APIProduct {
     average_rating?: number;
     review_count?: number;
   };
+  // Support flat rating fields
+  rating?: number;
+  reviews_count?: number;
   badges?: {
     is_featured?: boolean;
     is_new?: boolean;
   };
+  // Support flat badge fields
+  is_featured?: boolean | number; // Can be 0 or 1
+  is_new?: boolean | number; // Can be 0 or 1
+  is_bestseller?: boolean;
+  isTrending?: boolean | number;
   has_variations?: boolean;
   variations?: Array<{
     attributes?: {
@@ -86,6 +120,7 @@ interface APIProduct {
     key?: string;
     value?: string;
   }>;
+  attributes?: Array<any>;
 }
 
 interface Product {
@@ -228,17 +263,74 @@ export const transformHeroBannerToSlideV2 = (banner: HeroBannerV2Input): HeroSli
 /**
  * Transform API product data to Product format
  */
+// Helper function to extract numeric value from price string (e.g., "650৳" -> 650)
+const extractNumericPrice = (price: number | string | undefined): number => {
+  if (typeof price === "number") return price;
+  if (typeof price === "string") {
+    // Remove currency symbols and whitespace, extract number
+    const numeric = price.replace(/[^\d.]/g, "");
+    const parsed = parseFloat(numeric);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+};
+
+// Helper function to extract numeric value from discount percent (e.g., "10%" -> 10)
+const extractNumericDiscount = (discount: number | string | undefined): number => {
+  if (typeof discount === "number") return discount;
+  if (typeof discount === "string") {
+    // Remove % symbol and extract number
+    const numeric = discount.replace(/[^\d.]/g, "");
+    const parsed = parseFloat(numeric);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+};
+
 export const transformAPIProductToProduct = (apiProduct: APIProduct): Product => {
-  // Extract pricing information
+  // Extract pricing information - handle both nested pricing object and direct price fields
   const pricing = apiProduct.pricing || {};
-  const finalPrice = pricing.final_price || pricing.regular_price || 0;
-  const regularPrice = pricing.regular_price || finalPrice;
-  const salePrice = pricing.sale_price;
+
+  // Priority: sell_price.price > original_price > price (parsed) > regular_price > final_price
+  let finalPrice = 0;
+  let regularPrice = 0;
+  let salePrice: number | undefined = undefined;
+
+  if (apiProduct.sell_price?.price !== undefined) {
+    finalPrice = apiProduct.sell_price.price;
+  } else if (apiProduct.original_price !== undefined) {
+    finalPrice = apiProduct.original_price;
+  } else if (apiProduct.price !== undefined) {
+    finalPrice = extractNumericPrice(apiProduct.price);
+  } else {
+    finalPrice =
+      pricing.final_price ||
+      apiProduct.final_price ||
+      pricing.regular_price ||
+      apiProduct.regular_price ||
+      0;
+  }
+
+  // Regular price (original/regular price before discount)
+  if (apiProduct.original_price !== undefined) {
+    regularPrice = apiProduct.original_price;
+  } else if (apiProduct.price !== undefined) {
+    regularPrice = extractNumericPrice(apiProduct.price);
+  } else {
+    regularPrice = pricing.regular_price || apiProduct.regular_price || finalPrice;
+  }
+
+  // Sale price (if different from final price)
+  salePrice = pricing.sale_price || apiProduct.sale_price;
 
   // Calculate discount percentage
   let discountPercent = 0;
   if (pricing.discount && pricing.discount.is_active) {
     discountPercent = Math.round(pricing.discount.value || 0);
+  } else if (apiProduct.discount_percent) {
+    discountPercent = extractNumericDiscount(apiProduct.discount_percent);
+  } else if (apiProduct.sell_price?.discount) {
+    discountPercent = apiProduct.sell_price.discount;
   } else if (salePrice && regularPrice > salePrice) {
     discountPercent = Math.round(((regularPrice - salePrice) / regularPrice) * 100);
   } else if (regularPrice > finalPrice) {
@@ -268,15 +360,23 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
         ) as string[])
       : [];
 
-  // Get images from media gallery, fallback to brand logo or empty array
-  const images =
-    apiProduct.media?.gallery && apiProduct.media.gallery.length > 0
-      ? apiProduct.media.gallery.map((img: { url?: string } | string) =>
-          typeof img === "string" ? img : img.url || ""
-        )
-      : apiProduct.brand?.logo
-        ? [apiProduct.brand.logo]
-        : [];
+  // Get images - priority: primary_photo > images array > media gallery > thumbnail > brand logo
+  const images: string[] = [];
+
+  if (apiProduct.primary_photo) {
+    images.push(apiProduct.primary_photo);
+  } else if (apiProduct.images && apiProduct.images.length > 0) {
+    images.push(...apiProduct.images);
+  } else if (apiProduct.media?.gallery && apiProduct.media.gallery.length > 0) {
+    const galleryImages = apiProduct.media.gallery
+      .map((img: { url?: string } | string) => (typeof img === "string" ? img : img.url || ""))
+      .filter(Boolean);
+    images.push(...galleryImages);
+  } else if (apiProduct.thumbnail) {
+    images.push(apiProduct.thumbnail);
+  } else if (apiProduct.brand?.logo) {
+    images.push(apiProduct.brand.logo);
+  }
 
   // Extract features from specifications or attributes
   const features: string[] = [];
@@ -307,13 +407,21 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
       apiProduct.child_sub_category?.name?.toLowerCase().replace(/\s+/g, "-"),
     images: images,
     inStock:
-      apiProduct.inventory?.stock_status === "in_stock" &&
-      (apiProduct.inventory?.stock_quantity ?? 0) > 0,
-    rating: apiProduct.reviews?.average_rating || 4.5,
-    reviewCount: apiProduct.reviews?.review_count || 0,
+      (apiProduct.inventory?.stock_status === "in_stock" ||
+        apiProduct.stock_status === "in_stock" ||
+        apiProduct.stock_status === "Active") &&
+      (apiProduct.inventory?.stock_quantity ?? apiProduct.stock_quantity ?? apiProduct.stock ?? 0) >
+        0,
+    rating: apiProduct.reviews?.average_rating || apiProduct.rating || 4.5,
+    reviewCount: apiProduct.reviews?.review_count || apiProduct.reviews_count || 0,
     material: apiProduct.brand?.name,
-    isFeatured: apiProduct.badges?.is_featured || false,
-    isNew: apiProduct.badges?.is_new || false,
+    isFeatured:
+      apiProduct.badges?.is_featured ||
+      apiProduct.is_featured === true ||
+      apiProduct.is_featured === 1 ||
+      false,
+    isNew:
+      apiProduct.badges?.is_new || apiProduct.is_new === true || apiProduct.is_new === 1 || false,
     discount: discountPercent > 0 ? discountPercent : undefined,
     colors: colors.length > 0 ? colors : undefined,
     sizes: sizes.length > 0 ? sizes : undefined,
