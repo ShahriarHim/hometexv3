@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { userService } from "@/services/api";
-import { ChevronDown, Mail, ShoppingCart, Ticket, User } from "lucide-react";
+import { ChevronDown, Mail, MapPin, ShoppingBag, Ticket, User } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useTransition } from "react";
 
@@ -26,6 +26,7 @@ const TEXT_OPTIONS = [
 
 const PreHeader = () => {
   const t = useTranslations("common");
+  const tNav = useTranslations("navigation");
   const tAccount = useTranslations("account");
   const router = useRouter();
   const pathname = usePathname();
@@ -41,9 +42,10 @@ const PreHeader = () => {
   const [userType, setUserType] = useState<string | undefined>(undefined);
 
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { items: cartItems, getTotalPrice } = useCart();
+  const { getTotalItems, getTotalPrice } = useCart();
   const { user, isAuthenticated, logout } = useAuth();
-  const cartCount = cartItems.length;
+  const cartCount = getTotalItems();
+  const cartTotal = getTotalPrice();
 
   // Fetch user profile to get user_type
   useEffect(() => {
@@ -140,7 +142,7 @@ const PreHeader = () => {
       <div className="container pb-1 w-full mx-auto">
         <div className="flex justify-between items-center">
           {/* Left Section - Account & Corporate */}
-          <div className="flex items-center space-x-8 ml-2 w-1/4">
+          <div className="flex items-center space-x-6 ml-2 w-1/4">
             {/* My Account Dropdown */}
             <div
               className="relative z-[160]"
@@ -149,15 +151,17 @@ const PreHeader = () => {
             >
               <Link
                 href="/account"
-                className="flex flex-col cursor-pointer hover:text-blue-500 pl-4"
+                className="flex flex-col cursor-pointer hover:text-blue-500 group transition-colors pl-2"
               >
                 <div className="flex items-center">
-                  <User className="w-4 h-4 text-pink-500 mr-1" />
-                  <span className="text-xs whitespace-nowrap">{accountLabel}</span>
-                  <ChevronDown className="w-3 h-3 ml-1" />
+                  <div className="bg-pink-500 group-hover:bg-blue-500 rounded-full p-1 mr-1.5 transition-colors">
+                    <User className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="text-xs whitespace-nowrap font-medium">{accountLabel}</span>
+                  <ChevronDown className="w-3 h-3 ml-1 group-hover:translate-y-0.5 transition-transform" />
                 </div>
                 {userType && (
-                  <span className="text-[10px] text-gray-600 ml-[21px] capitalize">{userType}</span>
+                  <span className="text-[10px] text-gray-600 ml-[26px] capitalize">{userType}</span>
                 )}
               </Link>
 
@@ -277,9 +281,11 @@ const PreHeader = () => {
             </div>
 
             {/* Corporate Inquiries */}
-            <Link href="/corporate-enquires" className="flex items-center hover:text-blue-500">
-              <Mail className="w-4 h-4 text-pink-500 mr-1" />
-              <span className="text-xs whitespace-nowrap">{t("corporateInquiries")}</span>
+            <Link href="/corporate-enquires" className="flex items-center hover:text-blue-500 group transition-colors">
+              <div className="bg-pink-500 group-hover:bg-blue-500 rounded-full p-1 mr-1.5 transition-colors">
+                <Mail className="w-3 h-3 text-white" />
+              </div>
+              <span className="text-xs whitespace-nowrap font-medium">{t("corporateInquiries")}</span>
             </Link>
           </div>
 
@@ -297,39 +303,37 @@ const PreHeader = () => {
             </div>
           </div>
 
-          {/* Right Section - Tracking & Cart */}
-          <div className="flex items-center justify-end gap-3 mr-2 w-1/4">
+          {/* Right Section - Store Locator, Tracking & Cart */}
+          <div className="flex items-center justify-end gap-4 mr-2 w-1/4">
+            {/* Store Locator */}
+            <Link href="/stores" className="flex items-center hover:text-blue-500 whitespace-nowrap cursor-pointer group">
+              <MapPin className="w-4 h-4 text-pink-500 mr-1 group-hover:text-blue-500 transition-colors" />
+              <span className="text-xs">{tNav("stores")}</span>
+            </Link>
+
             {/* Order Tracking */}
-            <div className="flex items-center hover:text-blue-500 whitespace-nowrap mr-8 cursor-pointer">
-              <Ticket className="w-4 h-4 text-pink-500 mr-1" />
-              <span className="text-xs">
-                <Link href={isAuthenticated ? "/account?tab=orders" : "/auth"}>
-                  {t("orderTracking")}
-                </Link>
-              </span>
-            </div>
+            <Link href={isAuthenticated ? "/account?tab=orders" : "/auth"} className="flex items-center hover:text-blue-500 whitespace-nowrap cursor-pointer group">
+              <Ticket className="w-4 h-4 text-pink-500 mr-1 group-hover:text-blue-500 transition-colors" />
+              <span className="text-xs">{t("orderTracking")}</span>
+            </Link>
 
-            {/* My Cart Button - Styled exactly like V2 */}
+            {/* Modern Cart Button */}
             <Link href="/cart">
-              <div className="relative bg-black text-white px-4 py-4 -mt-1 flex items-center cursor-pointer hover:text-yellow-500 transition-colors duration-200 z-[160] mr-2">
-                <ShoppingCart className="w-4 h-4 text-pink-500 mr-2" />
-                <span className="text-xs whitespace-nowrap">{t("cart")}</span>
-
-                {/* Triangle decorations at bottom */}
-                <div className="absolute bottom-[-12px] left-0 right-0 h-3 overflow-visible z-[155]">
-                  <div className="flex justify-center">
-                    {[...Array(12)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-2.5 h-3 bg-black"
-                        style={{
-                          clipPath: "polygon(50% 100%, 0 0, 100% 0)",
-                          marginTop: "-1px",
-                          marginLeft: "0.5px",
-                          marginRight: "0.5px",
-                        }}
-                      />
-                    ))}
+              <div className="relative group">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                  <div className="relative">
+                    <ShoppingBag className="w-5 h-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
+                        {cartCount > 9 ? "9+" : cartCount}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[10px] leading-none opacity-90">{t("cart")}</span>
+                    <span className="text-xs font-bold leading-none mt-0.5">
+                      ৳{cartTotal.toLocaleString()}
+                    </span>
                   </div>
                 </div>
               </div>
