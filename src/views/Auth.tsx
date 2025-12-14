@@ -32,7 +32,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/" as any);
+      router.replace("/" as never);
     }
   }, [isAuthenticated, router]);
 
@@ -46,12 +46,12 @@ const Auth = () => {
     setLoginErrors({}); // Clear previous errors
     try {
       await login(loginData.email, loginData.password);
-      router.push("/" as any);
-    } catch (error: any) {
+      router.push("/" as never);
+    } catch (error: unknown) {
       console.error(error);
       // Extract field errors from the error object
-      if (error.fieldErrors) {
-        setLoginErrors(error.fieldErrors);
+      if (error && typeof error === "object" && "fieldErrors" in error) {
+        setLoginErrors((error as { fieldErrors: Record<string, string[]> }).fieldErrors);
       }
     } finally {
       setLoading(false);
@@ -73,12 +73,17 @@ const Auth = () => {
     setLoading(true);
     try {
       await signup(signupData);
-      router.push("/" as any);
-    } catch (error: any) {
+      router.push("/" as never);
+    } catch (error: unknown) {
       console.error(error);
       // Extract field errors from the error object
-      if (error.fieldErrors && typeof error.fieldErrors === "object") {
-        setSignupErrors(error.fieldErrors);
+      if (
+        error &&
+        typeof error === "object" &&
+        "fieldErrors" in error &&
+        typeof (error as { fieldErrors?: unknown }).fieldErrors === "object"
+      ) {
+        setSignupErrors((error as { fieldErrors: Record<string, string[]> }).fieldErrors);
       }
       // Error is already shown via toast in the signup function
     } finally {
@@ -90,7 +95,7 @@ const Auth = () => {
     setLoading(true);
     try {
       await socialLogin(provider);
-      router.push("/" as any);
+      router.push("/" as never);
     } catch (error) {
       console.error(error);
     } finally {

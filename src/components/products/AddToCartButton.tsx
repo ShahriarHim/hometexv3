@@ -14,7 +14,7 @@ interface Props {
 }
 
 const AddToCartButton = ({ product, className }: Props) => {
-  const { items, addToCart, updateQuantity } = useCart();
+  const { items, addToCart, updateQuantity: _updateQuantity } = useCart();
 
   const cartItem = items.find((item) => item.product.id === product.id);
   const itemCount = cartItem?.quantity || 0;

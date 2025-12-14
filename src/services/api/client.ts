@@ -18,14 +18,18 @@ const getBaseUrl = (productionBaseUrl: string): string => {
 
   const baseUrl = useLocalApi ? env.apiLocalUrl : productionBaseUrl;
 
-  if (typeof window !== "undefined" && !(window as any).__API_URL_LOGGED__) {
+  if (
+    typeof window !== "undefined" &&
+    !(window as Window & { __API_URL_LOGGED__?: boolean }).__API_URL_LOGGED__
+  ) {
+    // eslint-disable-next-line no-console
     console.log(`🔗 API Configuration:
   USE_LOCAL_API env: ${useLocalApiEnv}
   useLocalApi boolean: ${useLocalApi}
   env.apiLocalUrl: ${env.apiLocalUrl}
   productionBaseUrl: ${productionBaseUrl}
   Selected baseUrl: ${baseUrl}`);
-    (window as any).__API_URL_LOGGED__ = true;
+    (window as unknown as Window & { __API_URL_LOGGED__: boolean }).__API_URL_LOGGED__ = true;
   }
 
   return baseUrl;
@@ -74,7 +78,7 @@ export const authenticatedFetch = (url: string, options: RequestInit = {}): Prom
 /**
  * Fetch with environment-based URL selection for authenticated requests
  */
-export const fetchWithFallback = async (
+export const fetchWithFallback = (
   endpoint: string,
   productionBaseUrl: string,
   options: RequestInit = {}
@@ -96,10 +100,12 @@ export const fetchPublicWithFallback = async (
   const baseUrl = getBaseUrl(productionBaseUrl);
   const fullUrl = `${baseUrl}${endpoint}`;
 
+  // eslint-disable-next-line no-console
   console.log(`Fetching from: ${fullUrl}`);
 
   try {
     const response = await fetch(fullUrl, options);
+    // eslint-disable-next-line no-console
     console.log(`Response status: ${response.status} ${response.statusText}`);
     return response;
   } catch (error) {

@@ -22,6 +22,7 @@ const CookiesManager: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, []);
 
   const handleClose = () => {

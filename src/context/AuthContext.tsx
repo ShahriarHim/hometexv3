@@ -56,12 +56,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Log response for debugging
       if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
         console.log("Login response:", response);
       }
 
       // Extract token and user data from the response
       // Handle different response structures
-      let userData: any = null;
+      let userData: { token?: string; [key: string]: unknown } | null = null;
       let token: string | undefined = undefined;
 
       if (response.data) {
@@ -70,8 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           token = userData?.token;
         } else if (typeof response.data === "object" && !Array.isArray(response.data)) {
           // Handle case where data is an object, not an array
-          userData = response.data;
-          token = (response.data as any)?.token;
+          userData = response.data as { token?: string; [key: string]: unknown };
+          token = (response.data as { token?: string })?.token;
         }
       }
 
@@ -91,8 +92,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Create user object from response
       const loggedInUser = {
         id: String(userData.id),
-        email: userData.email,
-        name: userData.name || `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
+        email: String(userData.email || ""),
+        name: String(
+          userData.name || `${userData.first_name || ""} ${userData.last_name || ""}`.trim()
+        ),
         token: token,
       };
 
@@ -117,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Log response for debugging
       if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
         console.log("Signup response:", response);
       }
 
@@ -126,8 +130,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let userName: string | undefined = undefined;
       let message: string | undefined = undefined;
 
-      if ((response as any).success) {
-        const successData = (response as any).success;
+      if (
+        (
+          response as {
+            success?: { authorisation?: { token?: string }; name?: string; message?: string };
+          }
+        ).success
+      ) {
+        const successData = (
+          response as {
+            success: { authorisation?: { token?: string }; name?: string; message?: string };
+          }
+        ).success;
         token = successData?.authorisation?.token;
         userName = successData?.name;
         message = successData?.message;
@@ -138,8 +152,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           token = userData?.token;
           userName = userData?.name;
         } else if (typeof response.data === "object" && !Array.isArray(response.data)) {
-          token = (response.data as any)?.token;
-          userName = (response.data as any)?.name;
+          const dataObj = response.data as { token?: string; name?: string };
+          token = dataObj?.token;
+          userName = dataObj?.name;
         }
         message = response.message;
       }
@@ -234,8 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Create enhanced error with fieldErrors
-      const enhancedError = new Error(errorMessage);
-      (enhancedError as any).fieldErrors = fieldErrors;
+      const enhancedError = Object.assign(new Error(errorMessage), { fieldErrors });
 
       toast.error(errorMessage);
       throw enhancedError;

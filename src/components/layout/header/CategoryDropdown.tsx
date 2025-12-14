@@ -139,27 +139,31 @@ export const CategoryDropdown = ({ category, featuredImage }: CategoryDropdownPr
   // Auto-slide for Block 1 every 3 seconds
   useEffect(() => {
     if (block1Images.length <= 1) {
-      return;
+      return undefined; // No cleanup needed
     }
 
     const interval = setInterval(() => {
       setCurrentBlock1Index((prev) => (prev + 1) % block1Images.length);
     }, 3000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [block1Images.length]);
 
   // Auto-slide for Block 2 every 3 seconds (slightly offset)
   useEffect(() => {
     if (block2Images.length <= 1) {
-      return;
+      return undefined; // No cleanup needed
     }
 
     const interval = setInterval(() => {
       setCurrentBlock2Index((prev) => (prev + 1) % block2Images.length);
     }, 3500); // Slightly different timing for visual variety
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [block2Images.length]);
 
   const toggleSubcategory = (subcategoryId: number) => {

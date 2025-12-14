@@ -9,11 +9,13 @@ This guide shows you exactly how to construct and pass query parameters from you
 ## 🎯 API Endpoint Reference
 
 Your backend endpoint:
+
 ```
 GET /api/products?search={query}&category_id={id}&brand_id={id}&per_page={number}&page={number}&order_by={field}&direction={asc|desc}
 ```
 
 **Available Query Parameters:**
+
 - `search` - Search term (string)
 - `category_id` - Filter by category (integer)
 - `brand_id` - Filter by brand (integer)
@@ -41,10 +43,10 @@ export function ProductSearch() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    
+
     // Build query parameters
     const params = new URLSearchParams();
-    
+
     if (searchQuery) {
       params.append('search', searchQuery);
     }
@@ -57,7 +59,7 @@ export function ProductSearch() {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/products?${params.toString()}`
       );
-      
+
       const data = await response.json();
       setProducts(data.data.products);
     } catch (error) {
@@ -76,7 +78,7 @@ export function ProductSearch() {
         placeholder="Search products..."
       />
       <button onClick={fetchProducts}>Search</button>
-      
+
       {loading && <p>Loading...</p>}
       {products.map(product => (
         <div key={product.id}>{product.name}</div>
@@ -118,7 +120,7 @@ export function AdvancedProductSearch() {
   // Build query string from filters
   const buildQueryString = (filters: SearchFilters): string => {
     const params = new URLSearchParams();
-    
+
     // Only add parameters that have values
     if (filters.search) {
       params.append('search', filters.search);
@@ -150,13 +152,13 @@ export function AdvancedProductSearch() {
 
   const fetchProducts = async () => {
     setLoading(true);
-    
+
     try {
       const queryString = buildQueryString(filters);
       const url = `${process.env.NEXT_PUBLIC_API_URL}/api/products?${queryString}`;
-      
+
       console.log('Fetching:', url); // Debug: See the actual URL
-      
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -170,7 +172,7 @@ export function AdvancedProductSearch() {
       }
 
       const result = await response.json();
-      
+
       // Your API returns: { data: { products: [...], pagination: {...} } }
       setProducts(result.data.products);
       setPagination(result.data.pagination);
@@ -201,10 +203,10 @@ export function AdvancedProductSearch() {
       <div className="grid grid-cols-2 gap-4 mb-4">
         <select
           value={filters.category_id || ''}
-          onChange={(e) => setFilters({ 
-            ...filters, 
+          onChange={(e) => setFilters({
+            ...filters,
             category_id: e.target.value ? parseInt(e.target.value) : undefined,
-            page: 1 
+            page: 1
           })}
           className="border p-2 rounded"
         >
@@ -215,10 +217,10 @@ export function AdvancedProductSearch() {
 
         <select
           value={filters.brand_id || ''}
-          onChange={(e) => setFilters({ 
-            ...filters, 
+          onChange={(e) => setFilters({
+            ...filters,
             brand_id: e.target.value ? parseInt(e.target.value) : undefined,
-            page: 1 
+            page: 1
           })}
           className="border p-2 rounded"
         >
@@ -249,7 +251,7 @@ export function AdvancedProductSearch() {
 
       {/* Results */}
       {loading && <p>Loading...</p>}
-      
+
       <div className="grid grid-cols-3 gap-4">
         {products.map((product: any) => (
           <div key={product.id} className="border p-4 rounded">
@@ -315,23 +317,23 @@ async function SearchContent({
 }) {
   // Extract query parameters
   const search = typeof searchParams.search === 'string' ? searchParams.search : undefined;
-  const categoryId = typeof searchParams.category_id === 'string' 
-    ? parseInt(searchParams.category_id) 
+  const categoryId = typeof searchParams.category_id === 'string'
+    ? parseInt(searchParams.category_id)
     : undefined;
-  const brandId = typeof searchParams.brand_id === 'string' 
-    ? parseInt(searchParams.brand_id) 
+  const brandId = typeof searchParams.brand_id === 'string'
+    ? parseInt(searchParams.brand_id)
     : undefined;
-  const page = typeof searchParams.page === 'string' 
-    ? parseInt(searchParams.page) 
+  const page = typeof searchParams.page === 'string'
+    ? parseInt(searchParams.page)
     : 1;
-  const perPage = typeof searchParams.per_page === 'string' 
-    ? parseInt(searchParams.per_page) 
+  const perPage = typeof searchParams.per_page === 'string'
+    ? parseInt(searchParams.per_page)
     : 20;
-  const orderBy = typeof searchParams.order_by === 'string' 
-    ? searchParams.order_by 
+  const orderBy = typeof searchParams.order_by === 'string'
+    ? searchParams.order_by
     : 'created_at';
-  const direction = typeof searchParams.direction === 'string' 
-    ? searchParams.direction 
+  const direction = typeof searchParams.direction === 'string'
+    ? searchParams.direction
     : 'desc';
 
   // Build query string
@@ -374,19 +376,19 @@ async function SearchContent({
 ### Complete Hook Implementation
 
 ```typescript
-'use client';
+"use client";
 
 // hooks/useProductSearch.ts
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface SearchFilters {
   search?: string;
   category_id?: number;
   brand_id?: number;
   status?: number;
-  order_by?: 'id' | 'name' | 'price' | 'created_at' | 'updated_at';
-  direction?: 'asc' | 'desc';
+  order_by?: "id" | "name" | "price" | "created_at" | "updated_at";
+  direction?: "asc" | "desc";
   per_page?: number;
   page?: number;
 }
@@ -418,38 +420,30 @@ export function useProductSearch() {
   // Initialize filters from URL or defaults
   const [filters, setFilters] = useState<SearchFilters>(() => {
     return {
-      search: searchParams.get('search') || undefined,
-      category_id: searchParams.get('category_id') 
-        ? parseInt(searchParams.get('category_id')!) 
+      search: searchParams.get("search") || undefined,
+      category_id: searchParams.get("category_id")
+        ? parseInt(searchParams.get("category_id")!)
         : undefined,
-      brand_id: searchParams.get('brand_id') 
-        ? parseInt(searchParams.get('brand_id')!) 
-        : undefined,
-      status: searchParams.get('status') 
-        ? parseInt(searchParams.get('status')!) 
-        : undefined,
-      order_by: (searchParams.get('order_by') as any) || 'created_at',
-      direction: (searchParams.get('direction') as 'asc' | 'desc') || 'desc',
-      per_page: searchParams.get('per_page') 
-        ? parseInt(searchParams.get('per_page')!) 
-        : 20,
-      page: searchParams.get('page') 
-        ? parseInt(searchParams.get('page')!) 
-        : 1,
+      brand_id: searchParams.get("brand_id") ? parseInt(searchParams.get("brand_id")!) : undefined,
+      status: searchParams.get("status") ? parseInt(searchParams.get("status")!) : undefined,
+      order_by: (searchParams.get("order_by") as any) || "created_at",
+      direction: (searchParams.get("direction") as "asc" | "desc") || "desc",
+      per_page: searchParams.get("per_page") ? parseInt(searchParams.get("per_page")!) : 20,
+      page: searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1,
     };
   });
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [pagination, setPagination] = useState<ApiResponse['data']['pagination'] | null>(null);
+  const [pagination, setPagination] = useState<ApiResponse["data"]["pagination"] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Build query string from filters
   const buildQueryString = useCallback((filters: SearchFilters): string => {
     const params = new URLSearchParams();
-    
+
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
+      if (value !== undefined && value !== null && value !== "") {
         params.append(key, value.toString());
       }
     });
@@ -460,7 +454,7 @@ export function useProductSearch() {
   // Update URL when filters change
   useEffect(() => {
     const queryString = buildQueryString(filters);
-    const newUrl = queryString ? `/search?${queryString}` : '/search';
+    const newUrl = queryString ? `/search?${queryString}` : "/search";
     router.replace(newUrl, { scroll: false });
   }, [filters, buildQueryString, router]);
 
@@ -472,12 +466,12 @@ export function useProductSearch() {
     try {
       const queryString = buildQueryString(filters);
       const url = `${process.env.NEXT_PUBLIC_API_URL}/api/products?${queryString}`;
-      
+
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
       });
 
@@ -489,7 +483,7 @@ export function useProductSearch() {
       setProducts(data.data.products);
       setPagination(data.data.pagination);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch products');
+      setError(err instanceof Error ? err.message : "Failed to fetch products");
       setProducts([]);
       setPagination(null);
     } finally {
@@ -504,7 +498,7 @@ export function useProductSearch() {
 
   // Update filters
   const updateFilters = useCallback((newFilters: Partial<SearchFilters>) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       ...newFilters,
       page: newFilters.page !== undefined ? newFilters.page : 1, // Reset page on filter change
@@ -555,8 +549,8 @@ export function ProductSearchPage() {
       {/* Category Filter */}
       <select
         value={filters.category_id || ''}
-        onChange={(e) => updateFilters({ 
-          category_id: e.target.value ? parseInt(e.target.value) : undefined 
+        onChange={(e) => updateFilters({
+          category_id: e.target.value ? parseInt(e.target.value) : undefined
         })}
         className="p-2 border rounded mb-4"
       >
@@ -568,7 +562,7 @@ export function ProductSearchPage() {
       {/* Results */}
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
-      
+
       <div className="grid grid-cols-3 gap-4">
         {products.map((product) => (
           <div key={product.id} className="border p-4 rounded">
@@ -632,17 +626,17 @@ export function SearchLink() {
 }
 
 // Or dynamically
-export function DynamicSearchLink({ 
-  search, 
-  categoryId, 
-  brandId 
-}: { 
-  search?: string; 
-  categoryId?: number; 
+export function DynamicSearchLink({
+  search,
+  categoryId,
+  brandId
+}: {
+  search?: string;
+  categoryId?: number;
   brandId?: number;
 }) {
   const params = new URLSearchParams();
-  
+
   if (search) params.append('search', search);
   if (categoryId) params.append('category_id', categoryId.toString());
   if (brandId) params.append('brand_id', brandId.toString());
@@ -674,7 +668,7 @@ export function SearchForm() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const params = new URLSearchParams();
     if (searchQuery) {
       params.append('search', searchQuery);
@@ -739,7 +733,7 @@ function SearchContent() {
           value={filters.search || ''}
           onChange={(e) => updateFilters({ search: e.target.value })}
           placeholder="Search products, categories, brands..."
-          className="w-full max-w-2xl px-4 py-3 border border-gray-300 rounded-lg 
+          className="w-full max-w-2xl px-4 py-3 border border-gray-300 rounded-lg
                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
@@ -748,8 +742,8 @@ function SearchContent() {
       <div className="flex gap-4 mb-6 flex-wrap">
         <select
           value={filters.category_id || ''}
-          onChange={(e) => updateFilters({ 
-            category_id: e.target.value ? parseInt(e.target.value) : undefined 
+          onChange={(e) => updateFilters({
+            category_id: e.target.value ? parseInt(e.target.value) : undefined
           })}
           className="px-4 py-2 border rounded-lg"
         >
@@ -759,8 +753,8 @@ function SearchContent() {
 
         <select
           value={filters.brand_id || ''}
-          onChange={(e) => updateFilters({ 
-            brand_id: e.target.value ? parseInt(e.target.value) : undefined 
+          onChange={(e) => updateFilters({
+            brand_id: e.target.value ? parseInt(e.target.value) : undefined
           })}
           className="px-4 py-2 border rounded-lg"
         >
@@ -841,11 +835,11 @@ function SearchContent() {
           >
             Previous
           </button>
-          
+
           <span className="text-gray-600">
             Page {pagination.current_page} of {pagination.last_page}
           </span>
-          
+
           <button
             onClick={() => updateFilters({ page: (filters.page || 1) + 1 })}
             disabled={!pagination.has_more}
@@ -883,18 +877,18 @@ function SearchSkeleton() {
 const fetchProducts = async () => {
   const queryString = buildQueryString(filters);
   const url = `${process.env.NEXT_PUBLIC_API_URL}/api/products?${queryString}`;
-  
+
   // Debug: Log the URL being called
-  console.log('🔍 API Call:', url);
-  console.log('📋 Filters:', filters);
-  console.log('🔗 Query String:', queryString);
-  
+  console.log("🔍 API Call:", url);
+  console.log("📋 Filters:", filters);
+  console.log("🔗 Query String:", queryString);
+
   const response = await fetch(url);
   const data = await response.json();
-  
+
   // Debug: Log the response
-  console.log('✅ Response:', data);
-  
+  console.log("✅ Response:", data);
+
   return data;
 };
 ```
@@ -904,26 +898,31 @@ const fetchProducts = async () => {
 ## ✅ Quick Reference: Query Parameter Examples
 
 ### Example 1: Simple Search
+
 ```
 GET /api/products?search=shirt
 ```
 
 ### Example 2: Search with Category
+
 ```
 GET /api/products?search=cotton&category_id=3
 ```
 
 ### Example 3: Search with Multiple Filters
+
 ```
 GET /api/products?search=electronics&category_id=5&brand_id=2&per_page=30&order_by=price&direction=asc
 ```
 
 ### Example 4: Pagination
+
 ```
 GET /api/products?search=shirt&page=2&per_page=20
 ```
 
 ### Example 5: Sort Only (No Search)
+
 ```
 GET /api/products?order_by=price&direction=asc&per_page=40
 ```

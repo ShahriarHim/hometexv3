@@ -13,7 +13,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { Star, Heart, ShoppingCart, Truck, Shield, RefreshCw, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { api, transformAPIProductToProduct, type APIProduct } from "@/lib/api";
+import { api, transformAPIProductToProduct } from "@/lib/api";
 import type { Product } from "@/types";
 
 const ProductDetailEnhanced = () => {
@@ -54,7 +54,10 @@ const ProductDetailEnhanced = () => {
 
         // Type guard to check if productData is APIProduct
         if (productData && "id" in productData && productData.id) {
-          const transformedProduct = transformAPIProductToProduct(productData as APIProduct);
+          // Cast to the expected parameter type for transformAPIProductToProduct
+          const transformedProduct = transformAPIProductToProduct(
+            productData as Parameters<typeof transformAPIProductToProduct>[0]
+          );
           setProduct(transformedProduct);
           setSelectedColor(transformedProduct.colors?.[0]);
           setSelectedSize(transformedProduct.sizes?.[0]);

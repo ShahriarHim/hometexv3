@@ -6,6 +6,7 @@ import { productService } from "@/services/api";
 import type { Route } from "next";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { Swiper as SwiperClass } from "swiper";
 import "swiper/css";
 import "swiper/css/effect-fade";
 import "swiper/css/pagination";
@@ -17,7 +18,7 @@ export const HeroShowcase = () => {
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(fallbackSlides);
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleSlideChange = (swiper: any) => {
+  const handleSlideChange = (swiper: SwiperClass) => {
     setActiveIndex(swiper.activeIndex);
   };
 
@@ -215,7 +216,7 @@ export const HeroShowcase = () => {
       </div>
 
       {/* Tailwind Animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes fadeInColumn {
           0% {
             opacity: 0;

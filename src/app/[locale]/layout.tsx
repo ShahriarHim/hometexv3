@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import { Quicksand } from "next/font/google";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
-import { env } from "@/lib/env";
-import "../globals.css";
-import { Providers } from "../providers";
-import FloatingBar from "@/components/FloatingBar";
 import CookiesManager from "@/components/CookiesManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import FloatingBar from "@/components/FloatingBar";
+import { routing } from "@/i18n/routing";
+import { env } from "@/lib/env";
+import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { Quicksand } from "next/font/google";
+import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
+import "../globals.css";
+import { Providers } from "../providers";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -52,7 +52,7 @@ export default async function LocaleLayout({
   const { locale } = await params;
 
   // Ensure that the incoming `locale` is valid
-  if (!routing.locales.includes(locale as any)) {
+  if (!routing.locales.includes(locale as (typeof routing.locales)[number])) {
     notFound();
   }
 

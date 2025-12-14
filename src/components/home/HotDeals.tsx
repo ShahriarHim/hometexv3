@@ -9,6 +9,7 @@ import type { Product as ProductType } from "@/types";
 import { Clock, Eye, Heart, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import type { Swiper as SwiperClass } from "swiper";
 import "swiper/css";
 import "swiper/css/autoplay";
 import "swiper/css/navigation";
@@ -35,7 +36,7 @@ interface HotDealProduct {
 const HotDeals = () => {
   const [products, setProducts] = useState<HotDealProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [swiperInstance, setSwiperInstance] = useState<any>(null);
+  const [_swiperInstance, setSwiperInstance] = useState<SwiperClass | null>(null);
   const { addRecentView } = useRecentViews();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
@@ -55,24 +56,31 @@ const HotDeals = () => {
         const data = await response.json();
 
         if (data.success && data.data.products) {
-          const transformedProducts = data.data.products.map((product: any) => {
+          const transformedProducts = data.data.products.map((product: Record<string, unknown>) => {
+            const sellPrice = product.sell_price as
+              | { price?: number; discount?: number; symbol?: string }
+              | undefined;
+            const category = product.category as { slug?: string } | undefined;
+            const subCategory = product.sub_category as { slug?: string } | undefined;
+            const childSubCategory = product.child_sub_category as { slug?: string } | undefined;
+
             const discountPercent =
-              product.sell_price.discount > 0 ? `${product.sell_price.discount}% OFF` : null;
+              sellPrice?.discount && sellPrice.discount > 0 ? `${sellPrice.discount}% OFF` : null;
 
             return {
               id: product.id,
               name: product.name,
               img: product.primary_photo,
               primary_photo: product.primary_photo,
-              price: product.sell_price.price,
-              displayPrice: `${product.sell_price.price}${product.sell_price.symbol}`,
-              originalPrice: `${product.original_price}${product.sell_price.symbol}`,
+              price: sellPrice?.price || 0,
+              displayPrice: `${sellPrice?.price || 0}${sellPrice?.symbol || "৳"}`,
+              originalPrice: `${product.original_price || 0}${sellPrice?.symbol || "৳"}`,
               discount: discountPercent,
               stock: product.stock || 0,
               star: 4, // Default star rating
-              category_slug: product.category?.slug || "general",
-              subcategory_slug: product.sub_category?.slug || "products",
-              product_slug: product.child_sub_category?.slug || product.slug || "",
+              category_slug: category?.slug || "general",
+              subcategory_slug: subCategory?.slug || "products",
+              product_slug: childSubCategory?.slug || (product.slug as string) || "",
             };
           });
 
@@ -120,11 +128,11 @@ const HotDeals = () => {
   }, []);
 
   const handleProductHover = (isHovering: boolean) => {
-    if (swiperInstance && swiperInstance.autoplay) {
+    if (_swiperInstance && _swiperInstance.autoplay) {
       if (isHovering) {
-        swiperInstance.autoplay.stop();
+        _swiperInstance.autoplay.stop();
       } else {
-        swiperInstance.autoplay.start();
+        _swiperInstance.autoplay.start();
       }
     }
   };
@@ -244,8 +252,7 @@ const HotDeals = () => {
               }}
             >
               {products.map((product, index) => {
-                const productUrl =
-                  `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+                const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}`;
 
                 const handleProductClick = () => {
                   const productForTracking: ProductType = {
@@ -275,7 +282,11 @@ const HotDeals = () => {
                     onMouseEnter={() => handleProductHover(true)}
                     onMouseLeave={() => handleProductHover(false)}
                   >
-                    <Link href={productUrl} onClick={handleProductClick} className="block h-full">
+                    <Link
+                      href={productUrl as never}
+                      onClick={handleProductClick}
+                      className="block h-full"
+                    >
                       <div className={styles["product-item-container"]}>
                         <div className={styles["product-image-container"]}>
                           <img src={product.img} alt={product.name} loading="lazy" />
@@ -349,8 +360,7 @@ const HotDeals = () => {
               })}
 
               {products.map((product, index) => {
-                const productUrl =
-                  `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}` as any;
+                const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}`;
 
                 const handleProductClickCloned = () => {
                   const productForTracking: ProductType = {
@@ -381,7 +391,7 @@ const HotDeals = () => {
                     onMouseLeave={() => handleProductHover(false)}
                   >
                     <Link
-                      href={productUrl}
+                      href={productUrl as never}
                       onClick={handleProductClickCloned}
                       className="block h-full"
                     >

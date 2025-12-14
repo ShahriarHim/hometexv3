@@ -25,19 +25,23 @@ import {
  *
  * Example: Desktop mega menu that shows all categories at once
  */
-async function strategy1_FullTree() {
+async function _strategy1_FullTree() {
   // Fetch complete tree
   const categories = await getFullCategoryTree();
 
   // Render entire menu structure
+  // eslint-disable-next-line no-console
   console.log("Full tree loaded:", categories.length, "root categories");
 
   // Access nested data immediately
   categories.forEach((category) => {
+    // eslint-disable-next-line no-console
     console.log(`Category: ${category.name}`);
     category.subcategories.forEach((sub) => {
+      // eslint-disable-next-line no-console
       console.log(`  - ${sub.name}`);
       sub.child_categories.forEach((child) => {
+        // eslint-disable-next-line no-console
         console.log(`    - ${child.name}`);
       });
     });
@@ -56,9 +60,10 @@ async function strategy1_FullTree() {
  *
  * Example: Mobile menu or dropdown that loads children on click/hover
  */
-async function strategy2_LazyLoading() {
+async function _strategy2_LazyLoading() {
   // Step 1: Initial load - fetch only root categories
   const rootCategories = await getRootCategories();
+  // eslint-disable-next-line no-console
   console.log("Root categories loaded:", rootCategories.length);
 
   // Step 2: When user hovers/clicks a category, load its children
@@ -66,11 +71,13 @@ async function strategy2_LazyLoading() {
 
   if (rootCategories[0].has_children) {
     const children = await loadCategoryChildren(categoryId);
+    // eslint-disable-next-line no-console
     console.log(`Children for ${rootCategories[0].name}:`, children);
 
     // Step 3: If needed, load next level
     if (children[0]?.has_children) {
       const grandChildren = await loadCategoryChildren(children[0].id);
+      // eslint-disable-next-line no-console
       console.log("Grand children:", grandChildren);
     }
   }
@@ -88,20 +95,25 @@ async function strategy2_LazyLoading() {
  *
  * Example: Category page at /categories/electronics
  */
-async function strategy3_SlugBased() {
+async function _strategy3_SlugBased() {
   const slug = "electronics"; // From URL params
 
   // Fetch category with SEO data and breadcrumb
   const category = await getCategoryBySlug(slug);
 
   if (category) {
+    // eslint-disable-next-line no-console
     console.log("Category:", category.name);
+    // eslint-disable-next-line no-console
     console.log("SEO Title:", category.meta_title);
+    // eslint-disable-next-line no-console
     console.log("SEO Description:", category.meta_description);
+    // eslint-disable-next-line no-console
     console.log("Breadcrumb:", category.breadcrumb);
 
     // Use breadcrumb for navigation
     category.breadcrumb.forEach((item, index) => {
+      // eslint-disable-next-line no-console
       console.log(`${"  ".repeat(index)}Level ${item.level}: ${item.name}`);
     });
   }

@@ -40,9 +40,9 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Check if user changed
     if (currentUserIdRef.current !== null && currentUserIdRef.current !== currentUserId) {
       // User changed, clear wishlist
-      setItems([]);
       localStorage.removeItem("hometex-wishlist");
       currentUserIdRef.current = currentUserId;
+      // Clear wishlist by not loading anything
       return;
     }
 
@@ -68,12 +68,16 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           });
         } else {
           // Wishlist belongs to different user, clear it
-          setItems([]);
+          startTransition(() => {
+            setItems([]);
+          });
           currentUserIdRef.current = currentUserId;
         }
       } catch {
         // Invalid data, clear it
-        setItems([]);
+        startTransition(() => {
+          setItems([]);
+        });
         currentUserIdRef.current = currentUserId;
       }
     } else {

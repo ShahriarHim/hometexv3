@@ -1,9 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter, usePathname } from "@/i18n/routing";
-import { routing } from "@/i18n/routing";
 import {
   Select,
   SelectContent,
@@ -11,7 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { routing, usePathname, useRouter } from "@/i18n/routing";
 import { Globe } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useTransition } from "react";
 
 export default function LanguageSwitcher() {
   const t = useTranslations("common");

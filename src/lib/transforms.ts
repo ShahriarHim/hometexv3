@@ -4,7 +4,7 @@
  */
 
 import type { HeroSlide } from "@/data/migration-content";
-import type { HeroBanner } from "@/types/api/product";
+import type { Route } from "next";
 
 // Types for API data structures
 interface HeroBannerSliderData {
@@ -188,8 +188,18 @@ export const transformHeroBannerToSlide = (banner: HeroBannerItem): HeroSlide =>
 
 /**
  * Transform new API HeroBanner to HeroSlide format
+ * Uses HeroBannerV2 interface which has the proper structure
  */
-export const transformHeroBannerToSlideV2 = (banner: HeroBanner): HeroSlide => {
+interface HeroBannerV2Input {
+  id: number;
+  title: string;
+  subtitle?: string;
+  image: string;
+  link?: string;
+  button_text?: string;
+}
+
+export const transformHeroBannerToSlideV2 = (banner: HeroBannerV2Input): HeroSlide => {
   return {
     id: `banner-${banner.id}`,
     eyebrow: banner.subtitle || "",
@@ -198,11 +208,11 @@ export const transformHeroBannerToSlideV2 = (banner: HeroBanner): HeroSlide => {
     image: banner.image,
     cta: {
       label: banner.button_text || "Shop Now",
-      href: (banner.link || "/shop") as any,
+      href: (banner.link || "/shop") as Route,
     },
     secondaryCta: {
       label: "",
-      href: "" as any,
+      href: "" as Route,
     },
     stats: {
       label: "",

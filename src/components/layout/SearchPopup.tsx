@@ -69,16 +69,20 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
 
     setTimeout(() => {
       onClose();
-      router.push(`/categories/${category.slug}` as any);
+      router.push(`/categories/${category.slug}` as never);
     }, 300);
   };
 
   // Don't close popup when interacting with products - only close on explicit close button or overlay click
 
   // Helper to get valid image URL
-  const getImageUrl = (image: any): string => {
-    if (typeof image === "string") return image;
-    if (image?.url) return image.url;
+  const getImageUrl = (image: string | { url?: string } | undefined): string => {
+    if (typeof image === "string") {
+      return image;
+    }
+    if (image?.url) {
+      return image.url;
+    }
     return "/images/placeholder.jpg";
   };
 
@@ -93,7 +97,9 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
-    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) {
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -106,7 +112,10 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
 
     observer.observe(loadMoreRef.current);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
+    return undefined;
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {

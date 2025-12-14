@@ -2,8 +2,7 @@
 
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import type { TransformedCategory } from "./types";
-import { createCategorySlug } from "./types";
+import { createCategorySlug, type TransformedCategory } from "./types";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -23,7 +22,9 @@ export const MobileMenu = ({
   const t = useTranslations("navigation");
   const tCommon = useTranslations("common");
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <nav className="md:hidden py-4 border-t border-border animate-in slide-in-from-top-5">

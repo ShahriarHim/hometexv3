@@ -4,23 +4,22 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { Link } from "@/i18n/routing";
-import { Heart, Search, ShoppingCart, User } from "lucide-react";
+import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { FaBriefcase, FaCommentDots, FaGift, FaMapMarkerAlt } from "react-icons/fa";
 
 interface HeaderActionsProps {
   onSearchClick: () => void;
   onChatToggle?: () => void;
-  isChatOpen?: boolean;
+  _isChatOpen?: boolean;
 }
 
-export const HeaderActions = ({ onSearchClick, onChatToggle, isChatOpen }: HeaderActionsProps) => {
+export const HeaderActions = ({ onSearchClick, onChatToggle, _isChatOpen }: HeaderActionsProps) => {
   const t = useTranslations("navigation");
-  const tCommon = useTranslations("common");
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
-  const cartCount = getTotalItems();
-  const wishlistCount = wishlistItems.length;
+  const _cartCount = getTotalItems();
+  const _wishlistCount = wishlistItems.length;
 
   const handleChatToggle = () => {
     onChatToggle?.();

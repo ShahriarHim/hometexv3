@@ -25,7 +25,11 @@ interface ReviewFormData {
   comment: string;
 }
 
-export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }: ProductReviewsProps) => {
+export const ProductReviews = ({
+  productId,
+  averageRating = 0,
+  reviewCount = 0,
+}: ProductReviewsProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(true);
@@ -56,7 +60,10 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
       queryClient.invalidateQueries({ queryKey: ["product-reviews", productId] });
       setFormData({ rating: 0, comment: "" });
       setShowForm(false);
-      toast.success(response.message || "Review submitted successfully. It will be visible after admin approval.");
+      toast.success(
+        response.message ||
+          "Review submitted successfully. It will be visible after admin approval."
+      );
     },
     onError: (error: unknown) => {
       let errorMessage = "Failed to submit review";
@@ -142,13 +149,16 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
   };
 
   const handleDelete = (id: number) => {
+    // eslint-disable-next-line no-alert
     if (confirm("Are you sure you want to delete this review?")) {
       deleteMutation.mutate(id);
     }
   };
 
   const isUserReview = (review: Review) => {
-    if (!user) return false;
+    if (!user) {
+      return false;
+    }
 
     // Normalize IDs to strings for comparison
     const reviewUserId = review.user_id ? String(review.user_id) : null;
@@ -170,6 +180,7 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
 
     // Debug logging in development
     if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
       console.log("Review ownership check:", {
         reviewId: review.id,
         reviewUserId,
@@ -238,7 +249,10 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
                 <form onSubmit={handleSubmit} className="space-y-2 h-full flex flex-col">
                   <div>
                     <label className="text-xs font-medium mb-0.5 block text-foreground">
-                      Rating {formData.rating > 0 && <span className="text-muted-foreground">({formData.rating}/5)</span>}
+                      Rating{" "}
+                      {formData.rating > 0 && (
+                        <span className="text-muted-foreground">({formData.rating}/5)</span>
+                      )}
                     </label>
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -260,7 +274,9 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs font-medium mb-0.5 block text-foreground">Review</label>
+                    <label className="text-xs font-medium mb-0.5 block text-foreground">
+                      Review
+                    </label>
                     <Textarea
                       placeholder="Share your experience..."
                       value={formData.comment}
@@ -284,7 +300,13 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
                           : "Submit"}
                     </Button>
                     {editingReview && (
-                      <Button type="button" variant="ghost" size="sm" onClick={handleCancel} className="h-6 px-2 text-xs">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancel}
+                        className="h-6 px-2 text-xs"
+                      >
                         Cancel
                       </Button>
                     )}
@@ -309,7 +331,8 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
                 <div className="space-y-1">
                   {[5, 4, 3, 2, 1].map((rating) => {
                     const count = approvedReviews.filter((r) => r.rating === rating).length;
-                    const percentage = approvedReviews.length > 0 ? (count / approvedReviews.length) * 100 : 0;
+                    const percentage =
+                      approvedReviews.length > 0 ? (count / approvedReviews.length) * 100 : 0;
 
                     return (
                       <div key={rating} className="flex items-center gap-1.5">
@@ -325,7 +348,9 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
                         </div>
                         <div className="flex items-center gap-1 w-14 justify-end">
                           <span className="text-xs font-medium text-foreground">{count}</span>
-                          <span className="text-[10px] text-muted-foreground">({percentage.toFixed(0)}%)</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            ({percentage.toFixed(0)}%)
+                          </span>
                         </div>
                       </div>
                     );
@@ -354,7 +379,8 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
           <div className="space-y-2">
             {[5, 4, 3, 2, 1].map((rating) => {
               const count = approvedReviews.filter((r) => r.rating === rating).length;
-              const percentage = approvedReviews.length > 0 ? (count / approvedReviews.length) * 100 : 0;
+              const percentage =
+                approvedReviews.length > 0 ? (count / approvedReviews.length) * 100 : 0;
 
               return (
                 <div key={rating} className="flex items-center gap-2">
@@ -380,7 +406,9 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
       {isLoading ? (
         <div className="text-center text-muted-foreground py-8">Loading reviews...</div>
       ) : approvedReviews.length === 0 ? (
-        <div className="text-center text-muted-foreground py-8">No reviews yet. Be the first to review!</div>
+        <div className="text-center text-muted-foreground py-8">
+          No reviews yet. Be the first to review!
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {approvedReviews.map((review) => (
@@ -466,4 +494,3 @@ export const ProductReviews = ({ productId, averageRating = 0, reviewCount = 0 }
     </div>
   );
 };
-
