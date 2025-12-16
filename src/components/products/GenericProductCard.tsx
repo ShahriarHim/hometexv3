@@ -33,7 +33,7 @@ interface UnifiedProduct {
   discount?: number;
   isFeatured?: boolean;
   isNew?: boolean;
-  discount_percent?: string | number;
+  discount_percent?: string;
 }
 
 interface GenericProductCardProps {
@@ -97,10 +97,6 @@ const GenericProductCard = ({
       return product.discount;
     }
     if (product.discount_percent) {
-      // Handle both string and number types
-      if (typeof product.discount_percent === "number") {
-        return product.discount_percent;
-      }
       const match = product.discount_percent.match(/\d+/);
       return match ? parseInt(match[0], 10) : 0;
     }
@@ -148,10 +144,12 @@ const GenericProductCard = ({
             />
             {/* Stock Indicator */}
             {stock > 0 && (
-              <div className="absolute bottom-2 right-2 z-10 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
+              <div className="absolute bottom-2 right-2 z-10 bg-primary/90 backdrop-blur-sm border border-primary rounded-full px-3 py-1.5 shadow-lg">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-stock-high animate-pulse"></div>
-                  <span className="text-xs font-bold text-stock-high">{stock} in stock</span>
+                  <div className="w-2 h-2 rounded-full bg-primary-foreground animate-pulse"></div>
+                  <span className="text-xs font-bold text-primary-foreground">
+                    {stock} in stock
+                  </span>
                 </div>
               </div>
             )}
@@ -210,7 +208,7 @@ const GenericProductCard = ({
           <div className="flex items-center gap-1">
             {[...Array(5)].map((_, index) => (
               <Star
-                key={index}
+                key={`star-${product.id || product.slug || "product"}-${index}`}
                 className={`h-5 w-5 ${
                   index < Math.floor(product.rating || 4)
                     ? "text-warning fill-warning"

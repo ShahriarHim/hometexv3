@@ -2,18 +2,27 @@
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useOrders, type ApiErrorResponse } from "@/context/OrderContext";
 import { useRouter } from "@/i18n/routing";
-import { ApiError, userService } from "@/services/api";
+import { ApiError, locationService, userService } from "@/services/api";
+import type { Area, Division } from "@/types/api/location";
 import { Loader2, MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import OrderConfirmation from "./OrderConfirmation";
 
@@ -24,10 +33,17 @@ const Checkout = () => {
   const { createOrder } = useOrders();
 
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("ssl_commerce");
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [divisions, setDivisions] = useState<Division[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
+  const [selectedDivisionId, setSelectedDivisionId] = useState<string>("");
+  const [selectedAreaId, setSelectedAreaId] = useState<string>("");
+  const [loadingDivisions, setLoadingDivisions] = useState(false);
+  const [loadingAreas, setLoadingAreas] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | undefined>(undefined);
+  const isNavigatingRef = useRef(false);
   const [shippingData, setShippingData] = useState<{
     name: string;
     email: string;
@@ -55,6 +71,73 @@ const Checkout = () => {
       router.replace("/cart");
     }
   }, [isAuthenticated, items.length, orderConfirmed, router]);
+
+  useEffect(() => {
+    const fetchDivisions = async () => {
+      setLoadingDivisions(true);
+      try {
+        const response = await locationService.getDivisions();
+        setDivisions(Array.isArray(response) ? response : []);
+      } catch (error) {
+        console.error("Failed to fetch divisions:", error);
+        toast.error("Failed to load divisions");
+      } finally {
+        setLoadingDivisions(false);
+      }
+    };
+
+    fetchDivisions();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedDivisionId) {
+      setAreas([]);
+      setSelectedAreaId("");
+      return;
+    }
+
+    const abortController = new AbortController();
+
+    const fetchAreas = async () => {
+      setLoadingAreas(true);
+      setAreas([]);
+      setSelectedAreaId("");
+      try {
+        const response = await locationService.getAreas(
+          Number(selectedDivisionId),
+          abortController.signal
+        );
+        if (abortController.signal.aborted) {
+          return;
+        }
+        const areasArray = Array.isArray(response) ? response : [];
+        const uniqueAreas = areasArray
+          .filter((area) => area.id !== null && area.id !== undefined && area.name)
+          .filter((area, index, self) => index === self.findIndex((a) => a.id === area.id));
+        setAreas(uniqueAreas);
+        setSelectedAreaId("");
+      } catch (error) {
+        if (
+          abortController.signal.aborted ||
+          (error instanceof Error && error.name === "AbortError")
+        ) {
+          return;
+        }
+        console.error("Failed to fetch areas:", error);
+        toast.error("Failed to load areas");
+      } finally {
+        if (!abortController.signal.aborted) {
+          setLoadingAreas(false);
+        }
+      }
+    };
+
+    fetchAreas();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [selectedDivisionId]);
 
   interface ReverseGeocodeResult {
     address: {
@@ -128,6 +211,17 @@ const Checkout = () => {
         zip: postcode,
         country: address.country || "Bangladesh",
       }));
+
+      if (state) {
+        const matchingDivision = divisions.find(
+          (d) =>
+            d.name.toLowerCase().includes(state.toLowerCase()) ||
+            state.toLowerCase().includes(d.name.toLowerCase())
+        );
+        if (matchingDivision) {
+          setSelectedDivisionId(String(matchingDivision.id));
+        }
+      }
 
       toast.success("Location address filled successfully");
     } catch (error) {
@@ -255,6 +349,8 @@ const Checkout = () => {
         shippingAddress: shippingData,
       });
 
+      // Set flag to prevent useEffect redirect
+      isNavigatingRef.current = true;
       setConfirmedOrderId(order.id);
       setOrderConfirmed(true);
       clearCart();
@@ -359,24 +455,67 @@ const Checkout = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="state">Division / State</Label>
-                      <Input
-                        id="state"
-                        value={shippingData.state}
-                        onChange={(e) =>
-                          setShippingData({ ...shippingData, state: e.target.value })
-                        }
-                        required
-                      />
+                      <Label htmlFor="division">Division</Label>
+                      <Select
+                        value={selectedDivisionId}
+                        onValueChange={(value) => {
+                          setSelectedDivisionId(value);
+                          const division = divisions.find((d) => d.id === Number(value));
+                          setShippingData({ ...shippingData, state: division?.name || "" });
+                        }}
+                        disabled={loadingDivisions}
+                      >
+                        <SelectTrigger id="division">
+                          <SelectValue
+                            placeholder={loadingDivisions ? "Loading..." : "Select division"}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {divisions
+                            .filter(
+                              (division) =>
+                                division.id !== null && division.id !== undefined && division.name
+                            )
+                            .map((division) => (
+                              <SelectItem key={division.id} value={String(division.id)}>
+                                {division.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="city">City / Area</Label>
-                      <Input
-                        id="city"
-                        value={shippingData.city}
-                        onChange={(e) => setShippingData({ ...shippingData, city: e.target.value })}
-                        required
-                      />
+                      <Label htmlFor="area">Area</Label>
+                      <Select
+                        value={selectedAreaId}
+                        onValueChange={(value) => {
+                          setSelectedAreaId(value);
+                          const area = areas.find((a) => a.id === Number(value));
+                          setShippingData({ ...shippingData, city: area?.name || "" });
+                        }}
+                        disabled={!selectedDivisionId || loadingAreas}
+                      >
+                        <SelectTrigger id="area">
+                          <SelectValue
+                            placeholder={
+                              !selectedDivisionId
+                                ? "Select division first"
+                                : loadingAreas
+                                  ? "Loading..."
+                                  : "Select area"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {areas
+                            .filter((area) => area.id !== null && area.id !== undefined)
+                            .map((area) => (
+                              <SelectItem key={area.id} value={String(area.id)}>
+                                {area.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="country">Country</Label>
@@ -397,13 +536,25 @@ const Checkout = () => {
               <Card>
                 <CardContent className="p-6">
                   <h2 className="text-2xl font-semibold mb-6">Payment Method</h2>
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <div className="flex items-center space-x-2 p-4 border border-border rounded-lg">
-                      <RadioGroupItem value="ssl_commerce" id="ssl_commerce" />
-                      <Label htmlFor="ssl_commerce" className="flex-1 cursor-pointer">
-                        <div>
-                          <p className="font-medium">SSL Commerz</p>
-                          <p className="text-sm text-muted-foreground">Secure payment gateway</p>
+                  <RadioGroup
+                    value={paymentMethod}
+                    onValueChange={(value) => {
+                      if (value !== "ssl_commerce") {
+                        setPaymentMethod(value);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center space-x-2 p-4 border border-border rounded-lg opacity-60 relative">
+                      <RadioGroupItem value="ssl_commerce" id="ssl_commerce" disabled />
+                      <Label htmlFor="ssl_commerce" className="flex-1 cursor-not-allowed">
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <p className="font-medium">SSL Commerz</p>
+                            <p className="text-sm text-muted-foreground">Secure payment gateway</p>
+                          </div>
+                          <Badge variant="secondary" className="ml-auto">
+                            Available soon
+                          </Badge>
                         </div>
                       </Label>
                     </div>
@@ -427,18 +578,22 @@ const Checkout = () => {
                 <CardContent className="p-6">
                   <h2 className="text-2xl font-semibold mb-6">Order Summary</h2>
                   <div className="space-y-4">
-                    {items.map((item) => (
-                      <div key={`${item.product.id}-${item.selectedColor}-${item.selectedSize}`}>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            {item.product.name} × {item.quantity}
-                          </span>
-                          <span className="font-medium">
-                            ${(item.product.price * item.quantity).toFixed(2)}
-                          </span>
+                    {items
+                      .filter((item) => item.product?.id !== null && item.product?.id !== undefined)
+                      .map((item) => (
+                        <div
+                          key={`${item.product.id}-${item.selectedColor || "no-color"}-${item.selectedSize || "no-size"}`}
+                        >
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              {item.product.name} × {item.quantity}
+                            </span>
+                            <span className="font-medium">
+                              ${(item.product.price * item.quantity).toFixed(2)}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                     <div className="pt-4 border-t border-border space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Subtotal</span>

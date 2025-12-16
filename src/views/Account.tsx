@@ -271,7 +271,7 @@ const Account = () => {
             <>
               <p className="text-muted-foreground mb-4">
                 No order found, need shopping?{" "}
-                <Link href="/shop" className="text-primary underline hover:text-primary/80">
+                <Link href="/products" className="text-primary underline hover:text-primary/80">
                   click here
                 </Link>
               </p>
@@ -293,7 +293,7 @@ const Account = () => {
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">No orders yet. Start shopping to see orders.</p>
           <Button asChild>
-            <Link href="/shop">Start Shopping</Link>
+            <Link href="/products">Start Shopping</Link>
           </Button>
         </div>
       );

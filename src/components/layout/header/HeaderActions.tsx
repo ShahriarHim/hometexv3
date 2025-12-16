@@ -12,9 +12,15 @@ interface HeaderActionsProps {
   onSearchClick: () => void;
   onChatToggle?: () => void;
   _isChatOpen?: boolean;
+  onDailyDealClick?: () => void;
 }
 
-const HeaderActions = ({ onSearchClick, onChatToggle, _isChatOpen }: HeaderActionsProps) => {
+const HeaderActions = ({
+  onSearchClick,
+  onChatToggle,
+  _isChatOpen,
+  onDailyDealClick,
+}: HeaderActionsProps) => {
   const t = useTranslations("navigation");
   const { getTotalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
@@ -52,15 +58,17 @@ const HeaderActions = ({ onSearchClick, onChatToggle, _isChatOpen }: HeaderActio
         <span>{t("giftSomeone")}</span>
       </Link>
 
-      <Link
-        href="/daily-deals"
-        className="hidden lg:flex items-center gap-2 text-sm font-medium hover:text-primary"
+      <Button
+        variant="ghost"
+        size="sm"
+        className="hidden lg:flex items-center gap-2 px-2 hover:bg-transparent hover:text-primary"
+        onClick={onDailyDealClick}
       >
         <div className="text-yellow-600">
           <FaBriefcase className="h-5 w-5" />
         </div>
         <span>{t("dailyDeals")}</span>
-      </Link>
+      </Button>
 
       <Button
         variant="ghost"

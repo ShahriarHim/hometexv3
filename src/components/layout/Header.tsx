@@ -1,9 +1,11 @@
 "use client";
 
 import ChatPopup from "@/components/ChatPopup";
+import DailyDealPopup from "@/components/DailyDealPopup";
 import PreHeader from "@/components/layout/PreHeader";
 import SearchPopup from "@/components/layout/SearchPopup";
 import { Button } from "@/components/ui/button";
+import { useDailyDealPopup } from "@/hooks/useDailyDealPopup";
 import { productService } from "@/services/api";
 import { Menu, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -15,9 +17,9 @@ import { HeaderLogo } from "./header/HeaderLogo";
 import { MobileMenu } from "./header/MobileMenu";
 import { ShowCategoriesButton } from "./header/ShowCategoriesButton";
 import {
-  getFeaturedCategories,
-  transformCategories,
-  type TransformedCategory,
+    getFeaturedCategories,
+    transformCategories,
+    type TransformedCategory,
 } from "./header/types";
 
 export const Header = () => {
@@ -26,6 +28,11 @@ export const Header = () => {
   const [showCategoriesBar, setShowCategoriesBar] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const {
+    shouldShow: showDailyDeal,
+    handleClose: closeDailyDeal,
+    handleShow: showDailyDealPopup,
+  } = useDailyDealPopup();
 
   // Categories State
   const [categories, setCategories] = useState<TransformedCategory[]>([]);
@@ -89,6 +96,7 @@ export const Header = () => {
     <>
       <SearchPopup isOpen={showPopup} onClose={closePopup} />
       {isChatOpen && <ChatPopup onClose={() => setIsChatOpen(false)} />}
+      {showDailyDeal && <DailyDealPopup onClose={closeDailyDeal} />}
       <PreHeader />
       <header
         className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
@@ -133,6 +141,7 @@ export const Header = () => {
               onSearchClick={handleSearchClick}
               onChatToggle={() => setIsChatOpen(!isChatOpen)}
               _isChatOpen={isChatOpen}
+              onDailyDealClick={showDailyDealPopup}
             />
           </div>
 

@@ -34,7 +34,7 @@ export const heroSlides: HeroSlide[] = [
     image: "/images/mslider/Slider-1920x601.webp",
     cta: {
       label: "Shop the Capsule",
-      href: "/shop",
+      href: "/products",
     },
     secondaryCta: {
       label: "View Lookbook",

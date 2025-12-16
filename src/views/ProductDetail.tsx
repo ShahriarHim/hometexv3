@@ -288,7 +288,7 @@ const ProductDetailNew = () => {
             <div className="flex gap-4 justify-center">
               <Button onClick={() => window.location.reload()}>Try Again</Button>
               <Button variant="outline" asChild>
-                <Link href="/shop">Back to Shop</Link>
+                <Link href="/products">Back to Shop</Link>
               </Button>
             </div>
           </div>
@@ -678,7 +678,7 @@ const ProductDetailNew = () => {
           </nav>
           {/*
           <Button variant="ghost" asChild className="mb-6">
-            <Link href="/shop">
+            <Link href="/products">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Shop
             </Link>

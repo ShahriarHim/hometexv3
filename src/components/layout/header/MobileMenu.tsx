@@ -37,7 +37,7 @@ export const MobileMenu = ({
           {t("home")}
         </Link>
         <Link
-          href="/shop"
+          href="/products"
           className="px-4 py-2 text-sm font-medium hover:bg-secondary rounded-md transition-colors"
           onClick={onClose}
         >
