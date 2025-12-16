@@ -369,7 +369,7 @@ const Account = () => {
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="text-sm text-muted-foreground">
                   <div>Payment: {order.payment_method}</div>
-                  <div>Status: {order.payment_status}</div>
+                  <div>Status: {order.order_status_string}</div>
                   <div>Shop: {order.shop}</div>
                 </div>
                 <div className="text-sm text-muted-foreground">

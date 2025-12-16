@@ -132,7 +132,7 @@ export const orderService = {
           };
         }
       }
-    } catch (invoiceErr) {
+    } catch {
       // Invoice endpoint also failed, will throw final error below
     }
 
