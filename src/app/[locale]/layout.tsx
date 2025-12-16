@@ -1,16 +1,13 @@
-import CookiesManager from "@/components/CookiesManager";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import FloatingBar from "@/components/FloatingBar";
+export const dynamic = 'force-dynamic';
+import ClientProviders from "../ClientProviders";
 import { routing } from "@/i18n/routing";
 import { env } from "@/lib/env";
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { Quicksand } from "next/font/google";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import "../globals.css";
-import { Providers } from "../providers";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -20,7 +17,7 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(env.siteUrl),
+  metadataBase: env.siteUrl ? new URL(env.siteUrl) : undefined,
   title: "Hometex Bangladesh - Premium Textiles for Bedding, Bath & Home Décor",
   description:
     "Shop premium quality textiles at Hometex Bangladesh. Discover luxurious bedding, bath essentials, kitchen linens, and home décor. Free shipping on orders over BDT 3,000.",
@@ -36,10 +33,6 @@ export const metadata: Metadata = {
     images: ["/images/hero-bedroom.jpg"],
   },
 };
-
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
 
 export default async function LocaleLayout({
   children,
@@ -57,7 +50,7 @@ export default async function LocaleLayout({
   }
 
   // Providing all messages to the client side is the easiest way to get started
-  const messages = await getMessages({ locale });
+  const messages = await getMessages({ locale }).catch(() => ({}));
 
   return (
     <html lang={locale} className={quicksand.variable} suppressHydrationWarning>
@@ -65,15 +58,10 @@ export default async function LocaleLayout({
         className="min-h-screen bg-background text-foreground antialiased font-sans"
         suppressHydrationWarning
       >
-        <ErrorBoundary>
-          <NextIntlClientProvider messages={messages}>
-            <Providers>
-              {children}
-              <FloatingBar />
-              <CookiesManager />
-            </Providers>
-          </NextIntlClientProvider>
-        </ErrorBoundary>
+        <ClientProviders messages={messages}>
+          {children}
+        </ClientProviders>
+
       </body>
     </html>
   );
