@@ -95,7 +95,12 @@ export const OnSaleProducts = () => {
             };
           });
 
-          setProducts(transformedProducts);
+          // Filter out out-of-stock items
+          const inStockProducts = transformedProducts.filter(
+            (product) => product.stock > 0 && product.inStock
+          );
+
+          setProducts(inStockProducts);
         }
       } catch (err) {
         console.error("Error fetching on-sale products:", err);
