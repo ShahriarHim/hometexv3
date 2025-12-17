@@ -149,7 +149,6 @@ export const ProductReviews = ({
   };
 
   const handleDelete = (id: number) => {
-    // eslint-disable-next-line no-alert
     if (confirm("Are you sure you want to delete this review?")) {
       deleteMutation.mutate(id);
     }
