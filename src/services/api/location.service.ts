@@ -28,7 +28,10 @@ export const locationService = {
           name: item.division_name ?? item.name,
         })
       )
-      .filter((item) => item.id !== null && item.id !== undefined && item.name);
+      .filter(
+        (item): item is { id: number; name: string } =>
+          item.id !== null && item.id !== undefined && item.name !== undefined
+      );
   },
 
   /**
@@ -51,6 +54,9 @@ export const locationService = {
         id: item.area_id ?? item.id,
         name: item.area_name ?? item.name,
       }))
-      .filter((item) => item.id !== null && item.id !== undefined && item.name);
+      .filter(
+        (item): item is { id: number; name: string } =>
+          item.id !== null && item.id !== undefined && item.name !== undefined
+      );
   },
 };

@@ -17,6 +17,7 @@ import { env } from "@/lib/env";
 import { productService } from "@/services/api";
 import type { Product } from "@/types";
 import type { CategoryTree } from "@/types/api";
+import type { Product as APIProductType } from "@/types/api/product";
 import { Grid3x3, LayoutGrid, List, Loader2, Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -27,23 +28,41 @@ interface APIProduct {
   id: number;
   name: string;
   slug: string;
-  price: string;
-  original_price: number;
-  sell_price: {
-    price: number;
-    discount: number;
-    symbol: string;
+  price?: string;
+  original_price?: number;
+  regular_price?: number;
+  final_price?: number;
+  sell_price?: {
+    price?: number;
+    discount?: number;
+    symbol?: string;
   };
-  stock: number;
-  primary_photo: string;
-  category: {
-    slug: string;
+  stock?: number;
+  stock_quantity?: number;
+  stock_status?: string;
+  primary_photo?: string;
+  images?: string[];
+  thumbnail?: string;
+  description?: string;
+  short_description?: string;
+  discount_percent?: number | string;
+  rating?: number;
+  reviews_count?: number;
+  isNew?: number | boolean;
+  is_new?: boolean;
+  isFeatured?: number | boolean;
+  is_featured?: boolean;
+  category?: {
+    slug?: string;
+    name?: string;
   };
-  sub_category: {
-    slug: string;
+  sub_category?: {
+    slug?: string;
+    name?: string;
   };
   child_sub_category?: {
-    slug: string;
+    slug?: string;
+    name?: string;
   };
 }
 
@@ -111,9 +130,9 @@ const Products = () => {
 
           if (data.success && data.data.products) {
             const transformedProducts: Product[] = data.data.products.map((product) => {
-              const discountPercent = product.sell_price.discount || 0;
-              const originalPrice = product.original_price || product.sell_price.price;
-              const salePrice = product.sell_price.price;
+              const discountPercent = product.sell_price?.discount || 0;
+              const originalPrice = product.original_price || product.sell_price?.price || 0;
+              const salePrice = product.sell_price?.price || 0;
 
               return {
                 id: product.id.toString(),
@@ -126,7 +145,7 @@ const Products = () => {
                 subcategory: product.sub_category?.slug,
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
-                inStock: product.stock > 0,
+                inStock: (product.stock ?? 0) > 0,
                 rating: 4.0,
                 reviewCount: 5,
                 discount: discountPercent > 0 ? discountPercent : undefined,
@@ -168,9 +187,9 @@ const Products = () => {
 
           if (data.success && data.data.products) {
             const transformedProducts: Product[] = data.data.products.map((product) => {
-              const discountPercent = product.sell_price.discount || 0;
-              const originalPrice = product.original_price || product.sell_price.price;
-              const salePrice = product.sell_price.price;
+              const discountPercent = product.sell_price?.discount || 0;
+              const originalPrice = product.original_price || product.sell_price?.price || 0;
+              const salePrice = product.sell_price?.price || 0;
 
               return {
                 id: product.id.toString(),
@@ -183,7 +202,7 @@ const Products = () => {
                 subcategory: product.sub_category?.slug,
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
-                inStock: product.stock > 0,
+                inStock: (product.stock ?? 0) > 0,
                 rating: 4.0,
                 reviewCount: 5,
                 discount: discountPercent > 0 ? discountPercent : undefined,
@@ -222,9 +241,9 @@ const Products = () => {
 
           if (data.success && data.data.products) {
             const transformedProducts: Product[] = data.data.products.map((product) => {
-              const discountPercent = product.sell_price.discount || 0;
-              const originalPrice = product.original_price || product.sell_price.price;
-              const salePrice = product.sell_price.price;
+              const discountPercent = product.sell_price?.discount || 0;
+              const originalPrice = product.original_price || product.sell_price?.price || 0;
+              const salePrice = product.sell_price?.price || 0;
 
               return {
                 id: product.id.toString(),
@@ -237,7 +256,7 @@ const Products = () => {
                 subcategory: product.sub_category?.slug,
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
-                inStock: product.stock > 0,
+                inStock: (product.stock ?? 0) > 0,
                 rating: 4.0,
                 reviewCount: 5,
                 discount: discountPercent > 0 ? discountPercent : undefined,
@@ -271,91 +290,50 @@ const Products = () => {
           });
 
           if (response.success && response.data?.products) {
-            const transformedProducts: Product[] = (response.data.products as APIProduct[]).map(
-              (product) => {
-                // Handle price - API returns sell_price.price or final_price
-                const salePrice = product.sell_price?.price ?? product.final_price ?? 0;
-                const originalPrice = product.original_price ?? product.regular_price;
+            const transformedProducts: Product[] = response.data.products.map(
+              (product: APIProductType) => {
+                // Handle price - API returns final_price or sale_price
+                const salePrice = product.final_price ?? product.sale_price ?? product.price ?? 0;
+                const originalPrice = product.regular_price ?? product.price ?? 0;
 
-                // Handle discount_percent - can be string "10%" or number
-                let discountPercent = 0;
-                if (product.discount_percent) {
-                  if (typeof product.discount_percent === "string") {
-                    const match = product.discount_percent.match(/\d+/);
-                    discountPercent = match ? parseInt(match[0], 10) : 0;
-                  } else {
-                    discountPercent = product.discount_percent;
-                  }
-                } else if (product.sell_price?.discount) {
-                  discountPercent = product.sell_price.discount;
-                }
+                // Handle discount_percent
+                const discountPercent = product.discount_percent ?? 0;
 
-                // Handle category - API returns object with name/id, not slug
-                const categorySlug =
-                  product.category?.slug ||
-                  (product.category?.name
-                    ? product.category.name.toLowerCase().replace(/\s+/g, "-")
-                    : "general");
+                // Handle category - API returns object with slug
+                const categorySlug = product.category?.slug || "general";
 
-                // Handle subcategory
-                const subcategorySlug =
-                  product.sub_category?.slug ||
-                  (product.sub_category?.name
-                    ? product.sub_category.name.toLowerCase().replace(/\s+/g, "-")
-                    : undefined);
-
-                // Handle child subcategory
-                const childSubcategorySlug =
-                  product.child_sub_category?.slug ||
-                  (product.child_sub_category?.name
-                    ? product.child_sub_category.name.toLowerCase().replace(/\s+/g, "-")
-                    : undefined);
-
-                // Handle images - API has primary_photo as string or images array
-                let images: string[] = [];
-                if (product.primary_photo) {
-                  images = [product.primary_photo];
-                } else if (
-                  product.images &&
-                  Array.isArray(product.images) &&
-                  product.images.length > 0
-                ) {
-                  images = product.images;
-                } else if (product.thumbnail) {
-                  images = [product.thumbnail];
-                } else {
-                  images = ["/placeholder.svg"];
-                }
+                // Handle images - API has images array
+                const images =
+                  product.images && product.images.length > 0
+                    ? product.images
+                    : product.thumbnail
+                      ? [product.thumbnail]
+                      : ["/placeholder.svg"];
 
                 // Handle stock
-                const stockQty = product.stock ?? product.stock_quantity ?? 0;
-                const inStock =
-                  product.stock_status === "in_stock" ||
-                  (product.stock_status !== "out_of_stock" && stockQty > 0);
+                const stockQty = product.stock_quantity ?? 0;
+                const inStock = product.stock_status === "in_stock" && stockQty > 0;
 
                 return {
                   id: product.id.toString(),
                   name: product.name,
                   slug: product.slug,
-                  price: typeof salePrice === "number" ? salePrice : 0,
+                  price: salePrice,
                   originalPrice:
                     discountPercent > 0 && originalPrice && typeof originalPrice === "number"
                       ? originalPrice
                       : undefined,
                   description: product.description || product.short_description || "",
                   category: categorySlug,
-                  subcategory: subcategorySlug,
-                  childSubcategory: childSubcategorySlug,
+                  subcategory: undefined,
+                  childSubcategory: undefined,
                   images: images,
                   inStock: inStock,
                   rating: product.rating || 4.0,
                   reviewCount: product.reviews_count || 5,
                   discount: discountPercent > 0 ? discountPercent : undefined,
-                  isNew: product.isNew === 1 || product.is_new === true || product.isNew === true,
-                  isFeatured:
-                    product.isFeatured === 1 ||
-                    product.is_featured === true ||
-                    product.isFeatured === true,
+                  isNew: product.is_new ?? false,
+                  isFeatured: product.is_featured ?? false,
                   stock: stockQty,
                 };
               }

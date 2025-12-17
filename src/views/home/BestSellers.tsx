@@ -97,7 +97,7 @@ export const BestSellers = () => {
 
           // Filter out out-of-stock items
           const inStockProducts = transformedProducts.filter(
-            (product) => product.stock > 0 && product.inStock
+            (product) => (product.stock ?? 0) > 0 && product.inStock
           );
 
           setProducts(inStockProducts);
