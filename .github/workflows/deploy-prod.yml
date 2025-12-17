@@ -1,27 +1,31 @@
-name: Deploy Staging
+name: Deploy Production
 
 on:
   push:
     branches:
-      - staging
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Staging Server
+      - name: Deploy to Production Server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.STAGING_HOST }}
+          host: ${{ secrets.PROD_HOST }}
           username: deploy
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: 22
           script: |
-            cd ${{ secrets.STAGING_PATH }}
+            cd ${{ secrets.PROD_PATH }}
+
             git fetch origin
-            git checkout staging
-            git pull origin staging
+            git checkout main
+            git pull origin main
+
             npm install
+            rm -rf .next
             npm run build
-            pm2 restart hometex-staging
+
+            pm2 restart hometex-frontend --update-env
