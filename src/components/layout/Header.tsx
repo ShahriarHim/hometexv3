@@ -17,9 +17,9 @@ import { HeaderLogo } from "./header/HeaderLogo";
 import { MobileMenu } from "./header/MobileMenu";
 import { ShowCategoriesButton } from "./header/ShowCategoriesButton";
 import {
-    getFeaturedCategories,
-    transformCategories,
-    type TransformedCategory,
+  getFeaturedCategories,
+  transformCategories,
+  type TransformedCategory,
 } from "./header/types";
 
 export const Header = () => {
