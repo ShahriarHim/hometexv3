@@ -18,7 +18,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: 22
           script: |
-            cd /var/www/hometexv3-staging
+            cd ${{ secrets.STAGING_PATH }}
             git fetch origin
             git checkout staging
             git pull origin staging

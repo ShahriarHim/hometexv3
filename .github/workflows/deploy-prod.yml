@@ -7,39 +7,25 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to Production Server
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+          host: ${{ secrets.PROD_HOST }}
+          username: deploy
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: 22
+          script: |
+            cd ${{ secrets.PROD_PATH }}
 
-      - name: Deploy to Production
-        run: |
-          ssh -o StrictHostKeyChecking=no deploy@${{ secrets.SERVER_IP }} << 'EOF'
-            set -e
-
-            cd /var/www/hometexv3
-
-            echo "📥 Pulling latest code from main"
+            git fetch origin
+            git checkout main
             git pull origin main
 
-            echo "📦 Installing dependencies"
-            npm install --production=false
-
-            echo "🧹 Cleaning old build"
+            npm install
             rm -rf .next
-
-            echo "🏗️ Building Next.js app"
             npm run build
 
-            echo "🚀 Restarting PM2 (production)"
             pm2 restart hometex-frontend --update-env
-
-            echo "✅ Production deployment complete"
-          EOF
