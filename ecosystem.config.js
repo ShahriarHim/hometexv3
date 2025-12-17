@@ -13,17 +13,9 @@ module.exports = {
       },
       env_production: {
         NODE_ENV: "production",
-        PORT: 3000,
-        NEXT_PUBLIC_API_BASE_URL: "https://api.hometexbd.ltd",
-        NEXT_PUBLIC_SITE_URL: "https://www.hometexbd.ltd",
-        NEXT_PUBLIC_APP_NAME: "Hometex Bangladesh",
       },
       env_staging: {
         NODE_ENV: "production",
-        PORT: 3000,
-        NEXT_PUBLIC_API_BASE_URL: "https://staging-api.hometexbd.ltd",
-        NEXT_PUBLIC_SITE_URL: "https://staging.hometexbd.ltd",
-        NEXT_PUBLIC_APP_NAME: "Hometex Bangladesh [STAGING]",
       },
       error_file: "./logs/pm2-error.log",
       out_file: "./logs/pm2-out.log",
