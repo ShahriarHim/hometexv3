@@ -22,7 +22,7 @@ export const PromoGrid = () => {
           </p>
           <p className="text-gray-700 mt-2 text-3xl">{promoTiles[0]?.subtitle || "Big Discount"}</p>
           <Link
-            href="/shop"
+            href="/products"
             className="rounded bg-transparent border border-gray-600 text-gray-600 px-5 py-2 mt-5 hover:bg-gray-600 inline-block"
           >
             Shop Now
@@ -37,7 +37,10 @@ export const PromoGrid = () => {
           <p className="text-lg mb-4 border px-3 text-gray-300">
             {promoTiles[1]?.badge || "Save to 50% off on First Order"}
           </p>
-          <Link href="/shop" className="bg-blue-500 text-white py-2 px-4 rounded-lg inline-block">
+          <Link
+            href="/products"
+            className="bg-blue-500 text-white py-2 px-4 rounded-lg inline-block"
+          >
             Shop Now
           </Link>
         </div>
@@ -53,7 +56,7 @@ export const PromoGrid = () => {
           </p>
           <p className="text-gray-700 text-3xl mt-2">{promoTiles[2]?.subtitle || "New Arrivals"}</p>
           <Link
-            href="/shop"
+            href="/products"
             className="rounded bg-transparent border border-gray-600 text-gray-600 px-5 py-2 mt-5 hover:bg-gray-600 inline-block"
           >
             Shop Now

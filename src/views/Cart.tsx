@@ -53,7 +53,7 @@ const Cart = () => {
             title="Your cart is empty"
             description="Start adding some products to your cart"
             actionLabel="Continue Shopping"
-            actionHref="/shop"
+            actionHref="/products"
           />
         </main>
         <Footer />
@@ -179,7 +179,7 @@ const Cart = () => {
                   </Button>
                 )}
                 <Button asChild variant="outline" className="w-full mt-3">
-                  <Link href="/shop">Continue Shopping</Link>
+                  <Link href="/products">Continue Shopping</Link>
                 </Button>
               </CardContent>
             </Card>

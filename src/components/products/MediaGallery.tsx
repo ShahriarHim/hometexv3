@@ -146,12 +146,12 @@ export const MediaGallery = ({
                 priority
               />
             </div>
-          ) : currentMedia?.type === "video" ? (
+          ) : currentMedia?.type === "video" && currentMedia.id !== undefined ? (
             <div className="relative w-full h-full">
               {playingVideo === currentMedia.id ? (
                 renderVideoEmbed(
                   currentMedia.url,
-                  currentMedia.id!,
+                  currentMedia.id,
                   videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
                 )
               ) : (
@@ -168,12 +168,14 @@ export const MediaGallery = ({
                   <Button
                     size="lg"
                     className="absolute inset-0 m-auto w-16 h-16 rounded-full"
-                    onClick={() =>
-                      handleVideoPlay(
-                        currentMedia.id!,
-                        videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
-                      )
-                    }
+                    onClick={() => {
+                      if (currentMedia.id !== undefined) {
+                        handleVideoPlay(
+                          currentMedia.id,
+                          videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
+                        );
+                      }
+                    }}
                     aria-label="Play video"
                   >
                     <Play className="h-6 w-6" />
@@ -270,11 +272,11 @@ export const MediaGallery = ({
                   sizes="100vw"
                 />
               </div>
-            ) : currentMedia?.type === "video" ? (
+            ) : currentMedia?.type === "video" && currentMedia.id !== undefined ? (
               <div className="w-full h-full flex items-center justify-center">
                 {renderVideoEmbed(
                   currentMedia.url,
-                  currentMedia.id!,
+                  currentMedia.id,
                   videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
                 )}
               </div>

@@ -1,13 +1,13 @@
 "use client";
 
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Building2, Users, Truck, CreditCard, Handshake, Mail, Phone } from "lucide-react";
+import { Building2, CreditCard, Handshake, Mail, Phone, Truck, Users } from "lucide-react";
 
 const Corporate = () => {
   return (
@@ -117,9 +117,14 @@ const Corporate = () => {
                       rows={4}
                     />
                   </div>
-                  <Button type="submit" className="w-full" variant="premium">
-                    Submit Request
-                  </Button>
+                  <div className="relative">
+                    <Button type="submit" className="w-full" variant="premium" disabled>
+                      Submit Request
+                    </Button>
+                    <Badge variant="secondary" className="absolute -top-2 -right-2">
+                      Available soon
+                    </Badge>
+                  </div>
                 </form>
               </CardContent>
             </Card>

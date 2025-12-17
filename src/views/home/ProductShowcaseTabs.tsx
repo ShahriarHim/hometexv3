@@ -97,7 +97,12 @@ export const ProductShowcaseTabs = () => {
             };
           });
 
-          setFeaturedProducts(transformedProducts);
+          // Filter out out-of-stock items
+          const inStockProducts = transformedProducts.filter(
+            (product) => (product.stock ?? 0) > 0 && product.inStock
+          );
+
+          setFeaturedProducts(inStockProducts);
         }
       } catch (err) {
         console.error("Error fetching featured products:", err);

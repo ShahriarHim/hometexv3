@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
 import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "../ui/button";
 import PriceFormatter from "./PriceFormatter";
 import QuantityButtons from "./QuantityButtons";
 
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const AddToCartButton = ({ product, className }: Props) => {
-  const { items, addToCart, updateQuantity: _updateQuantity } = useCart();
+  const { items, addToCart } = useCart();
 
   const cartItem = items.find((item) => item.product.id === product.id);
   const itemCount = cartItem?.quantity || 0;
@@ -62,25 +63,26 @@ const AddToCartButton = ({ product, className }: Props) => {
             <QuantityButtons product={product} />
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 pt-3">
-            <span className="text-sm font-bold text-gray-900">Subtotal</span>
+            <span className="text-sm font-bold text-primary">Subtotal</span>
             <PriceFormatter
               amount={numericPrice * itemCount}
-              className="text-price font-bold text-lg"
+              className="text-primary font-bold text-lg"
             />
           </div>
         </div>
       ) : (
-        <button
+        <Button
           onClick={handleAddToCart}
           disabled={isOutOfStock}
+          size="lg"
           className={cn(
-            "w-full h-12 rounded-md bg-accent text-accent-foreground shadow-sm border-0 font-bold text-base tracking-wide hover:bg-accent-hover active:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 px-4 py-3",
+            "w-full font-semibold tracking-wide flex items-center justify-center gap-2.5",
             className
           )}
         >
           <ShoppingBag className="h-5 w-5" />
           <span>{isOutOfStock ? "Out of Stock" : "Add to Cart"}</span>
-        </button>
+        </Button>
       )}
     </div>
   );

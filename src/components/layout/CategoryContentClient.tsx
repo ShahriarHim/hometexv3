@@ -1,14 +1,15 @@
 "use client";
 
 import { ProductCard } from "@/components/products/ProductCard";
+import { ProductGridSkeleton } from "@/components/ui/ProductCardSkeleton";
 import { Badge } from "@/components/ui/badge";
+import { useInfiniteProductSearchFlat } from "@/hooks/useInfiniteProductSearch";
 import { Link } from "@/i18n/routing";
 import { transformAPIProductToProduct } from "@/lib/transforms";
-import { productService } from "@/services/api";
 import type { Product } from "@/types";
 import type { CategoryTree } from "@/types/api";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { CategoryPageSkeleton } from "./CategoryPageSkeleton";
 
 interface CategoryContentClientProps {
@@ -28,77 +29,70 @@ export function CategoryContentClient({
   pageTitle,
   pageDescription,
 }: CategoryContentClientProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  // Validate that subId and childId exist in the category tree
+  let isValidCategory = true;
+  if (apiCategory && subId) {
+    const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
+    if (!sub) {
+      console.warn(`Subcategory ${subId} not found in category ${apiCategory.id}`);
+      isValidCategory = false;
+    } else if (childId) {
+      const child = sub.child_categories.find((c) => c.id === Number(childId));
+      if (!child) {
+        console.warn(`Child category ${childId} not found in subcategory ${subId}`);
+        isValidCategory = false;
+      }
+    }
+  }
+
+  // Infinite scroll hook for products
+  const {
+    products: apiProducts,
+    totalCount,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+  } = useInfiniteProductSearchFlat({
+    categoryId: apiCategory?.id,
+    subCategory: subId ? Number(subId) : undefined,
+    childSubCategoryId: childId ? Number(childId) : undefined,
+    perPage: 20,
+    enabled: Boolean(apiCategory) && isValidCategory,
+  });
+
+  // Transform API products to Product type
+  const products: Product[] = apiProducts.map((apiProduct) =>
+    transformAPIProductToProduct(apiProduct as Parameters<typeof transformAPIProductToProduct>[0])
+  );
+
+  // Intersection Observer for infinite scroll
   useEffect(() => {
-    const fetchProducts = async () => {
-      if (!apiCategory) {
-        setLoading(false);
-        return;
-      }
+    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) {
+      return;
+    }
 
-      // Validate that subId and childId exist in the category tree
-      if (subId) {
-        const sub = apiCategory.subcategories.find((s) => s.id === Number(subId));
-        if (!sub) {
-          console.warn(`Subcategory ${subId} not found in category ${apiCategory.id}`);
-          setProducts([]);
-          setLoading(false);
-          return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchNextPage();
         }
+      },
+      { threshold: 0.1 }
+    );
 
-        if (childId) {
-          const child = sub.child_categories.find((c) => c.id === Number(childId));
-          if (!child) {
-            console.warn(`Child category ${childId} not found in subcategory ${subId}`);
-            setProducts([]);
-            setLoading(false);
-            return;
-          }
-        }
-      }
+    observer.observe(loadMoreRef.current);
 
-      setLoading(true);
-      try {
-        const params: {
-          category_id: number;
-          sub_category?: number;
-          child_sub_category_id?: number;
-        } = {
-          category_id: apiCategory.id,
-        };
-
-        if (subId) {
-          params.sub_category = Number(subId);
-        }
-
-        if (childId) {
-          params.child_sub_category_id = Number(childId);
-        }
-
-        const response = await productService.getProducts(params);
-
-        if (response.success && response.data?.products) {
-          const transformedProducts = response.data.products.map((apiProduct) =>
-            transformAPIProductToProduct(
-              apiProduct as Parameters<typeof transformAPIProductToProduct>[0]
-            )
-          );
-          setProducts(transformedProducts);
-        } else {
-          setProducts([]);
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
+    return () => {
+      observer.disconnect();
     };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    fetchProducts();
-  }, [apiCategory, subId, childId]);
+  const loading = isLoading;
 
   // Get the current category image
   let categoryImage: string | null = null;
@@ -145,7 +139,9 @@ export function CategoryContentClient({
               </div>
             </div>
           )}
-          <Badge className="mb-4 bg-sage text-white">{products.length} Products</Badge>
+          <Badge className="mb-4 bg-sage text-white">
+            {totalCount > 0 ? `${totalCount} Products` : `${products.length} Products`}
+          </Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{pageTitle}</h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{pageDescription}</p>
         </div>
@@ -205,16 +201,44 @@ export function CategoryContentClient({
 
       {/* Products */}
       <div className="container mx-auto px-4 py-8">
-        {products.length === 0 ? (
+        {isLoading ? (
+          <ProductGridSkeleton count={20} />
+        ) : isError ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-lg">
+              Error loading products: {error?.message || "Please try again"}
+            </p>
+          </div>
+        ) : products.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground text-lg">No products found in this category.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Infinite Scroll Trigger */}
+            {hasNextPage && (
+              <div ref={loadMoreRef} className="py-8 text-center">
+                {isFetchingNextPage && (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="text-muted-foreground">Loading more products...</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!hasNextPage && products.length > 0 && (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">You&apos;ve reached the end of results</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

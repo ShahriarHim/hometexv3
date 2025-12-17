@@ -270,7 +270,13 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
                     {products.map((product) => (
                       <div key={product.id}>
                         <GenericProductCard
-                          product={product}
+                          product={{
+                            ...product,
+                            id: product.id.toString(),
+                            discount_percent: product.discount_percent
+                              ? String(product.discount_percent)
+                              : undefined,
+                          }}
                           showSaleLabel={true}
                           showTrendingIcon={true}
                         />

@@ -134,10 +134,25 @@ export class ApiError extends Error {
 export const handleApiResponse = async <T>(response: Response): Promise<T> => {
   const data = await response.json().catch(() => ({}));
 
-  if (!response.ok) {
-    // Try to extract error message from various response formats
+  // Helper function to normalize error messages
+  const normalizeErrorMessage = (message: string): string => {
+    if (message.includes("toDayDateTimeString") || message.includes("on null")) {
+      return "Server error: Incomplete order data. Please contact support.";
+    }
+    if (message.includes("not found") || message.includes("Order not found")) {
+      return "Order not found. Please check the order number and try again.";
+    }
+    if (message.includes("Failed to retrieve")) {
+      return "Unable to load order details. Please try again later or contact support.";
+    }
+    return message;
+  };
+
+  // Check if response indicates failure (either by status or success flag)
+  if (!response.ok || data.success === false) {
     let errorMessage = `API Error: ${response.statusText}`;
 
+    // Prioritize message from data if available
     if (data.message) {
       errorMessage = data.message;
     } else if (data.error) {
@@ -148,7 +163,10 @@ export const handleApiResponse = async <T>(response: Response): Promise<T> => {
       errorMessage = errorMessages.join(", ");
     }
 
-    throw new ApiError(errorMessage, response.status, data);
+    // Normalize the error message for user-friendly display
+    errorMessage = normalizeErrorMessage(errorMessage);
+
+    throw new ApiError(errorMessage, response.status || 500, data);
   }
 
   return data as T;

@@ -17,6 +17,7 @@ import { env } from "@/lib/env";
 import { productService } from "@/services/api";
 import type { Product } from "@/types";
 import type { CategoryTree } from "@/types/api";
+import type { Product as APIProductType } from "@/types/api/product";
 import { Grid3x3, LayoutGrid, List, Loader2, Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -27,23 +28,41 @@ interface APIProduct {
   id: number;
   name: string;
   slug: string;
-  price: string;
-  original_price: number;
-  sell_price: {
-    price: number;
-    discount: number;
-    symbol: string;
+  price?: string;
+  original_price?: number;
+  regular_price?: number;
+  final_price?: number;
+  sell_price?: {
+    price?: number;
+    discount?: number;
+    symbol?: string;
   };
-  stock: number;
-  primary_photo: string;
-  category: {
-    slug: string;
+  stock?: number;
+  stock_quantity?: number;
+  stock_status?: string;
+  primary_photo?: string;
+  images?: string[];
+  thumbnail?: string;
+  description?: string;
+  short_description?: string;
+  discount_percent?: number | string;
+  rating?: number;
+  reviews_count?: number;
+  isNew?: number | boolean;
+  is_new?: boolean;
+  isFeatured?: number | boolean;
+  is_featured?: boolean;
+  category?: {
+    slug?: string;
+    name?: string;
   };
-  sub_category: {
-    slug: string;
+  sub_category?: {
+    slug?: string;
+    name?: string;
   };
   child_sub_category?: {
-    slug: string;
+    slug?: string;
+    name?: string;
   };
 }
 
@@ -70,6 +89,7 @@ const Products = () => {
   const [apiProducts, setApiProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -87,6 +107,15 @@ const Products = () => {
   }, []);
 
   useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
     if (isTrending) {
       const fetchTrendingProducts = async () => {
         try {
@@ -101,9 +130,9 @@ const Products = () => {
 
           if (data.success && data.data.products) {
             const transformedProducts: Product[] = data.data.products.map((product) => {
-              const discountPercent = product.sell_price.discount || 0;
-              const originalPrice = product.original_price || product.sell_price.price;
-              const salePrice = product.sell_price.price;
+              const discountPercent = product.sell_price?.discount || 0;
+              const originalPrice = product.original_price || product.sell_price?.price || 0;
+              const salePrice = product.sell_price?.price || 0;
 
               return {
                 id: product.id.toString(),
@@ -116,7 +145,7 @@ const Products = () => {
                 subcategory: product.sub_category?.slug,
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
-                inStock: product.stock > 0,
+                inStock: (product.stock ?? 0) > 0,
                 rating: 4.0,
                 reviewCount: 5,
                 discount: discountPercent > 0 ? discountPercent : undefined,
@@ -126,7 +155,12 @@ const Products = () => {
               };
             });
 
-            setApiProducts(transformedProducts);
+            // Filter out out-of-stock items
+            const inStockProducts = transformedProducts.filter(
+              (product) => (product.stock ?? 0) > 0 && product.inStock
+            );
+
+            setApiProducts(inStockProducts);
           }
         } catch (err) {
           console.error("Error fetching trending products:", err);
@@ -153,9 +187,9 @@ const Products = () => {
 
           if (data.success && data.data.products) {
             const transformedProducts: Product[] = data.data.products.map((product) => {
-              const discountPercent = product.sell_price.discount || 0;
-              const originalPrice = product.original_price || product.sell_price.price;
-              const salePrice = product.sell_price.price;
+              const discountPercent = product.sell_price?.discount || 0;
+              const originalPrice = product.original_price || product.sell_price?.price || 0;
+              const salePrice = product.sell_price?.price || 0;
 
               return {
                 id: product.id.toString(),
@@ -168,7 +202,7 @@ const Products = () => {
                 subcategory: product.sub_category?.slug,
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
-                inStock: product.stock > 0,
+                inStock: (product.stock ?? 0) > 0,
                 rating: 4.0,
                 reviewCount: 5,
                 discount: discountPercent > 0 ? discountPercent : undefined,
@@ -178,7 +212,12 @@ const Products = () => {
               };
             });
 
-            setApiProducts(transformedProducts);
+            // Filter out out-of-stock items
+            const inStockProducts = transformedProducts.filter(
+              (product) => (product.stock ?? 0) > 0 && product.inStock
+            );
+
+            setApiProducts(inStockProducts);
           }
         } catch (err) {
           console.error("Error fetching bestsellers products:", err);
@@ -202,9 +241,9 @@ const Products = () => {
 
           if (data.success && data.data.products) {
             const transformedProducts: Product[] = data.data.products.map((product) => {
-              const discountPercent = product.sell_price.discount || 0;
-              const originalPrice = product.original_price || product.sell_price.price;
-              const salePrice = product.sell_price.price;
+              const discountPercent = product.sell_price?.discount || 0;
+              const originalPrice = product.original_price || product.sell_price?.price || 0;
+              const salePrice = product.sell_price?.price || 0;
 
               return {
                 id: product.id.toString(),
@@ -217,7 +256,7 @@ const Products = () => {
                 subcategory: product.sub_category?.slug,
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
-                inStock: product.stock > 0,
+                inStock: (product.stock ?? 0) > 0,
                 rating: 4.0,
                 reviewCount: 5,
                 discount: discountPercent > 0 ? discountPercent : undefined,
@@ -227,7 +266,12 @@ const Products = () => {
               };
             });
 
-            setApiProducts(transformedProducts);
+            // Filter out out-of-stock items
+            const inStockProducts = transformedProducts.filter(
+              (product) => (product.stock ?? 0) > 0 && product.inStock
+            );
+
+            setApiProducts(inStockProducts);
           }
         } catch (err) {
           console.error("Error fetching on-sale products:", err);
@@ -238,7 +282,73 @@ const Products = () => {
 
       fetchOnSaleProducts();
     } else {
-      setApiProducts([]);
+      const fetchAllProducts = async () => {
+        try {
+          setLoading(true);
+          const response = await productService.getProducts({
+            per_page: 100,
+          });
+
+          if (response.success && response.data?.products) {
+            const transformedProducts: Product[] = response.data.products.map(
+              (product: APIProductType) => {
+                // Handle price - API returns final_price or sale_price
+                const salePrice = product.final_price ?? product.sale_price ?? product.price ?? 0;
+                const originalPrice = product.regular_price ?? product.price ?? 0;
+
+                // Handle discount_percent
+                const discountPercent = product.discount_percent ?? 0;
+
+                // Handle category - API returns object with slug
+                const categorySlug = product.category?.slug || "general";
+
+                // Handle images - API has images array
+                const images =
+                  product.images && product.images.length > 0
+                    ? product.images
+                    : product.thumbnail
+                      ? [product.thumbnail]
+                      : ["/placeholder.svg"];
+
+                // Handle stock
+                const stockQty = product.stock_quantity ?? 0;
+                const inStock = product.stock_status === "in_stock" && stockQty > 0;
+
+                return {
+                  id: product.id.toString(),
+                  name: product.name,
+                  slug: product.slug,
+                  price: salePrice,
+                  originalPrice:
+                    discountPercent > 0 && originalPrice && typeof originalPrice === "number"
+                      ? originalPrice
+                      : undefined,
+                  description: product.description || product.short_description || "",
+                  category: categorySlug,
+                  subcategory: undefined,
+                  childSubcategory: undefined,
+                  images: images,
+                  inStock: inStock,
+                  rating: product.rating || 4.0,
+                  reviewCount: product.reviews_count || 5,
+                  discount: discountPercent > 0 ? discountPercent : undefined,
+                  isNew: product.is_new ?? false,
+                  isFeatured: product.is_featured ?? false,
+                  stock: stockQty,
+                };
+              }
+            );
+
+            setApiProducts(transformedProducts);
+          }
+        } catch (err) {
+          console.error("Error fetching all products:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchAllProducts();
     }
   }, [isTrending, isBestsellers, isOnSale]);
 
@@ -308,14 +418,12 @@ const Products = () => {
           </p>
         </div>
 
-        {loading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        )}
-
-        {/* Search & Filters - Sticky */}
-        <div className="sticky top-16 z-40 bg-card border border-border rounded-lg p-4 mb-4 shadow-sm">
+        {/* Search & Filters - Sticky only when scrolled */}
+        <div
+          className={`bg-card border border-border rounded-lg p-4 mb-4 shadow-sm ${
+            isScrolled ? "sticky top-16 z-40" : ""
+          }`}
+        >
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -365,40 +473,73 @@ const Products = () => {
                 <SelectItem value="rating">Highest Rated</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* View Mode Controls - Only visible when scrolled */}
+            {isScrolled && (
+              <div className="flex gap-2 items-center">
+                <Button
+                  variant={viewMode === "grid-5" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("grid-5")}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "grid-3" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("grid-3")}
+                >
+                  <Grid3x3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Products Count & View Mode - Non-sticky */}
+        {/* Products Count & View Mode - Non-sticky (original design when not scrolled) */}
         <div className="flex items-center justify-between mb-8">
           <p className="text-sm text-muted-foreground">{sortedProducts.length} products found</p>
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === "grid-5" ? "default" : "outline"}
-              size="icon"
-              onClick={() => setViewMode("grid-5")}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "grid-3" ? "default" : "outline"}
-              size="icon"
-              onClick={() => setViewMode("grid-3")}
-            >
-              <Grid3x3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              size="icon"
-              onClick={() => setViewMode("list")}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
+          {!isScrolled && (
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === "grid-5" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("grid-5")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "grid-3" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("grid-3")}
+              >
+                <Grid3x3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("list")}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
-        {!loading && (
+        {/* Products Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
           <>
-            {/* Products Grid */}
             <div className={`grid ${gridClass} gap-6`}>
               {sortedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} viewMode={viewMode} />

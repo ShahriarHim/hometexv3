@@ -7,12 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { reviewService } from "@/services/api";
 import type { Review } from "@/types/api/review";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Edit2, Star, Trash2, User, Verified } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface ProductReviewsProps {
   productId: string | number;
@@ -149,7 +149,6 @@ export const ProductReviews = ({
   };
 
   const handleDelete = (id: number) => {
-    // eslint-disable-next-line no-alert
     if (confirm("Are you sure you want to delete this review?")) {
       deleteMutation.mutate(id);
     }

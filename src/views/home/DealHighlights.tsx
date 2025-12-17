@@ -27,7 +27,7 @@ export const DealHighlights = () => {
 
               {/* Shop Now Button */}
               <Link
-                href="/shop"
+                href="/products"
                 className="bg-white w-fit text-black px-6 py-2 rounded-full transform hover:scale-105 transition-all duration-300 hover:shadow-lg text-sm font-medium"
               >
                 SHOP NOW

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const links: Array<{ label: string; href: Route | string }> = [
   { label: "Home", href: "/" as Route },
-  { label: "Shop", href: "/shop" as Route },
+  { label: "Shop", href: "/products" as Route },
   { label: "Products", href: "/products" as Route },
   { label: "Corporate", href: "/corporate" as Route },
   { label: "Contact", href: "/contact" as Route },

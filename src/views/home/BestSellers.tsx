@@ -95,7 +95,12 @@ export const BestSellers = () => {
             };
           });
 
-          setProducts(transformedProducts);
+          // Filter out out-of-stock items
+          const inStockProducts = transformedProducts.filter(
+            (product) => (product.stock ?? 0) > 0 && product.inStock
+          );
+
+          setProducts(inStockProducts);
         }
       } catch (err) {
         console.error("Error fetching best sellers:", err);

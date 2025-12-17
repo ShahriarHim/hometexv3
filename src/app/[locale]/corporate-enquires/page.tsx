@@ -1,9 +1,7 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 
 const CorporateEnquiries = () => {
   return (
@@ -80,11 +78,17 @@ const CorporateEnquiries = () => {
             </div>
 
             <div className="flex justify-center">
-              <Link href="/corporate-details">
-                <button className="form-button px-8 py-3 bg-pink-600 text-white hover:bg-pink-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+              <div className="relative inline-block">
+                <button
+                  disabled
+                  className="form-button px-8 py-3 bg-pink-600/60 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all cursor-not-allowed opacity-60"
+                >
                   Submit
                 </button>
-              </Link>
+                <span className="absolute -top-2 -right-2 bg-gray-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                  Available soon
+                </span>
+              </div>
             </div>
           </form>
         </div>

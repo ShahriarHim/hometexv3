@@ -84,7 +84,12 @@ const HotDeals = () => {
             };
           });
 
-          setProducts(transformedProducts);
+          // Filter out out-of-stock items
+          const inStockProducts = transformedProducts.filter(
+            (product: HotDealProduct) => product.stock > 0
+          );
+
+          setProducts(inStockProducts);
         }
       } catch (error) {
         console.error("Error fetching products:", error);

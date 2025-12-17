@@ -174,7 +174,7 @@ export const transformHeroBannerToSlide = (banner: HeroBannerItem): HeroSlide =>
       image: "", // API doesn't provide a direct image URL for the main banner
       cta: {
         label: sliderData.button_text || "Shop Now",
-        href: sliderData.button_Link || "/shop",
+        href: sliderData.button_Link || "/products",
       },
       secondaryCta: {
         label: "",
@@ -203,7 +203,7 @@ export const transformHeroBannerToSlide = (banner: HeroBannerItem): HeroSlide =>
       image: "",
       cta: {
         label: "Shop Now",
-        href: "/shop",
+        href: "/products",
       },
       secondaryCta: {
         label: "",
@@ -243,7 +243,7 @@ export const transformHeroBannerToSlideV2 = (banner: HeroBannerV2Input): HeroSli
     image: banner.image,
     cta: {
       label: banner.button_text || "Shop Now",
-      href: (banner.link || "/shop") as Route,
+      href: (banner.link || "/products") as Route,
     },
     secondaryCta: {
       label: "",
