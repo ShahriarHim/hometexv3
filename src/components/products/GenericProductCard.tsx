@@ -196,8 +196,8 @@ const GenericProductCard = ({
         )}
 
         <Link
-          // @ts-expect-error - Next.js href typing issue with dynamic routes
-          href={productUrl}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          href={productUrl as any}
           onClick={handleProductClick}
           className="hover:text-accent transition-colors"
         >
