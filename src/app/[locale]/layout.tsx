@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import CookiesManager from "@/components/CookiesManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import FloatingBar from "@/components/FloatingBar";
