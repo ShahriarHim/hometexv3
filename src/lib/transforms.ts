@@ -102,6 +102,12 @@ interface APIProduct {
   badges?: {
     is_featured?: boolean;
     is_new?: boolean;
+    is_trending?: boolean;
+    is_bestseller?: boolean;
+    is_on_sale?: boolean;
+    is_limited_edition?: boolean;
+    is_exclusive?: boolean;
+    is_eco_friendly?: boolean;
   };
   // Support flat badge fields
   is_featured?: boolean | number; // Can be 0 or 1
@@ -115,12 +121,14 @@ interface APIProduct {
       Size?: string;
     };
   }>;
-  specifications?: Array<{
-    name?: string;
-    key?: string;
-    value?: string;
-  }>;
-  attributes?: Array<unknown>;
+  specifications?:
+    | Array<{
+        name?: string;
+        key?: string;
+        value?: string;
+      }>
+    | Record<string, string>;
+  attributes?: Array<unknown> | Record<string, string>;
 }
 
 interface Product {
@@ -144,6 +152,17 @@ interface Product {
   colors?: string[];
   sizes?: string[];
   features?: string[];
+  stock?: number;
+  badges?: {
+    is_featured?: boolean;
+    is_new?: boolean;
+    is_trending?: boolean;
+    is_bestseller?: boolean;
+    is_on_sale?: boolean;
+    is_limited_edition?: boolean;
+    is_exclusive?: boolean;
+    is_eco_friendly?: boolean;
+  };
 }
 
 /**
@@ -384,12 +403,21 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
 
   // Extract features from specifications or attributes
   const features: string[] = [];
-  if (apiProduct.specifications && Array.isArray(apiProduct.specifications)) {
-    apiProduct.specifications.forEach((spec: { name?: string; key?: string; value?: string }) => {
-      if (spec.value) {
-        features.push(`${spec.name || spec.key || ""}: ${spec.value}`);
-      }
-    });
+  if (apiProduct.specifications) {
+    if (Array.isArray(apiProduct.specifications)) {
+      apiProduct.specifications.forEach((spec: { name?: string; key?: string; value?: string }) => {
+        if (spec.value) {
+          features.push(`${spec.name || spec.key || ""}: ${spec.value}`);
+        }
+      });
+    } else if (typeof apiProduct.specifications === "object") {
+      // Handle Record<string, string> format
+      Object.entries(apiProduct.specifications).forEach(([key, value]) => {
+        if (value) {
+          features.push(`${key}: ${value}`);
+        }
+      });
+    }
   }
 
   return {
@@ -410,12 +438,14 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
       apiProduct.child_sub_category?.slug ||
       apiProduct.child_sub_category?.name?.toLowerCase().replace(/\s+/g, "-"),
     images: images,
+    stock:
+      apiProduct.inventory?.stock_quantity ?? apiProduct.stock_quantity ?? apiProduct.stock ?? 0,
     inStock:
-      (apiProduct.inventory?.stock_status === "in_stock" ||
-        apiProduct.stock_status === "in_stock" ||
-        apiProduct.stock_status === "Active") &&
       (apiProduct.inventory?.stock_quantity ?? apiProduct.stock_quantity ?? apiProduct.stock ?? 0) >
-        0,
+        0 ||
+      apiProduct.inventory?.stock_status === "in_stock" ||
+      apiProduct.stock_status === "in_stock" ||
+      apiProduct.stock_status === "Active",
     rating: apiProduct.reviews?.average_rating || apiProduct.rating || 4.5,
     reviewCount: apiProduct.reviews?.review_count || apiProduct.reviews_count || 0,
     material: apiProduct.brand?.name,
@@ -430,5 +460,33 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
     colors: colors.length > 0 ? colors : undefined,
     sizes: sizes.length > 0 ? sizes : undefined,
     features: features.length > 0 ? features : undefined,
+    badges: (() => {
+      if (apiProduct.badges) {
+        return {
+          is_featured: apiProduct.badges.is_featured ?? false,
+          is_new: apiProduct.badges.is_new ?? false,
+          is_trending: apiProduct.badges.is_trending ?? false,
+          is_bestseller: apiProduct.badges.is_bestseller ?? false,
+          is_on_sale: apiProduct.badges.is_on_sale ?? false,
+          is_limited_edition: apiProduct.badges.is_limited_edition ?? false,
+          is_exclusive: apiProduct.badges.is_exclusive ?? false,
+          is_eco_friendly: apiProduct.badges.is_eco_friendly ?? false,
+        };
+      }
+      // Fallback to flat fields if badges object doesn't exist
+      return {
+        is_featured: apiProduct.is_featured === true || apiProduct.is_featured === 1 || false,
+        is_new: apiProduct.is_new === true || apiProduct.is_new === 1 || false,
+        is_trending: apiProduct.isTrending === true || apiProduct.isTrending === 1 || false,
+        is_bestseller:
+          apiProduct.is_bestseller === true ||
+          (typeof apiProduct.is_bestseller === "number" && apiProduct.is_bestseller === 1) ||
+          false,
+        is_on_sale: false,
+        is_limited_edition: false,
+        is_exclusive: false,
+        is_eco_friendly: false,
+      };
+    })(),
   };
 };

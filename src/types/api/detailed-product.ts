@@ -143,6 +143,9 @@ export interface DetailedProduct {
     is_trending?: boolean;
     is_bestseller?: boolean;
     is_on_sale?: boolean;
+    is_limited_edition?: boolean;
+    is_exclusive?: boolean;
+    is_eco_friendly?: boolean;
   };
 
   // SEO

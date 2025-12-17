@@ -21,6 +21,16 @@ export interface Product {
   isNew?: boolean;
   discount?: number;
   stock?: number;
+  badges?: {
+    is_featured?: boolean;
+    is_new?: boolean;
+    is_trending?: boolean;
+    is_bestseller?: boolean;
+    is_on_sale?: boolean;
+    is_limited_edition?: boolean;
+    is_exclusive?: boolean;
+    is_eco_friendly?: boolean;
+  };
 }
 
 export interface ProductVariant {

@@ -1,0 +1,139 @@
+.container {
+  position: fixed;
+  bottom: 100px;
+  left: 4px;
+  z-index: 4;
+  background-color: #e3f2fd;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 240px;
+  max-width: 280px;
+  transition:
+    opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.5s;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.container.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+}
+
+.container.hidden {
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.container.transitioning .popupContent {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.popupContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.popularContent {
+  flex-direction: row;
+}
+
+.demandContent {
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.eyeIcon {
+  width: 18px;
+  height: 18px;
+  color: #2196f3;
+  flex-shrink: 0;
+  animation: subtlePulse 3s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.viewersText {
+  font-size: 0.813rem;
+  color: #1565c0;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.demandTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0d47a1;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.demandText {
+  font-size: 0.813rem;
+  color: #1565c0;
+  margin: 0;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .container {
+    bottom: 80px;
+    min-width: 200px;
+    max-width: 240px;
+    padding: 10px 14px;
+  }
+
+  .viewersText,
+  .demandText {
+    font-size: 0.75rem;
+  }
+
+  .demandTitle {
+    font-size: 0.813rem;
+  }
+
+  .eyeIcon {
+    width: 16px;
+    height: 16px;
+  }
+}
