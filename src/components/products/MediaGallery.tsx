@@ -168,12 +168,14 @@ export const MediaGallery = ({
                   <Button
                     size="lg"
                     className="absolute inset-0 m-auto w-16 h-16 rounded-full"
-                    onClick={() =>
-                      handleVideoPlay(
-                        currentMedia.id,
-                        videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
-                      )
-                    }
+                    onClick={() => {
+                      if (currentMedia.id !== undefined) {
+                        handleVideoPlay(
+                          currentMedia.id,
+                          videos.find((v) => v.id === currentMedia.id)?.type || "youtube"
+                        );
+                      }
+                    }}
                     aria-label="Play video"
                   >
                     <Play className="h-6 w-6" />
