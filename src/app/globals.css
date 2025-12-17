@@ -303,6 +303,15 @@
   .shadow-strong {
     box-shadow: var(--shadow-lg);
   }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Swiper Pagination Styles */
@@ -317,4 +326,45 @@
 /* Hover Effect Utility */
 .hoverEffect {
   transition: all 0.3s ease-in-out;
+}
+
+/* Sticky Bar Header Transitions */
+.header-hidden {
+  opacity: 0 !important;
+  transform: translateY(-100%) !important;
+  pointer-events: none !important;
+  max-height: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden !important;
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    margin 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.header-visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+  max-height: 200px !important;
+  overflow: visible !important;
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    margin 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Prevent layout shift during transitions */
+#preheader-wrapper,
+#main-header {
+  will-change: transform, opacity, max-height;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }

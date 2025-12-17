@@ -151,22 +151,22 @@ const PreHeader = () => {
             >
               <Link
                 href="/account"
-                className="flex flex-col cursor-pointer hover:text-blue-600 group transition-all duration-200 pl-2"
+                className="flex items-center cursor-pointer hover:text-blue-600 group transition-all duration-200"
               >
-                <div className="flex items-center">
-                  <div className="bg-black group-hover:bg-blue-600 rounded-full p-1.5 mr-2 transition-all duration-200 shadow-sm">
-                    <User className="w-3.5 h-3.5 text-white" />
-                  </div>
+                <div className="bg-black group-hover:bg-blue-600 rounded-full p-1.5 mr-2 transition-all duration-200 shadow-sm">
+                  <User className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div className="flex flex-col">
                   <span className="text-sm whitespace-nowrap font-medium text-black group-hover:text-blue-600">
                     {accountLabel}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 ml-1 text-black group-hover:text-blue-600 group-hover:translate-y-0.5 transition-all duration-200" />
+                  {userType && (
+                    <span className="text-[10px] text-black capitalize font-medium leading-tight">
+                      {userType}
+                    </span>
+                  )}
                 </div>
-                {userType && (
-                  <span className="text-[10px] text-black ml-[30px] capitalize font-medium">
-                    {userType}
-                  </span>
-                )}
+                <ChevronDown className="w-3.5 h-3.5 ml-1 text-black group-hover:text-blue-600 group-hover:translate-y-0.5 transition-all duration-200" />
               </Link>
 
               {isAccountDropdownOpen && (

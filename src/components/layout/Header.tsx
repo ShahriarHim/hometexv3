@@ -6,6 +6,7 @@ import PreHeader from "@/components/layout/PreHeader";
 import SearchPopup from "@/components/layout/SearchPopup";
 import { Button } from "@/components/ui/button";
 import { useDailyDealPopup } from "@/hooks/useDailyDealPopup";
+import { usePathname } from "@/i18n/routing";
 import { productService } from "@/services/api";
 import { Menu, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -24,10 +25,14 @@ import {
 
 export const Header = () => {
   const tCommon = useTranslations("common");
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showCategoriesBar, setShowCategoriesBar] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Hide header on product detail pages
+  const isProductDetailPage = pathname?.includes("/products/") && pathname?.split("/").length >= 5;
   const {
     shouldShow: showDailyDeal,
     handleClose: closeDailyDeal,
@@ -97,10 +102,17 @@ export const Header = () => {
       <SearchPopup isOpen={showPopup} onClose={closePopup} />
       {isChatOpen && <ChatPopup onClose={() => setIsChatOpen(false)} />}
       {showDailyDeal && <DailyDealPopup onClose={closeDailyDeal} />}
-      <PreHeader />
+      {!isProductDetailPage && <PreHeader />}
+      {isProductDetailPage && (
+        <div id="preheader-wrapper" className="header-visible">
+          <PreHeader />
+        </div>
+      )}
       <header
-        className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        id="main-header"
+        className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 header-visible"
         suppressHydrationWarning
+        style={{ willChange: "transform, opacity" }}
       >
         {/* Main Header */}
         <div className="container mx-auto px-4" suppressHydrationWarning>

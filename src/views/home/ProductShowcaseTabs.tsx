@@ -4,126 +4,114 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchPublicWithFallback } from "@/lib/api";
-import { env } from "@/lib/env";
+import { transformAPIProductToProduct } from "@/lib/transforms";
+import { productService } from "@/services/api/product.service";
 import type { Product } from "@/types";
-import { ArrowRight, Bath, BedDouble, Leaf, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-const tabConfig = [
-  { id: "all", label: "All Products", icon: Sparkles },
-  { id: "bedding", label: "Bedding", icon: BedDouble },
-  { id: "bath", label: "Bath", icon: Bath },
-  { id: "living-decor", label: "Living Décor", icon: Leaf },
-  { id: "new", label: "New In", icon: ArrowRight },
-];
-
-interface APIProduct {
-  id: number;
-  name: string;
-  slug: string;
-  price: string;
-  original_price: number;
-  sell_price: {
-    price: number;
-    discount: number;
-    symbol: string;
-  };
-  stock: number;
-  primary_photo: string;
-  category: {
-    slug: string;
-  };
-  sub_category: {
-    slug: string;
-  };
-  child_sub_category?: {
-    slug: string;
-  };
-  discount_percent?: string;
-  status?: string;
-}
-
-interface APIResponse {
-  success: boolean;
-  message: string;
-  data: {
-    products: APIProduct[];
-  };
+interface CategoryTab {
+  id: string;
+  label: string;
+  slug: string | null;
+  categoryId: number | null;
+  icon: typeof Sparkles;
 }
 
 export const ProductShowcaseTabs = () => {
-  const [value, setValue] = useState(tabConfig[0].id);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [tabs, setTabs] = useState<CategoryTab[]>([
+    { id: "all", label: "All Products", slug: null, categoryId: null, icon: Sparkles },
+  ]);
+  const [selectedTab, setSelectedTab] = useState<string>("all");
+  const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const fetchFeaturedProducts = async () => {
+    const fetchCategories = async () => {
       try {
-        setIsLoading(true);
-        const response = await fetchPublicWithFallback("/api/products/featured", env.apiBaseUrl);
+        setIsLoadingCategories(true);
+        const response = await productService.getRootCategories();
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch featured products");
-        }
+        if (response.success && response.data) {
+          const activeCategories = response.data.filter((cat) => cat.is_active);
 
-        const data: APIResponse = await response.json();
-
-        if (data.success && data.data.products) {
-          const transformedProducts: Product[] = data.data.products.map((product) => {
-            const discountPercent = product.sell_price.discount || 0;
-            const originalPrice = product.original_price || product.sell_price.price;
-            const salePrice = product.sell_price.price;
-
-            return {
-              id: product.id.toString(),
-              name: product.name,
-              slug: product.slug,
-              price: salePrice,
-              originalPrice: discountPercent > 0 ? originalPrice : undefined,
-              description: "",
-              category: product.category?.slug || "general",
-              subcategory: product.sub_category?.slug,
-              childSubcategory: product.child_sub_category?.slug,
-              images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
-              inStock: product.stock > 0,
-              rating: 4.0,
-              reviewCount: 5,
-              discount: discountPercent > 0 ? discountPercent : undefined,
-              isNew: false,
-              isFeatured: false,
-              stock: product.stock,
-            };
-          });
-
-          // Filter out out-of-stock items
-          const inStockProducts = transformedProducts.filter(
-            (product) => (product.stock ?? 0) > 0 && product.inStock
-          );
-
-          setFeaturedProducts(inStockProducts);
+          const categoryTabs: CategoryTab[] = [
+            { id: "all", label: "All Products", slug: null, categoryId: null, icon: Sparkles },
+            ...activeCategories.map((cat) => ({
+              id: cat.slug,
+              label: cat.name,
+              slug: cat.slug,
+              categoryId: cat.id,
+              icon: Sparkles,
+            })),
+          ];
+          setTabs(categoryTabs);
         }
       } catch (err) {
-        console.error("Error fetching featured products:", err);
+        console.error("Error fetching categories:", err);
       } finally {
-        setIsLoading(false);
+        setIsLoadingCategories(false);
       }
     };
 
-    fetchFeaturedProducts();
+    fetchCategories();
   }, []);
 
-  const grouped = useMemo<Record<string, Product[]>>(() => {
-    const mapping: Record<string, Product[]> = {
-      all: featuredProducts,
-      bedding: featuredProducts.filter((item) => item.category === "bedding"),
-      bath: featuredProducts.filter((item) => item.category === "bath"),
-      "living-decor": featuredProducts.filter((item) => item.category === "living-decor"),
-      new: featuredProducts.filter((item) => item.isNew || false),
-    };
-    return mapping;
-  }, [featuredProducts]);
+  useEffect(() => {
+    if (!isLoadingCategories && selectedTab && tabs.length > 0) {
+      const selectedTabData = tabs.find((tab) => tab.id === selectedTab);
+      if (!selectedTabData) return;
+
+      const categoryId = selectedTabData.categoryId;
+      const cacheKey = selectedTab;
+
+      if (productsByCategory[cacheKey] || loadingProducts[cacheKey]) {
+        return;
+      }
+
+      const fetchProducts = async () => {
+        try {
+          setLoadingProducts((prev) => ({ ...prev, [cacheKey]: true }));
+          const params: Parameters<typeof productService.getProducts>[0] = {
+            per_page: 20,
+          };
+
+          if (categoryId) {
+            params.category_id = categoryId;
+          }
+
+          console.log(`Fetching products for category ${categoryId || "all"} with params:`, params);
+          const response = await productService.getProducts(params);
+
+          if (response.success && response.data.products) {
+            const transformedProducts = response.data.products.map((apiProduct) =>
+              transformAPIProductToProduct(apiProduct)
+            );
+            const inStockProducts = transformedProducts.filter((product) => product.inStock);
+
+            setProductsByCategory((prev) => ({
+              ...prev,
+              [cacheKey]: inStockProducts,
+            }));
+          } else {
+            console.warn(`No products returned for category ${categoryId || "all"}`, response);
+          }
+        } catch (err) {
+          console.error(`Error fetching products for category ${categoryId || "all"}:`, err);
+        } finally {
+          setLoadingProducts((prev) => ({ ...prev, [cacheKey]: false }));
+        }
+      };
+
+      fetchProducts();
+    }
+  }, [selectedTab, isLoadingCategories, tabs]);
+
+  const handleTabChange = (newValue: string) => {
+    setSelectedTab(newValue);
+  };
 
   return (
     <section className="py-16 bg-muted/30">
@@ -147,58 +135,68 @@ export const ProductShowcaseTabs = () => {
           </Button>
         </div>
 
-        <Tabs value={value} onValueChange={setValue} className="mt-10">
-          <TabsList className="flex flex-wrap gap-3 bg-transparent p-0">
-            {tabConfig.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = value === tab.id;
-              return (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-all data-[state=active]:bg-foreground data-[state=active]:text-background"
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
-                  {!isActive && (
-                    <span className="text-muted-foreground text-xs uppercase tracking-[0.2em]">
-                      {grouped[tab.id]?.length || 0}
-                    </span>
-                  )}
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+        <Tabs value={selectedTab} onValueChange={handleTabChange} className="mt-10">
+          {isLoadingCategories ? (
+            <div className="flex items-center justify-center min-h-[100px]">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <>
+              <TabsList className="flex flex-wrap gap-3 bg-transparent p-0">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger
+                      key={tab.id}
+                      value={tab.id}
+                      className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-all data-[state=active]:bg-foreground data-[state=active]:text-background"
+                    >
+                      <Icon className="h-4 w-4" />
+                      {tab.label}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
 
-          {tabConfig.map((tab) => (
-            <TabsContent key={tab.id} value={tab.id} className="mt-8">
-              {isLoading ? (
-                <div className="flex items-center justify-center min-h-[400px]">
-                  <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                    <p className="mt-4 text-gray-600">Loading products...</p>
-                  </div>
-                </div>
-              ) : (grouped[tab.id] || []).length === 0 ? (
-                <div className="flex items-center justify-center min-h-[400px]">
-                  <p className="text-muted-foreground">No products available in this category.</p>
-                </div>
-              ) : (
-                <Carousel opts={{ align: "start", loop: true }} className="relative">
-                  <CarouselContent>
-                    {(grouped[tab.id] || []).map((product) => (
-                      <CarouselItem
-                        key={product.id}
-                        className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
-                      >
-                        <ProductCard product={product} />
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-              )}
-            </TabsContent>
-          ))}
+              {tabs.map((tab) => {
+                const cacheKey = tab.id;
+                const products = productsByCategory[cacheKey] || [];
+                const isLoading = loadingProducts[cacheKey] || false;
+
+                return (
+                  <TabsContent key={tab.id} value={tab.id} className="mt-8">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center min-h-[400px]">
+                        <div className="text-center">
+                          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                          <p className="mt-4 text-gray-600">Loading products...</p>
+                        </div>
+                      </div>
+                    ) : products.length === 0 ? (
+                      <div className="flex items-center justify-center min-h-[400px]">
+                        <p className="text-muted-foreground">
+                          No products available in this category.
+                        </p>
+                      </div>
+                    ) : (
+                      <Carousel opts={{ align: "start", loop: true }} className="relative">
+                        <CarouselContent>
+                          {products.map((product) => (
+                            <CarouselItem
+                              key={product.id}
+                              className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                            >
+                              <ProductCard product={product} />
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                      </Carousel>
+                    )}
+                  </TabsContent>
+                );
+              })}
+            </>
+          )}
         </Tabs>
       </div>
     </section>
