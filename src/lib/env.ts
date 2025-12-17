@@ -3,43 +3,48 @@
  * Centralized management of all environment variables with type safety
  *
  * Note: This module is compatible with Next.js server and client components
+ * Uses getters to ensure environment variables are read at access time, not module load time
  */
 
-// Helper functions
-function getOptionalEnvVar(key: string, defaultValue: string = ""): string {
-  if (typeof process !== "undefined" && process.env) {
-    return process.env[key] || defaultValue;
-  }
-  return defaultValue;
-}
-
 // Determine environment
-const nodeEnv = getOptionalEnvVar("NODE_ENV", "development");
+const nodeEnv = process.env.NODE_ENV || "development";
 const isDevelopment = nodeEnv === "development";
 const isProduction = nodeEnv === "production";
 
-// Determine API base URL based on environment
-const getApiBaseUrl = (): string => {
-  // Check if user explicitly wants local API
-  const useLocalApi = getOptionalEnvVar("NEXT_PUBLIC_USE_LOCAL_API", "false") === "true";
-
-  if (useLocalApi) {
-    return getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000");
-  }
-
-  // Use production API
-  return getOptionalEnvVar("NEXT_PUBLIC_API_BASE_URL", "http://123.176.58.209");
-};
-
-// Export env object - using explicit object literal for Turbopack compatibility
-export const env = Object.freeze({
+// Export env object with getters for Turbopack compatibility
+export const env = {
   // Application
-  siteUrl: getOptionalEnvVar("NEXT_PUBLIC_SITE_URL", "http://localhost:3000"),
-  appName: getOptionalEnvVar("NEXT_PUBLIC_APP_NAME", "Hometex Bangladesh"),
+  get siteUrl(): string {
+    return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  },
+  get appName(): string {
+    return process.env.NEXT_PUBLIC_APP_NAME || "Hometex Bangladesh";
+  },
 
-  // API Configuration
-  apiBaseUrl: getApiBaseUrl(),
-  apiLocalUrl: getOptionalEnvVar("NEXT_PUBLIC_API_LOCAL_URL", "http://localhost:8000"),
+  // API Configuration - determined dynamically at access time
+  get apiBaseUrl(): string {
+    const useLocalApi = process.env.NEXT_PUBLIC_USE_LOCAL_API === "true";
+
+    if (useLocalApi) {
+      return process.env.NEXT_PUBLIC_API_LOCAL_URL || "http://localhost:8000";
+    }
+
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+
+    // Warn in production if API URL is not configured
+    if (isProduction && !apiBaseUrl && typeof window !== "undefined") {
+      console.error(
+        "🚨 PRODUCTION ERROR: NEXT_PUBLIC_API_BASE_URL is not set!\n" +
+          "Please set it in your .env.production or deployment environment."
+      );
+    }
+
+    return apiBaseUrl;
+  },
+
+  get apiLocalUrl(): string {
+    return process.env.NEXT_PUBLIC_API_LOCAL_URL || "http://localhost:8000";
+  },
 
   // Environment
   nodeEnv,
@@ -47,13 +52,21 @@ export const env = Object.freeze({
   isProduction,
 
   // Analytics (Optional)
-  gaId: getOptionalEnvVar("NEXT_PUBLIC_GA_ID", ""),
-  gtmId: getOptionalEnvVar("NEXT_PUBLIC_GTM_ID", ""),
+  get gaId(): string {
+    return process.env.NEXT_PUBLIC_GA_ID || "";
+  },
+  get gtmId(): string {
+    return process.env.NEXT_PUBLIC_GTM_ID || "";
+  },
 
   // Feature Flags (Optional)
-  enableAnalytics: getOptionalEnvVar("NEXT_PUBLIC_ENABLE_ANALYTICS", "false") === "true",
-  enableChat: getOptionalEnvVar("NEXT_PUBLIC_ENABLE_CHAT", "true") === "true",
-});
+  get enableAnalytics(): boolean {
+    return process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true";
+  },
+  get enableChat(): boolean {
+    return process.env.NEXT_PUBLIC_ENABLE_CHAT !== "false"; // Default to true
+  },
+};
 
 // Type-safe environment variable access
 export type EnvConfig = typeof env;
