@@ -62,7 +62,9 @@ export const ProductShowcaseTabs = () => {
   useEffect(() => {
     if (!isLoadingCategories && selectedTab && tabs.length > 0) {
       const selectedTabData = tabs.find((tab) => tab.id === selectedTab);
-      if (!selectedTabData) return;
+      if (!selectedTabData) {
+        return;
+      }
 
       const categoryId = selectedTabData.categoryId;
       const cacheKey = selectedTab;
@@ -82,7 +84,6 @@ export const ProductShowcaseTabs = () => {
             params.category_id = categoryId;
           }
 
-          console.log(`Fetching products for category ${categoryId || "all"} with params:`, params);
           const response = await productService.getProducts(params);
 
           if (response.success && response.data.products) {
@@ -107,7 +108,7 @@ export const ProductShowcaseTabs = () => {
 
       fetchProducts();
     }
-  }, [selectedTab, isLoadingCategories, tabs]);
+  }, [selectedTab, isLoadingCategories, tabs, loadingProducts, productsByCategory]);
 
   const handleTabChange = (newValue: string) => {
     setSelectedTab(newValue);

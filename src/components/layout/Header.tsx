@@ -104,7 +104,7 @@ export const Header = () => {
       {showDailyDeal && <DailyDealPopup onClose={closeDailyDeal} />}
       {!isProductDetailPage && <PreHeader />}
       {isProductDetailPage && (
-        <div id="preheader-wrapper" className="header-visible">
+        <div id="preheader-wrapper" className="header-visible relative z-[100]">
           <PreHeader />
         </div>
       )}

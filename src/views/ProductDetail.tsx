@@ -743,16 +743,6 @@ const ProductDetailNew = () => {
             maxQuantity={getEffectiveMaxQuantity()}
             onQuantityChange={handleQuantityChange}
             onAddToCart={handleAddToCart}
-            badges={{
-              is_featured: badges?.is_featured,
-              is_new: badges?.is_new,
-              is_trending: badges?.is_trending,
-              is_bestseller: badges?.is_bestseller,
-              is_on_sale: badges?.is_on_sale,
-              is_exclusive: badges?.is_exclusive,
-              is_limited_edition: badges?.is_limited_edition,
-              is_eco_friendly: badges?.is_eco_friendly,
-            }}
           />
         )}
 

@@ -1,21 +1,9 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Flame, Leaf, Minus, Plus, ShoppingCart, Star, TrendingUp } from "lucide-react";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-
-interface ProductBadges {
-  is_featured?: boolean;
-  is_new?: boolean;
-  is_trending?: boolean;
-  is_bestseller?: boolean;
-  is_on_sale?: boolean;
-  is_exclusive?: boolean;
-  is_limited_edition?: boolean;
-  is_eco_friendly?: boolean;
-}
+import { useEffect, useRef, useState } from "react";
 
 interface ProductStickyBarProps {
   productImage: string;
@@ -29,8 +17,11 @@ interface ProductStickyBarProps {
   onQuantityChange: (newQuantity: number) => void;
   onAddToCart: () => void;
   onVisibilityChange?: (isVisible: boolean) => void;
-  badges?: ProductBadges;
 }
+
+const SCROLL_THRESHOLD_ENTER = 350;
+const SCROLL_THRESHOLD_EXIT = 200;
+const SCROLL_THROTTLE_MS = 50;
 
 export const ProductStickyBar = ({
   productImage,
@@ -44,69 +35,81 @@ export const ProductStickyBar = ({
   onQuantityChange,
   onAddToCart,
   onVisibilityChange,
-  badges,
 }: ProductStickyBarProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const isVisibleRef = useRef(false);
+  const lastUpdateTimeRef = useRef(0);
 
   useEffect(() => {
     let ticking = false;
-    let lastScrollY = window.scrollY;
 
-    const updateHeaders = (shouldBeVisible: boolean) => {
-      const preheaderWrapper = document.getElementById("preheader-wrapper");
-      const mainHeader = document.getElementById("main-header");
+    const updateVisibility = (scrollY: number) => {
+      const currentlyVisible = isVisibleRef.current;
+      let shouldBeVisible = currentlyVisible;
 
-      if (preheaderWrapper) {
+      if (!currentlyVisible && scrollY >= SCROLL_THRESHOLD_ENTER) {
+        shouldBeVisible = true;
+      } else if (currentlyVisible && scrollY <= SCROLL_THRESHOLD_EXIT) {
+        shouldBeVisible = false;
+      }
+
+      if (shouldBeVisible !== currentlyVisible) {
+        isVisibleRef.current = shouldBeVisible;
+        setIsVisible(shouldBeVisible);
+        onVisibilityChange?.(shouldBeVisible);
+
+        const preheaderWrapper = document.getElementById("preheader-wrapper");
+        const mainHeader = document.getElementById("main-header");
+
         if (shouldBeVisible) {
-          preheaderWrapper.classList.remove("header-visible");
-          preheaderWrapper.classList.add("header-hidden");
+          if (preheaderWrapper) {
+            preheaderWrapper.classList.remove("header-visible");
+            preheaderWrapper.classList.add("header-hidden");
+          }
+          if (mainHeader) {
+            mainHeader.classList.remove("header-visible");
+            mainHeader.classList.add("header-hidden");
+          }
         } else {
-          preheaderWrapper.classList.remove("header-hidden");
-          preheaderWrapper.classList.add("header-visible");
+          if (preheaderWrapper) {
+            preheaderWrapper.classList.remove("header-hidden");
+            preheaderWrapper.classList.add("header-visible");
+          }
+          if (mainHeader) {
+            mainHeader.classList.remove("header-hidden");
+            mainHeader.classList.add("header-visible");
+          }
         }
       }
 
-      if (mainHeader) {
-        if (shouldBeVisible) {
-          mainHeader.classList.remove("header-visible");
-          mainHeader.classList.add("header-hidden");
-        } else {
-          mainHeader.classList.remove("header-hidden");
-          mainHeader.classList.add("header-visible");
-        }
-      }
+      ticking = false;
     };
 
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const shouldBeVisible = scrollY > 300;
-          const hasChanged = Math.abs(scrollY - lastScrollY) > 5; // Only update if scrolled more than 5px
+          const scrollY = window.scrollY;
+          const currentTime = Date.now();
 
-          if (hasChanged) {
-            setIsVisible(shouldBeVisible);
-            onVisibilityChange?.(shouldBeVisible);
-            updateHeaders(shouldBeVisible);
-            lastScrollY = scrollY;
+          if (currentTime - lastUpdateTimeRef.current >= SCROLL_THROTTLE_MS) {
+            lastUpdateTimeRef.current = currentTime;
+            updateVisibility(scrollY);
           }
 
           ticking = false;
         });
-
         ticking = true;
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
 
-    // Initialize headers on mount
-    updateHeaders(window.scrollY > 300);
+    const initialScrollY = window.scrollY;
+    updateVisibility(initialScrollY);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      // Reset headers on unmount
+
       const preheaderWrapper = document.getElementById("preheader-wrapper");
       const mainHeader = document.getElementById("main-header");
       if (preheaderWrapper) {
@@ -132,12 +135,21 @@ export const ProductStickyBar = ({
     }
   };
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-[#E8FE00] border-b border-[#E8FE00]/20 shadow-lg transition-all duration-300">
+    <div
+      className={`fixed top-0 left-0 right-0 z-50 bg-[#E8FE00] border-b border-[#E8FE00]/20 shadow-lg ${
+        isVisible
+          ? "opacity-100 translate-y-0 pointer-events-auto"
+          : "opacity-0 -translate-y-full pointer-events-none"
+      }`}
+      style={{
+        willChange: "transform, opacity",
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+        transition:
+          "transform 250ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms cubic-bezier(0.4, 0, 0.2, 1)",
+      }}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-4 py-3">
           {/* Product Image */}
@@ -153,53 +165,7 @@ export const ProductStickyBar = ({
 
           {/* Product Name */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm font-bold text-black truncate">{productName}</h3>
-              {badges?.is_featured && (
-                <Badge variant="default" className="animate-pulse text-xs px-2 py-0.5">
-                  Featured
-                </Badge>
-              )}
-              {badges?.is_new && (
-                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 text-xs px-2 py-0.5">
-                  ✨ New
-                </Badge>
-              )}
-              {badges?.is_trending && (
-                <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 text-xs px-2 py-0.5">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  Trending
-                </Badge>
-              )}
-              {badges?.is_bestseller && (
-                <Badge className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-0 text-xs px-2 py-0.5">
-                  🏆 Bestseller
-                </Badge>
-              )}
-              {badges?.is_on_sale && (
-                <Badge variant="destructive" className="animate-pulse text-xs px-2 py-0.5">
-                  <Flame className="w-3 h-3 mr-1" />
-                  On Sale
-                </Badge>
-              )}
-              {badges?.is_exclusive && (
-                <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 text-xs px-2 py-0.5">
-                  <Star className="w-3 h-3 mr-1" />
-                  Exclusive
-                </Badge>
-              )}
-              {badges?.is_limited_edition && (
-                <Badge className="bg-gradient-to-r from-indigo-500 to-blue-500 text-white border-0 text-xs px-2 py-0.5">
-                  ⚡ Limited Edition
-                </Badge>
-              )}
-              {badges?.is_eco_friendly && (
-                <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white border-0 text-xs px-2 py-0.5">
-                  <Leaf className="w-3 h-3 mr-1" />
-                  Eco Friendly
-                </Badge>
-              )}
-            </div>
+            <h3 className="text-sm font-bold text-black truncate">{productName}</h3>
           </div>
 
           {/* Price */}

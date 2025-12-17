@@ -121,12 +121,14 @@ interface APIProduct {
       Size?: string;
     };
   }>;
-  specifications?: Array<{
-    name?: string;
-    key?: string;
-    value?: string;
-  }>;
-  attributes?: Array<unknown>;
+  specifications?:
+    | Array<{
+        name?: string;
+        key?: string;
+        value?: string;
+      }>
+    | Record<string, string>;
+  attributes?: Array<unknown> | Record<string, string>;
 }
 
 interface Product {
@@ -150,6 +152,17 @@ interface Product {
   colors?: string[];
   sizes?: string[];
   features?: string[];
+  stock?: number;
+  badges?: {
+    is_featured?: boolean;
+    is_new?: boolean;
+    is_trending?: boolean;
+    is_bestseller?: boolean;
+    is_on_sale?: boolean;
+    is_limited_edition?: boolean;
+    is_exclusive?: boolean;
+    is_eco_friendly?: boolean;
+  };
 }
 
 /**
@@ -390,12 +403,21 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
 
   // Extract features from specifications or attributes
   const features: string[] = [];
-  if (apiProduct.specifications && Array.isArray(apiProduct.specifications)) {
-    apiProduct.specifications.forEach((spec: { name?: string; key?: string; value?: string }) => {
-      if (spec.value) {
-        features.push(`${spec.name || spec.key || ""}: ${spec.value}`);
-      }
-    });
+  if (apiProduct.specifications) {
+    if (Array.isArray(apiProduct.specifications)) {
+      apiProduct.specifications.forEach((spec: { name?: string; key?: string; value?: string }) => {
+        if (spec.value) {
+          features.push(`${spec.name || spec.key || ""}: ${spec.value}`);
+        }
+      });
+    } else if (typeof apiProduct.specifications === "object") {
+      // Handle Record<string, string> format
+      Object.entries(apiProduct.specifications).forEach(([key, value]) => {
+        if (value) {
+          features.push(`${key}: ${value}`);
+        }
+      });
+    }
   }
 
   return {
@@ -456,7 +478,10 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
         is_featured: apiProduct.is_featured === true || apiProduct.is_featured === 1 || false,
         is_new: apiProduct.is_new === true || apiProduct.is_new === 1 || false,
         is_trending: apiProduct.isTrending === true || apiProduct.isTrending === 1 || false,
-        is_bestseller: apiProduct.is_bestseller === true || apiProduct.is_bestseller === 1 || false,
+        is_bestseller:
+          apiProduct.is_bestseller === true ||
+          (typeof apiProduct.is_bestseller === "number" && apiProduct.is_bestseller === 1) ||
+          false,
         is_on_sale: false,
         is_limited_edition: false,
         is_exclusive: false,

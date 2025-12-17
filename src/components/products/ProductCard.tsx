@@ -13,7 +13,9 @@ import { useState } from "react";
 
 // Helper function to get active badges in priority order (max 2)
 const getActiveBadges = (badges?: Product["badges"]) => {
-  if (!badges) return [];
+  if (!badges) {
+    return [];
+  }
   const active: Array<{ key: string; label: string; className: string; icon?: React.ReactNode }> =
     [];
 

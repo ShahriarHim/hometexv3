@@ -145,7 +145,7 @@ const PreHeader = () => {
           <div className="flex items-center space-x-6 ml-2 w-1/4">
             {/* My Account Dropdown */}
             <div
-              className="relative z-[160]"
+              className="relative z-[110]"
               onMouseEnter={handleDropdownEnter}
               onMouseLeave={handleDropdownLeave}
             >
@@ -170,7 +170,7 @@ const PreHeader = () => {
               </Link>
 
               {isAccountDropdownOpen && (
-                <div className="absolute top-full left-0 bg-white text-black rounded-xl shadow-lg border border-slate-200 z-[200] w-52 mt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 bg-white text-black rounded-xl shadow-lg border border-slate-200 z-[120] w-52 mt-2 animate-in fade-in slide-in-from-top-2 duration-200">
                   {/* Triangle Arrow */}
                   <div className="absolute -top-2 left-6 w-4 h-4 bg-white transform rotate-45 border-l border-t border-slate-200"></div>
 
@@ -217,7 +217,7 @@ const PreHeader = () => {
                         </span>
                       </div>
                       {isCurrencyDropdownOpen && (
-                        <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-32 -mr-1 transform translate-x-2 border border-slate-200 z-[200] animate-in fade-in slide-in-from-left-2 duration-200">
+                        <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-32 -mr-1 transform translate-x-2 border border-slate-200 z-[130] animate-in fade-in slide-in-from-left-2 duration-200">
                           <div className="absolute -left-2 top-3 w-4 h-4 bg-white transform rotate-45 border-l border-t border-slate-200"></div>
                           <ul className="py-2 relative bg-white rounded-xl">
                             {["USD", "GBP", "BDT"].map((currency) => (
@@ -256,7 +256,7 @@ const PreHeader = () => {
                         </span>
                       </div>
                       {isLanguageDropdownOpen && (
-                        <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-40 -mr-1 transform translate-x-2 border border-slate-200 z-[200] animate-in fade-in slide-in-from-left-2 duration-200">
+                        <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-40 -mr-1 transform translate-x-2 border border-slate-200 z-[130] animate-in fade-in slide-in-from-left-2 duration-200">
                           <div className="absolute -left-2 top-3 w-4 h-4 bg-white transform rotate-45 border-l border-t border-slate-200"></div>
                           <ul className="py-2 relative bg-white rounded-xl">
                             <li

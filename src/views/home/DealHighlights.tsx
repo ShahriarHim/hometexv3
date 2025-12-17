@@ -18,7 +18,7 @@ export const DealHighlights = () => {
     Array<{ id: number; name: string; slug: string; categorySlug: string; image: string | null }>
   >([]);
   const [loading, setLoading] = useState(true);
-  const [bannerSwiperInstance, setBannerSwiperInstance] = useState<SwiperClass | null>(null);
+  const [_bannerSwiperInstance, setBannerSwiperInstance] = useState<SwiperClass | null>(null);
 
   useEffect(() => {
     const fetchSubcategories = async () => {
