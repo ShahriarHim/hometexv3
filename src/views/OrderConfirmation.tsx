@@ -30,7 +30,7 @@ const OrderConfirmation = ({ orderId }: OrderConfirmationProps) => {
                 <Link href="/account?tab=orders">View Order Details</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/shop">Continue Shopping</Link>
+                <Link href="/products">Continue Shopping</Link>
               </Button>
             </div>
           </CardContent>

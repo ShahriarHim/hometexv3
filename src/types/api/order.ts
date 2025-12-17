@@ -189,3 +189,98 @@ export interface InvoiceResponse {
   message: string;
   data?: Record<string, unknown>;
 }
+
+// Detailed Order Response Types (for GET /api/orders/{orderId})
+export interface OrderDetailCustomer {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrderDetailPaymentMethod {
+  id: number;
+  name: string;
+  account_number: string;
+}
+
+export interface OrderDetailSalesManager {
+  id: number;
+  name: string;
+}
+
+export interface OrderDetailShop {
+  id: number;
+  name: string;
+}
+
+export interface OrderDetailSellPrice {
+  price: number;
+  discount: number;
+  original_price: number;
+}
+
+export interface OrderDetailItem {
+  id: number;
+  name: string;
+  photo: string;
+  brand: string;
+  category: string;
+  sub_category: string;
+  child_sub_category: string;
+  supplier: string;
+  cost: string;
+  price: string;
+  sell_price: OrderDetailSellPrice;
+  quantity: number;
+  sku: string;
+  discount_fixed: number;
+  discount_percent: number;
+  discount_start: string;
+  discount_end: string;
+}
+
+export interface OrderDetailTransaction {
+  id: number;
+  amount: number;
+  created_at: string;
+  customer_name: string;
+  customer_phone: string;
+  payment_method_name: string;
+  account_number: string;
+  status: string;
+  transaction_type: string;
+  trx_id: string;
+  transaction_by: string;
+}
+
+export interface OrderDetailData {
+  id: number;
+  created_at: string;
+  updated_at: string;
+  customer: OrderDetailCustomer;
+  order_number: string;
+  order_status: number;
+  order_status_string: string;
+  payment_method: OrderDetailPaymentMethod;
+  payment_status: string;
+  sales_manager: OrderDetailSalesManager | null;
+  shop: OrderDetailShop | null;
+  discount: number;
+  due_amount: number;
+  paid_amount: number;
+  quantity: number;
+  sub_total: number;
+  total: number;
+  order_details: OrderDetailItem[];
+  transactions: OrderDetailTransaction[];
+}
+
+export interface OrderDetailResponse {
+  success: boolean;
+  message: string;
+  data: OrderDetailData;
+  order_id?: number;
+}

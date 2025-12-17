@@ -6,12 +6,12 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
@@ -53,7 +53,7 @@ const Cart = () => {
             title="Your cart is empty"
             description="Start adding some products to your cart"
             actionLabel="Continue Shopping"
-            actionHref="/shop"
+            actionHref="/products"
           />
         </main>
         <Footer />
@@ -179,7 +179,7 @@ const Cart = () => {
                   </Button>
                 )}
                 <Button asChild variant="outline" className="w-full mt-3">
-                  <Link href="/shop">Continue Shopping</Link>
+                  <Link href="/products">Continue Shopping</Link>
                 </Button>
               </CardContent>
             </Card>

@@ -70,6 +70,7 @@ const Products = () => {
   const [apiProducts, setApiProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -84,6 +85,15 @@ const Products = () => {
     };
 
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -126,7 +136,12 @@ const Products = () => {
               };
             });
 
-            setApiProducts(transformedProducts);
+            // Filter out out-of-stock items
+            const inStockProducts = transformedProducts.filter(
+              (product) => (product.stock ?? 0) > 0 && product.inStock
+            );
+
+            setApiProducts(inStockProducts);
           }
         } catch (err) {
           console.error("Error fetching trending products:", err);
@@ -178,7 +193,12 @@ const Products = () => {
               };
             });
 
-            setApiProducts(transformedProducts);
+            // Filter out out-of-stock items
+            const inStockProducts = transformedProducts.filter(
+              (product) => (product.stock ?? 0) > 0 && product.inStock
+            );
+
+            setApiProducts(inStockProducts);
           }
         } catch (err) {
           console.error("Error fetching bestsellers products:", err);
@@ -227,7 +247,12 @@ const Products = () => {
               };
             });
 
-            setApiProducts(transformedProducts);
+            // Filter out out-of-stock items
+            const inStockProducts = transformedProducts.filter(
+              (product) => (product.stock ?? 0) > 0 && product.inStock
+            );
+
+            setApiProducts(inStockProducts);
           }
         } catch (err) {
           console.error("Error fetching on-sale products:", err);
@@ -238,7 +263,114 @@ const Products = () => {
 
       fetchOnSaleProducts();
     } else {
-      setApiProducts([]);
+      const fetchAllProducts = async () => {
+        try {
+          setLoading(true);
+          const response = await productService.getProducts({
+            per_page: 100,
+          });
+
+          if (response.success && response.data?.products) {
+            const transformedProducts: Product[] = (response.data.products as APIProduct[]).map(
+              (product) => {
+                // Handle price - API returns sell_price.price or final_price
+                const salePrice = product.sell_price?.price ?? product.final_price ?? 0;
+                const originalPrice = product.original_price ?? product.regular_price;
+
+                // Handle discount_percent - can be string "10%" or number
+                let discountPercent = 0;
+                if (product.discount_percent) {
+                  if (typeof product.discount_percent === "string") {
+                    const match = product.discount_percent.match(/\d+/);
+                    discountPercent = match ? parseInt(match[0], 10) : 0;
+                  } else {
+                    discountPercent = product.discount_percent;
+                  }
+                } else if (product.sell_price?.discount) {
+                  discountPercent = product.sell_price.discount;
+                }
+
+                // Handle category - API returns object with name/id, not slug
+                const categorySlug =
+                  product.category?.slug ||
+                  (product.category?.name
+                    ? product.category.name.toLowerCase().replace(/\s+/g, "-")
+                    : "general");
+
+                // Handle subcategory
+                const subcategorySlug =
+                  product.sub_category?.slug ||
+                  (product.sub_category?.name
+                    ? product.sub_category.name.toLowerCase().replace(/\s+/g, "-")
+                    : undefined);
+
+                // Handle child subcategory
+                const childSubcategorySlug =
+                  product.child_sub_category?.slug ||
+                  (product.child_sub_category?.name
+                    ? product.child_sub_category.name.toLowerCase().replace(/\s+/g, "-")
+                    : undefined);
+
+                // Handle images - API has primary_photo as string or images array
+                let images: string[] = [];
+                if (product.primary_photo) {
+                  images = [product.primary_photo];
+                } else if (
+                  product.images &&
+                  Array.isArray(product.images) &&
+                  product.images.length > 0
+                ) {
+                  images = product.images;
+                } else if (product.thumbnail) {
+                  images = [product.thumbnail];
+                } else {
+                  images = ["/placeholder.svg"];
+                }
+
+                // Handle stock
+                const stockQty = product.stock ?? product.stock_quantity ?? 0;
+                const inStock =
+                  product.stock_status === "in_stock" ||
+                  (product.stock_status !== "out_of_stock" && stockQty > 0);
+
+                return {
+                  id: product.id.toString(),
+                  name: product.name,
+                  slug: product.slug,
+                  price: typeof salePrice === "number" ? salePrice : 0,
+                  originalPrice:
+                    discountPercent > 0 && originalPrice && typeof originalPrice === "number"
+                      ? originalPrice
+                      : undefined,
+                  description: product.description || product.short_description || "",
+                  category: categorySlug,
+                  subcategory: subcategorySlug,
+                  childSubcategory: childSubcategorySlug,
+                  images: images,
+                  inStock: inStock,
+                  rating: product.rating || 4.0,
+                  reviewCount: product.reviews_count || 5,
+                  discount: discountPercent > 0 ? discountPercent : undefined,
+                  isNew: product.isNew === 1 || product.is_new === true || product.isNew === true,
+                  isFeatured:
+                    product.isFeatured === 1 ||
+                    product.is_featured === true ||
+                    product.isFeatured === true,
+                  stock: stockQty,
+                };
+              }
+            );
+
+            setApiProducts(transformedProducts);
+          }
+        } catch (err) {
+          console.error("Error fetching all products:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchAllProducts();
     }
   }, [isTrending, isBestsellers, isOnSale]);
 
@@ -308,14 +440,12 @@ const Products = () => {
           </p>
         </div>
 
-        {loading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        )}
-
-        {/* Search & Filters - Sticky */}
-        <div className="sticky top-16 z-40 bg-card border border-border rounded-lg p-4 mb-4 shadow-sm">
+        {/* Search & Filters - Sticky only when scrolled */}
+        <div
+          className={`bg-card border border-border rounded-lg p-4 mb-4 shadow-sm ${
+            isScrolled ? "sticky top-16 z-40" : ""
+          }`}
+        >
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -365,40 +495,73 @@ const Products = () => {
                 <SelectItem value="rating">Highest Rated</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* View Mode Controls - Only visible when scrolled */}
+            {isScrolled && (
+              <div className="flex gap-2 items-center">
+                <Button
+                  variant={viewMode === "grid-5" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("grid-5")}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "grid-3" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("grid-3")}
+                >
+                  <Grid3x3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Products Count & View Mode - Non-sticky */}
+        {/* Products Count & View Mode - Non-sticky (original design when not scrolled) */}
         <div className="flex items-center justify-between mb-8">
           <p className="text-sm text-muted-foreground">{sortedProducts.length} products found</p>
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === "grid-5" ? "default" : "outline"}
-              size="icon"
-              onClick={() => setViewMode("grid-5")}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "grid-3" ? "default" : "outline"}
-              size="icon"
-              onClick={() => setViewMode("grid-3")}
-            >
-              <Grid3x3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              size="icon"
-              onClick={() => setViewMode("list")}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
+          {!isScrolled && (
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === "grid-5" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("grid-5")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "grid-3" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("grid-3")}
+              >
+                <Grid3x3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                size="icon"
+                onClick={() => setViewMode("list")}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
 
-        {!loading && (
+        {/* Products Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
           <>
-            {/* Products Grid */}
             <div className={`grid ${gridClass} gap-6`}>
               {sortedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} viewMode={viewMode} />

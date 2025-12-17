@@ -47,8 +47,41 @@ const FloatingBar = () => {
   const cartItemsCount = getTotalItems();
   const totalPrice = getTotalPrice();
   const [currentPage, setCurrentPage] = useState(1);
+  const [locationPage, setLocationPage] = useState(1);
   const productsPerPage = 8;
+  const locationsPerPage = 6;
   const totalPages = Math.ceil(recentViews.length / productsPerPage);
+
+  // Store locations data
+  const storeLocations = [
+    {
+      id: 1,
+      name: "Shantinagar Outlet",
+      address:
+        "Store # 354-355, Level # 03, Twin Tower Concord Shopping Complex, 27 Chamelibag, Santinagar, Dhaka-1217",
+      hours: "10:30 AM - 8:30 PM",
+      phone: "+8809610963839",
+      image: "/images/location/shantinagar.jpg",
+    },
+    {
+      id: 2,
+      name: "Gulshan Outlet",
+      address: "Store # 464, Level# 04, Police Plaza Concord Shopping Mall, Gulshan-01, Dhaka-1212",
+      hours: "11:00 AM - 9:00 PM",
+      phone: "+8809610963839",
+      image: "/images/location/gulshan.jpg",
+    },
+    {
+      id: 3,
+      name: "Elephant Road Outlet",
+      address: "1st Floor, House # 307, S J Jahanara Imam Sharani, New Elephant Road, Dhaka-1205",
+      hours: "11:00 AM - 9:00 PM",
+      phone: "+8809610963839",
+      image: "/images/location/elephenroad.jpg",
+    },
+  ];
+
+  const totalLocationPages = Math.ceil(storeLocations.length / locationsPerPage);
 
   // Sync cart popup state with context to suppress toast notifications
   useEffect(() => {
@@ -91,6 +124,7 @@ const FloatingBar = () => {
   const handleGetCurrentLocation = () => {
     toast.dismiss();
     setShowLocationPanel(!showLocationPanel);
+    setLocationPage(1);
   };
   const handleChatToggle = () => {
     toast.dismiss();
@@ -103,6 +137,14 @@ const FloatingBar = () => {
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
+  const handleLocationPrevPage = () => {
+    setLocationPage((prev: number) => Math.max(1, prev - 1));
+  };
+
+  const handleLocationNextPage = () => {
+    setLocationPage((prev: number) => Math.min(totalLocationPages, prev + 1));
   };
 
   const getProductUrl = (product: (typeof recentViews)[0]) => {
@@ -140,6 +182,12 @@ const FloatingBar = () => {
   const startIndex = (currentPage - 1) * productsPerPage;
   const visibleProducts = recentViews.slice(startIndex, startIndex + productsPerPage);
 
+  const locationStartIndex = (locationPage - 1) * locationsPerPage;
+  const visibleLocations = storeLocations.slice(
+    locationStartIndex,
+    locationStartIndex + locationsPerPage
+  );
+
   const buttonData = [
     {
       icon: <FaListUl />,
@@ -160,7 +208,7 @@ const FloatingBar = () => {
     },
     {
       icon: <FaMapMarkerAlt />,
-      tooltip: "Current Location",
+      tooltip: "Store Location",
       onClick: handleGetCurrentLocation,
       className: "floating-btn-middle",
       badge: null,
@@ -326,34 +374,34 @@ const FloatingBar = () => {
                       <Link
                         href={getProductUrl(product) as never}
                         onClick={() => setShowRecentlyViewed(false)}
-                        className="flex gap-4 p-4"
+                        className="flex flex-col h-full"
                       >
-                        <div className="relative w-24 h-24 flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden">
+                        <div className="relative w-full h-48 flex-shrink-0 bg-gray-50 overflow-hidden">
                           {product.image ? (
                             <Image
                               src={product.image}
                               alt={product.name}
                               fill
                               className="object-contain group-hover:scale-105 transition-transform duration-300"
-                              sizes="96px"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                              <FaEye className="w-8 h-8 text-gray-400" />
+                              <FaEye className="w-12 h-12 text-gray-400" />
                             </div>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                        <div className="flex-1 min-w-0 flex flex-col justify-between p-4">
                           <div>
-                            <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors">
+                            <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors mb-2">
                               {product.name}
                             </h3>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                               <Clock className="w-3 h-3" />
                               <span>{formatTimeAgo(product.viewedAt)}</span>
                             </div>
                           </div>
-                          <div className="mt-2 flex items-center justify-between">
+                          <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <span className="text-lg font-bold text-teal-600">
                                 ৳{product.price.toLocaleString()}
@@ -423,27 +471,140 @@ const FloatingBar = () => {
         </div>
       )}
 
-      {/* Location Panel Placeholder */}
+      {/* Location Panel */}
       {showLocationPanel && (
-        <div className="location-modal-overlay" onClick={() => setShowLocationPanel(false)}>
-          <div className="location-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="location-modal-header">
-              <span className="location-modal-icon">
-                <FaMapMarkerAlt />
-              </span>
-              <span className="location-modal-title">Your Location</span>
-              <button onClick={() => setShowLocationPanel(false)} className="location-modal-close">
-                <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" fill="none">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+        <div
+          className="fixed inset-0 flex items-center justify-center z-[1100] location-modal-overlay"
+          onClick={() => setShowLocationPanel(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-6xl w-full mx-4 relative z-10 shadow-2xl transform transition-all animate-popup-in border border-gray-200 location-popup flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white p-6 flex items-center justify-between rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg">
+                  <FaMapMarkerAlt className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">Store Locations</h3>
+                  <p className="text-teal-100 text-sm mt-1">
+                    {storeLocations.length} {storeLocations.length === 1 ? "location" : "locations"}{" "}
+                    available
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLocationPanel(false)}
+                className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors text-2xl leading-none"
+                aria-label="Close"
+              >
+                &times;
               </button>
             </div>
-            <div className="location-modal-content">
-              <div className="location-modal-empty">
-                <p>Location Service Placeholder</p>
-              </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {storeLocations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="bg-gray-100 rounded-full p-6 mb-4">
+                    <FaMapMarkerAlt className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    No Locations Available
+                  </h3>
+                  <p className="text-gray-600 max-w-md">
+                    Store locations will appear here when available.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {visibleLocations.map((location: (typeof storeLocations)[0]) => (
+                    <div
+                      key={location.id}
+                      className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 bg-white"
+                    >
+                      <div className="flex flex-col h-full">
+                        <div className="relative w-full h-48 flex-shrink-0 bg-gray-50 overflow-hidden">
+                          {location.image ? (
+                            <Image
+                              src={location.image}
+                              alt={location.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <FaMapMarkerAlt className="w-12 h-12 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col justify-between p-4">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors mb-2">
+                              {location.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                              {location.address}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                              <Clock className="w-3 h-3" />
+                              <span>{location.hours}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <FaPhoneAlt className="w-3 h-3" />
+                              <a
+                                href={`tel:${location.phone}`}
+                                className="hover:text-teal-600 transition-colors"
+                              >
+                                {location.phone}
+                              </a>
+                            </div>
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <button
+                              onClick={() => {
+                                window.open(
+                                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`,
+                                  "_blank"
+                                );
+                              }}
+                              className="w-full text-sm px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors font-medium"
+                            >
+                              Get Directions
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {storeLocations.length > locationsPerPage && (
+              <div className="border-t border-gray-200 p-4 flex items-center justify-between bg-gray-50 rounded-b-2xl">
+                <button
+                  onClick={handleLocationPrevPage}
+                  disabled={locationPage === 1}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {locationPage} of {totalLocationPages}
+                </span>
+                <button
+                  onClick={handleLocationNextPage}
+                  disabled={locationPage === totalLocationPages}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -576,19 +737,36 @@ const FloatingBar = () => {
         .tooltip {
           position: absolute;
           top: 50%;
-          left: -110%;
+          right: calc(100% + 12px);
           transform: translateY(-50%);
-          background: rgba(51, 51, 51, 0.9);
+          background: rgba(51, 51, 51, 0.95);
           color: white;
-          padding: 4px 8px;
-          border-radius: 5px;
+          padding: 6px 12px;
+          border-radius: 6px;
           opacity: 0;
-          transition: opacity 0.3s;
+          visibility: hidden;
+          transition: opacity 0.2s ease, visibility 0.2s ease;
           white-space: nowrap;
+          font-size: 13px;
+          font-weight: 500;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          pointer-events: none;
+          z-index: 1001;
+        }
+
+        .tooltip::after {
+          content: "";
+          position: absolute;
+          left: 100%;
+          top: 50%;
+          transform: translateY(-50%);
+          border: 6px solid transparent;
+          border-left-color: rgba(51, 51, 51, 0.95);
         }
 
         .floating-btn:hover .tooltip {
           opacity: 1;
+          visibility: visible;
         }
 
         .categories-popup-overlay {
@@ -757,151 +935,12 @@ const FloatingBar = () => {
           animation: popup-in 0.45s cubic-bezier(0.4, 2, 0.6, 1);
         }
 
-        /* Location Modal Styles */
-        .location-modal-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 1050;
-          background: rgba(0, 0, 0, 0.32);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          animation: locationModalFadeIn 0.25s cubic-bezier(0.4, 2, 0.6, 1);
-          backdrop-filter: blur(2px);
-        }
-        @keyframes locationModalFadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        .location-modal-card {
-          background: #fff;
-          border-radius: 18px;
-          width: 95vw;
-          max-width: 370px;
-          max-height: 92vh;
+        /* Location Popup Styles */
+        .location-popup {
           box-shadow:
-            0 8px 40px rgba(40, 167, 69, 0.13),
+            0 8px 40px rgba(40, 167, 69, 0.1),
             0 1.5px 8px rgba(0, 0, 0, 0.04);
-          border: 1.5px solid #e5e7eb;
-          display: flex;
-          flex-direction: column;
-          animation: locationModalPopIn 0.33s cubic-bezier(0.4, 2, 0.6, 1);
-          position: relative;
-          overflow: hidden;
-        }
-        @keyframes locationModalPopIn {
-          from {
-            opacity: 0;
-            transform: scale(0.92) translateY(40px);
-          }
-          60% {
-            opacity: 1;
-            transform: scale(1.04) translateY(-6px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        .location-modal-header {
-          display: flex;
-          align-items: center;
-          padding: 1rem 1.25rem 0.75rem 1.25rem;
-          border-bottom: 1px solid hsl(var(--border));
-          background: linear-gradient(90deg, hsl(var(--surface)) 60%, hsl(var(--background)) 100%);
-          position: relative;
-          min-height: 56px;
-        }
-        .location-modal-icon {
-          width: 34px;
-          height: 34px;
-          border-radius: 50%;
-          background: linear-gradient(
-            135deg,
-            hsl(var(--primary)) 60%,
-            hsl(var(--primary-hover)) 100%
-          );
-          color: hsl(var(--primary-foreground));
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.1rem;
-          margin-right: 12px;
-          box-shadow: 0 2px 8px rgba(168, 196, 35, 0.13);
-          flex-shrink: 0;
-        }
-        .location-modal-title {
-          font-size: 1.08rem;
-          font-weight: 600;
-          color: hsl(var(--text-primary));
-          flex: 1;
-          letter-spacing: 0.01em;
-        }
-        .location-modal-close {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          background: hsl(var(--muted));
-          color: hsl(var(--text-tertiary));
-          border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition:
-            background 0.18s,
-            color 0.18s,
-            transform 0.18s;
-          cursor: pointer;
-          z-index: 2;
-        }
-        .location-modal-close:hover {
-          background: #fbe9e9;
-          color: #e53e3e;
-          transform: rotate(90deg) scale(1.08);
-        }
-        .location-modal-content {
-          padding: 1.1rem 1.25rem 1.25rem 1.25rem;
-          overflow-y: auto;
-          flex: 1;
-          min-height: 120px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
-        .location-modal-empty {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-height: 120px;
-          gap: 1.2rem;
-          text-align: center;
-        }
-        .location-modal-empty p {
-          color: #7c7c7c;
-          font-size: 1.05rem;
-          margin-bottom: 0.5rem;
-        }
-
-        @media (max-width: 500px) {
-          .location-modal-card {
-            max-width: 98vw;
-            min-width: 0;
-            width: 99vw;
-            padding: 0;
-          }
-          .location-modal-header,
-          .location-modal-content {
-            padding-left: 0.7rem;
-            padding-right: 0.7rem;
-          }
+          border: 1.5px solid hsl(var(--border));
         }
 
         @media (max-width: 768px) {
@@ -941,6 +980,9 @@ const FloatingBar = () => {
           /* Hide tooltips on mobile as they rely on hover */
           .tooltip {
             display: none !important;
+          }
+          .location-popup {
+            max-height: 85vh;
           }
           .categories-popup {
             width: 95%;

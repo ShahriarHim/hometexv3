@@ -17,7 +17,10 @@ const PriceView = ({ price, originalPrice, discount, className }: Props) => {
   return (
     <div className="flex items-center justify-between gap-5">
       <div className="flex items-center gap-3">
-        <PriceFormatter amount={price} className={cn("text-price font-bold text-xl", className)} />
+        <PriceFormatter
+          amount={price}
+          className={cn("text-primary font-bold text-2xl", className)}
+        />
         {displayOriginalPrice && displayOriginalPrice > (price || 0) && (
           <PriceFormatter
             amount={displayOriginalPrice}

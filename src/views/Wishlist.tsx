@@ -99,7 +99,7 @@ const Wishlist = () => {
             title="Your wishlist is empty"
             description="Save items you love for later"
             actionLabel="Continue Shopping"
-            actionHref="/shop"
+            actionHref="/products"
           />
         </main>
         <Footer />
@@ -269,7 +269,7 @@ const Wishlist = () => {
         {/* Bottom Actions */}
         <div className="mt-8 flex justify-between items-center">
           <Button variant="outline" asChild>
-            <Link href="/shop">Continue Shopping</Link>
+            <Link href="/products">Continue Shopping</Link>
           </Button>
           <div className="text-sm text-muted-foreground">
             Total: {items.length} item(s) • Selected: {selectedCount} item(s)

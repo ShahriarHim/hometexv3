@@ -42,7 +42,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/shop"
+                  href="/products"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   {t("shopAll")}

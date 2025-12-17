@@ -9,10 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "@/i18n/routing";
-import { env } from "@/lib/env";
 import { orderService, userService } from "@/services/api";
-import type { CustomerOrderSummary, InvoiceResponse, TrackingResponse } from "@/types/api/order";
-import { FileText, Heart, Loader2, Package, RefreshCcw, Settings, Truck, User } from "lucide-react";
+import type { CustomerOrderSummary, TrackingResponse } from "@/types/api/order";
+import { Heart, Loader2, Package, RefreshCcw, Settings, Truck, User } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -23,6 +22,7 @@ interface UserProfile {
   email?: string;
   phone?: string;
   address?: string;
+  customer_id?: number;
   [key: string]: string | number | undefined;
 }
 
@@ -39,9 +39,9 @@ const Account = () => {
   const [orders, setOrders] = useState<CustomerOrderSummary[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [ordersFetched, setOrdersFetched] = useState(false);
   const [trackingStatus, setTrackingStatus] = useState<Record<string, string>>({});
   const [trackingLoading, setTrackingLoading] = useState<Record<string, boolean>>({});
-  const [invoiceLoading, setInvoiceLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -83,12 +83,20 @@ const Account = () => {
 
         // Map the API response to our UserProfile interface
         const userData = response.user;
+
+        // Extract customer_id from customer_info if available
+        const customerId =
+          (response.customer_info?.id as number | undefined) ||
+          (response.customer_info?.customer_id as number | undefined) ||
+          (response.customer_info as { id?: number })?.id;
+
         const mappedProfile: UserProfile = {
           id: userData.id,
           name: userData.name || `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
           email: userData.email,
           phone: userData.phone,
           address: userData.address || response.addresses?.[0]?.address || undefined,
+          customer_id: customerId,
         };
 
         setUserProfile(mappedProfile);
@@ -120,42 +128,92 @@ const Account = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       if (!isAuthenticated || activeTab !== "orders") {
+        setOrdersFetched(false);
         return;
       }
 
       // Wait for profile to load before fetching orders
       if (isLoading) {
+        setOrdersLoading(true);
         return;
       }
 
-      // Get customer ID from userProfile (preferred) or fallback to user.id
-      const customerId = userProfile?.id ? userProfile.id : user?.id ? Number(user.id) : null;
+      // Get customer ID from userProfile.customer_id (preferred)
+      // Note: customer_id is different from user.id - customer_id is from the Customer model
+      const customerId = userProfile?.customer_id ? Number(userProfile.customer_id) : null;
 
-      // Validate customer ID
+      // If we don't have customer_id, try using /api/my-order endpoint (requires auth)
       if (!customerId || isNaN(customerId) || customerId <= 0) {
-        setOrdersError("Unable to load orders: Invalid customer ID");
-        setOrdersLoading(false);
-        return;
+        setOrdersLoading(true);
+        setOrdersError(null);
+        try {
+          // Fallback to authenticated endpoint that returns current user's orders
+          const response = await orderService.getMyOrders();
+          if (!response.success) {
+            throw new Error(response.message || "Failed to load orders");
+          }
+          setOrders(response.data || []);
+          setOrdersFetched(true);
+          return;
+        } catch (fallbackErr) {
+          const error = fallbackErr as Error & { statusCode?: number; status?: number };
+          const statusCode = error.statusCode || error.status;
+          let errorMessage = error.message || "Failed to load orders";
+
+          if (
+            statusCode === 404 ||
+            errorMessage.toLowerCase().includes("404") ||
+            errorMessage.toLowerCase().includes("not found")
+          ) {
+            errorMessage = "no order found, need shopping? click here";
+          }
+          setOrdersError(errorMessage);
+          setOrders([]);
+          setOrdersFetched(true);
+          return;
+        } finally {
+          setOrdersLoading(false);
+        }
       }
 
       setOrdersLoading(true);
       setOrdersError(null);
       try {
+        // Use the customer-specific endpoint with customer_id
         const response = await orderService.getCustomerOrders(customerId);
         if (!response.success) {
           let errorMessage = response.message || "Failed to load orders";
-          if (errorMessage.toLowerCase().includes("customer not found")) {
+          if (
+            errorMessage.toLowerCase().includes("customer not found") ||
+            errorMessage.toLowerCase().includes("not found") ||
+            errorMessage.toLowerCase().includes("404")
+          ) {
             errorMessage = "no order found, need shopping? click here";
           }
           throw new Error(errorMessage);
         }
         setOrders(response.data || []);
+        setOrdersFetched(true);
       } catch (err) {
-        let errorMessage = err instanceof Error ? err.message : "Failed to load orders";
-        if (errorMessage.toLowerCase().includes("customer not found")) {
+        // Handle 404 or other errors gracefully
+        const error = err as Error & { statusCode?: number; status?: number };
+        const statusCode = error.statusCode || error.status;
+        let errorMessage = error.message || "Failed to load orders";
+
+        // If it's a 404, the endpoint doesn't exist - show user-friendly message
+        if (
+          statusCode === 404 ||
+          errorMessage.toLowerCase().includes("404") ||
+          errorMessage.toLowerCase().includes("not found")
+        ) {
+          errorMessage = "no order found, need shopping? click here";
+          setOrders([]); // Clear orders on 404
+        } else if (errorMessage.toLowerCase().includes("customer not found")) {
           errorMessage = "no order found, need shopping? click here";
         }
+
         setOrdersError(errorMessage);
+        setOrdersFetched(true);
       } finally {
         setOrdersLoading(false);
       }
@@ -213,18 +271,26 @@ const Account = () => {
   };
 
   const handleTrack = async (order: CustomerOrderSummary) => {
-    if (!order.tracking_code) {
-      setTrackingStatus((prev) => ({ ...prev, [order.order_number]: "Tracking code missing" }));
-      return;
-    }
     setTrackingLoading((prev) => ({ ...prev, [order.order_number]: true }));
     try {
-      const response: TrackingResponse = await orderService.trackOrderByCode(order.tracking_code);
+      let response: TrackingResponse;
+
+      // Try tracking by tracking_code first if available
+      if (order.tracking_code) {
+        response = await orderService.trackOrderByCode(order.tracking_code);
+      } else {
+        // Fallback to tracking by order_number (invoice)
+        response = await orderService.trackOrderByNumber(order.order_number);
+      }
+
       if (!response.success) {
         throw new Error(formatError(response));
       }
+
+      // Extract delivery status from response
       const statusLabel =
         response.data?.delivery_status || response.data?.status?.toString() || "Status unavailable";
+
       setTrackingStatus((prev) => ({ ...prev, [order.order_number]: statusLabel }));
     } catch (err) {
       setTrackingStatus((prev) => ({
@@ -237,25 +303,9 @@ const Account = () => {
     }
   };
 
-  const handleInvoice = async (order: CustomerOrderSummary) => {
-    setInvoiceLoading((prev) => ({ ...prev, [order.order_number]: true }));
-    try {
-      const response: InvoiceResponse = await orderService.getInvoice(order.order_number);
-      if (!response.success) {
-        throw new Error(formatError(response));
-      }
-      // Open invoice endpoint directly (server returns JSON, but URL provides PDF/print view)
-      const invoiceUrl = `${env.apiBaseUrl}/api/orders/invoice/${order.order_number}`;
-      window.open(invoiceUrl, "_blank", "noopener,noreferrer");
-    } catch (err) {
-      setOrdersError(err instanceof Error ? err.message : "Failed to load invoice");
-    } finally {
-      setInvoiceLoading((prev) => ({ ...prev, [order.order_number]: false }));
-    }
-  };
-
   const renderOrders = () => {
-    if (ordersLoading) {
+    // Show loader if loading or if we haven't fetched yet (waiting for profile)
+    if (ordersLoading || (activeTab === "orders" && !ordersFetched && isLoading)) {
       return (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -271,7 +321,7 @@ const Account = () => {
             <>
               <p className="text-muted-foreground mb-4">
                 No order found, need shopping?{" "}
-                <Link href="/shop" className="text-primary underline hover:text-primary/80">
+                <Link href="/products" className="text-primary underline hover:text-primary/80">
                   click here
                 </Link>
               </p>
@@ -288,12 +338,13 @@ const Account = () => {
         </div>
       );
     }
-    if (!orders || orders.length === 0) {
+    // Only show "No orders yet" if we've actually fetched and got empty results
+    if (ordersFetched && (!orders || orders.length === 0)) {
       return (
         <div className="text-center py-8">
           <p className="text-muted-foreground mb-4">No orders yet. Start shopping to see orders.</p>
           <Button asChild>
-            <Link href="/shop">Start Shopping</Link>
+            <Link href="/products">Start Shopping</Link>
           </Button>
         </div>
       );
@@ -318,7 +369,7 @@ const Account = () => {
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="text-sm text-muted-foreground">
                   <div>Payment: {order.payment_method}</div>
-                  <div>Status: {order.payment_status}</div>
+                  <div>Status: {order.order_status_string}</div>
                   <div>Shop: {order.shop}</div>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -330,7 +381,7 @@ const Account = () => {
               <Separator />
               <div className="flex flex-wrap gap-3">
                 <Button
-                  variant="secondary"
+                  variant="default"
                   size="sm"
                   onClick={() => handleTrack(order)}
                   disabled={trackingLoading[order.order_number]}
@@ -341,19 +392,6 @@ const Account = () => {
                     <Truck className="h-4 w-4 mr-2" />
                   )}
                   Track
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleInvoice(order)}
-                  disabled={invoiceLoading[order.order_number]}
-                >
-                  {invoiceLoading[order.order_number] ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <FileText className="h-4 w-4 mr-2" />
-                  )}
-                  Invoice
                 </Button>
                 <Button asChild variant="ghost" size="sm">
                   <Link href={`/orders/${order.order_number}` as unknown as "/orders"}>

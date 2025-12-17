@@ -10,6 +10,9 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 interface UseInfiniteProductSearchParams {
   searchTerm?: string;
   category?: string;
+  categoryId?: number;
+  subCategory?: number;
+  childSubCategoryId?: number;
   perPage?: number;
   sort?: ProductQueryParams["sort"];
   minPrice?: number;
@@ -29,16 +32,42 @@ interface UseInfiniteProductSearchParams {
  * ```
  */
 export function useInfiniteProductSearch(options: UseInfiniteProductSearchParams = {}) {
-  const { searchTerm, category, perPage = 20, sort, minPrice, maxPrice, enabled = true } = options;
+  const {
+    searchTerm,
+    category,
+    categoryId,
+    subCategory,
+    childSubCategoryId,
+    perPage = 20,
+    sort,
+    minPrice,
+    maxPrice,
+    enabled = true,
+  } = options;
   return useInfiniteQuery<ProductsResponse, Error>({
-    queryKey: ["products", "infinite", searchTerm, category, perPage, sort, minPrice, maxPrice],
+    queryKey: [
+      "products",
+      "infinite",
+      searchTerm,
+      category,
+      categoryId,
+      subCategory,
+      childSubCategoryId,
+      perPage,
+      sort,
+      minPrice,
+      maxPrice,
+    ],
 
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: ({ pageParam = 1 }) => {
       const queryParams: ProductQueryParams = {
         page: pageParam as number,
         per_page: perPage,
         ...(searchTerm && { search: searchTerm }),
         ...(category && { category }),
+        ...(categoryId && { category_id: categoryId }),
+        ...(subCategory && { sub_category: subCategory }),
+        ...(childSubCategoryId && { child_sub_category_id: childSubCategoryId }),
         ...(sort && { sort }),
         ...(minPrice && { min_price: minPrice }),
         ...(maxPrice && { max_price: maxPrice }),

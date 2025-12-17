@@ -34,7 +34,7 @@ export const heroSlides: HeroSlide[] = [
     image: "/images/mslider/Slider-1920x601.webp",
     cta: {
       label: "Shop the Capsule",
-      href: "/shop",
+      href: "/products",
     },
     secondaryCta: {
       label: "View Lookbook",
@@ -140,7 +140,7 @@ export type CollectionSpotlight = {
 export const collectionSpotlight: CollectionSpotlight[] = [
   {
     id: "summer-quilts",
-    name: "Summer Quilts",
+    name: "Summer Quilfewts",
     image: "/images/designSix/Summer_Quilt_Banner.png",
     accent: "#72d2c7",
   },
