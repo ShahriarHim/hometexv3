@@ -1,3 +1,4 @@
+import nextPlugin from "@next/eslint-plugin-next";
 import next from "eslint-config-next";
 import tseslint from "typescript-eslint";
 
@@ -5,9 +6,17 @@ const config = [
   {
     ignores: ["MIGRATION_PACKAGE/**", ".next/**", "node_modules/**", "dist/**"],
   },
+  {
+    plugins: {
+      "@next/next": nextPlugin,
+    },
+  },
   ...next,
   ...tseslint.configs.recommended,
   {
+    plugins: {
+      "@next/next": nextPlugin,
+    },
     rules: {
       // Next.js specific
       "@next/next/no-img-element": "off",
@@ -61,8 +70,8 @@ const config = [
       "prefer-template": "warn",
 
       // Code quality
-      "eqeqeq": ["error", "always"],
-      "curly": ["error", "all"],
+      eqeqeq: ["error", "always"],
+      curly: ["error", "all"],
       "no-eval": "error",
       "no-implied-eval": "error",
       "no-new-func": "error",
@@ -76,10 +85,10 @@ const config = [
       "no-useless-return": "error",
       "no-void": "error",
       "no-with": "error",
-      "radix": "error",
+      radix: "error",
       "vars-on-top": "off",
       "wrap-iife": "error",
-      "yoda": "error",
+      yoda: "error",
 
       // Best practices
       "array-callback-return": "error",
@@ -120,10 +129,9 @@ const config = [
       "no-useless-return": "error",
       "prefer-promise-reject-errors": "error",
       "require-await": "warn",
-      "yoda": "error",
+      yoda: "error",
     },
   },
 ];
 
 export default config;
-
