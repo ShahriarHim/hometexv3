@@ -259,7 +259,6 @@ export default function ThemeEditor() {
 
   // Reset to defaults
   const resetColors = () => {
-    // eslint-disable-next-line no-alert
     if (confirm("Reset all colors to default values?")) {
       window.location.reload();
     }
