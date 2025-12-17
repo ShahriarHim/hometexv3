@@ -22,7 +22,7 @@ import { useRouter } from "@/i18n/routing";
 import { ApiError, locationService, userService } from "@/services/api";
 import type { Area, Division } from "@/types/api/location";
 import { Loader2, MapPin } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import OrderConfirmation from "./OrderConfirmation";
 
@@ -43,7 +43,6 @@ const Checkout = () => {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | undefined>(undefined);
-  const isNavigatingRef = useRef(false);
   const [shippingData, setShippingData] = useState<{
     name: string;
     email: string;
@@ -349,8 +348,6 @@ const Checkout = () => {
         shippingAddress: shippingData,
       });
 
-      // Set flag to prevent useEffect redirect
-      isNavigatingRef.current = true;
       setConfirmedOrderId(order.id);
       setOrderConfirmed(true);
       clearCart();

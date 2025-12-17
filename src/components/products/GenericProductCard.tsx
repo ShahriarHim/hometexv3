@@ -97,6 +97,10 @@ const GenericProductCard = ({
       return product.discount;
     }
     if (product.discount_percent) {
+      // Handle both string and number types
+      if (typeof product.discount_percent === "number") {
+        return product.discount_percent;
+      }
       const match = product.discount_percent.match(/\d+/);
       return match ? parseInt(match[0], 10) : 0;
     }

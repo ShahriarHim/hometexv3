@@ -12,7 +12,7 @@ export const CollectionSpotlight = () => {
             key={category.id || index}
             className="flex flex-col items-center group cursor-pointer flex-shrink-0"
           >
-            <div className="w-32 h-32 overflow-hidden [perspective:1000px] rounded-[77px]">
+            <div className="w-32 h-32 overflow-hidden [perspective:1000px] rounded-full">
               <div className="relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
                 <div className="absolute w-full h-full">
                   <img

@@ -140,7 +140,7 @@ export type CollectionSpotlight = {
 export const collectionSpotlight: CollectionSpotlight[] = [
   {
     id: "summer-quilts",
-    name: "Summer Quilfewts",
+    name: "Summer Quilts",
     image: "/images/designSix/Summer_Quilt_Banner.png",
     accent: "#72d2c7",
   },
