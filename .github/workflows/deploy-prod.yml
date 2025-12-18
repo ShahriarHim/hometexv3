@@ -18,7 +18,7 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: 22
           script: |
-            cd ${{ secrets.PROD_PATH }}
+            cd /var/www/hometexv3
 
             git fetch origin
             git checkout main
@@ -28,4 +28,4 @@ jobs:
             rm -rf .next
             npm run build
 
-            pm2 restart hometex-frontend --update-env
+            pm2 reload ecosystem.config.cjs --only hometex-frontend --update-env
