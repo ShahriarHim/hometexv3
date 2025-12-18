@@ -297,7 +297,6 @@ const HotDeals = () => {
 
                   return (
                     <SwiperSlide
-                       
                       key={index}
                       className="owl2-item active"
                       onMouseEnter={() => handleProductHover(true)}
@@ -366,7 +365,6 @@ const HotDeals = () => {
                           <div className={styles.rating}>
                             {[...Array(5)].map((_, i) => (
                               <span
-                                 
                                 key={i}
                                 className={i < product.star ? styles.star : styles["star-empty"]}
                               >
@@ -479,7 +477,6 @@ const HotDeals = () => {
                           <div className={styles.rating}>
                             {[...Array(5)].map((_, i) => (
                               <span
-                                 
                                 key={i}
                                 className={i < product.star ? styles.star : styles["star-empty"]}
                               >
