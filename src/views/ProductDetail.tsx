@@ -3,6 +3,7 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
+import { ProductStickyBar } from "@/components/products/ProductStickyBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,9 +18,9 @@ import { trackEvent } from "@/lib/analytics";
 import { api, transformAPIProductToProduct } from "@/lib/api";
 import type { Product } from "@/types";
 import type {
+  BulkPricingTier,
   DetailedProduct,
   ProductVariation,
-  BulkPricingTier,
 } from "@/types/api/detailed-product";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -35,13 +36,19 @@ import {
   Tag,
   TrendingUp,
 } from "lucide-react";
+import type { Route } from "next";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Link from "next/link";
-import type { Route } from "next";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, startTransition } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { Swiper as SwiperClass } from "swiper";
+import "swiper/css";
+import "swiper/css/autoplay";
+import "swiper/css/navigation";
+import { Autoplay, Navigation } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 // Safe accessors for DetailedProduct properties with defaults
 const getProductPricing = (product: DetailedProduct) => ({
@@ -89,6 +96,9 @@ const getProductBadges = (product: DetailedProduct) => ({
   is_trending: product.badges?.is_trending ?? false,
   is_bestseller: product.badges?.is_bestseller ?? false,
   is_on_sale: product.badges?.is_on_sale ?? false,
+  is_limited_edition: product.badges?.is_limited_edition ?? false,
+  is_exclusive: product.badges?.is_exclusive ?? false,
+  is_eco_friendly: product.badges?.is_eco_friendly ?? false,
 });
 
 const getProductShipping = (product: DetailedProduct) => ({
@@ -151,6 +161,13 @@ const PriceDropNotification = dynamic(() => import("@/components/products/PriceD
   ssr: false,
 });
 
+const ProductPopularityPopup = dynamic(
+  () => import("@/components/products/ProductPopularityPopup"),
+  {
+    ssr: false,
+  }
+);
+
 const ProductCard = dynamic(
   () => import("@/components/products/ProductCard").then((mod) => ({ default: mod.ProductCard })),
   {
@@ -183,6 +200,7 @@ const ProductDetailNew = () => {
   const [showBulkPricingModal, setShowBulkPricingModal] = useState(false);
   const [selectedBulkPrice, setSelectedBulkPrice] = useState<number | null>(null);
   const addToCartSectionRef = useRef<HTMLDivElement>(null);
+  const [_swiperInstance, setSwiperInstance] = useState<SwiperClass | null>(null);
 
   // Fetch product with React Query (cached and parallel)
   const {
@@ -342,6 +360,65 @@ const ProductDetailNew = () => {
   const isInStock = currentStockStatus === "in_stock" && currentStock > 0;
   const isLowStock =
     (inventory?.is_low_stock ?? false) || currentStock <= (inventory?.low_stock_threshold ?? 5);
+
+  // Get product image for sticky bar
+  const getProductImage = (): string => {
+    if (!product) {
+      return "/placeholder.svg";
+    }
+
+    const galleryImages =
+      product.media?.gallery
+        ?.map((g: string | { url?: string; image_url?: string; path?: string }) => {
+          if (typeof g === "string") {
+            return g;
+          }
+          return g?.url || g?.image_url || g?.path || null;
+        })
+        .filter((img): img is string => Boolean(img)) || [];
+
+    if (galleryImages.length > 0) {
+      return galleryImages[0];
+    }
+
+    const primaryImage =
+      product.media?.primary_image ||
+      (product as { primary_photo?: string; primary_image?: string }).primary_photo ||
+      (product as { primary_image?: string }).primary_image;
+
+    if (primaryImage) {
+      if (typeof primaryImage === "string") {
+        return primaryImage;
+      }
+      return (
+        (primaryImage as { url?: string; image_url?: string; path?: string })?.url ||
+        (primaryImage as { url?: string; image_url?: string; path?: string })?.image_url ||
+        (primaryImage as { url?: string; image_url?: string; path?: string })?.path ||
+        "/placeholder.svg"
+      );
+    }
+
+    const thumbnailImage =
+      product.media?.thumbnail || (product as { thumbnail?: string }).thumbnail;
+    if (thumbnailImage) {
+      if (typeof thumbnailImage === "string") {
+        return thumbnailImage;
+      }
+      return (
+        (thumbnailImage as { url?: string; image_url?: string; path?: string })?.url ||
+        (thumbnailImage as { url?: string; image_url?: string; path?: string })?.image_url ||
+        (thumbnailImage as { url?: string; image_url?: string; path?: string })?.path ||
+        "/placeholder.svg"
+      );
+    }
+
+    const brandLogo = product.brand?.logo;
+    if (brandLogo) {
+      return brandLogo;
+    }
+
+    return "/placeholder.svg";
+  };
 
   // Extract unique attribute keys from variations
   const attributeKeys =
@@ -652,6 +729,22 @@ const ProductDetailNew = () => {
 
       <div className="min-h-screen flex flex-col">
         <Header />
+
+        {/* Sticky Product Bar */}
+        {product && (
+          <ProductStickyBar
+            productImage={getProductImage()}
+            productName={product.name}
+            price={displayPrice}
+            currencySymbol={pricing?.currency_symbol ?? "৳"}
+            isInStock={isInStock}
+            quantity={quantity}
+            minQuantity={product.minimum_order_quantity ?? 1}
+            maxQuantity={getEffectiveMaxQuantity()}
+            onQuantityChange={handleQuantityChange}
+            onAddToCart={handleAddToCart}
+          />
+        )}
 
         <main className="flex-1 container mx-auto px-4 py-6">
           {/* Breadcrumb */}
@@ -1091,8 +1184,8 @@ const ProductDetailNew = () => {
                 <Button
                   onClick={handleBuyNow}
                   size="lg"
-                  variant="secondary"
-                  className="flex-1 shadow-md hover:shadow-lg transition-all hover:scale-105"
+                  variant="default"
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all hover:scale-105"
                   disabled={!isInStock || product?.status !== "active"}
                 >
                   ⚡ Buy Now
@@ -1371,18 +1464,75 @@ const ProductDetailNew = () => {
           <div className="space-y-6">
             <h2 className="text-3xl font-bold">Similar Products</h2>
             {similarProductsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Swiper
+                slidesPerView={4}
+                spaceBetween={20}
+                modules={[Navigation, Autoplay]}
+                className="mySwiper"
+                breakpoints={{
+                  320: {
+                    slidesPerView: 1,
+                    spaceBetween: 10,
+                  },
+                  640: {
+                    slidesPerView: 2,
+                    spaceBetween: 15,
+                  },
+                  768: {
+                    slidesPerView: 3,
+                    spaceBetween: 20,
+                  },
+                  1024: {
+                    slidesPerView: 4,
+                    spaceBetween: 20,
+                  },
+                }}
+              >
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="aspect-square w-full rounded-lg" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-3 w-2/3" />
-                  </div>
+                  <SwiperSlide key={i}>
+                    <div className="space-y-3">
+                      <Skeleton className="aspect-square w-full rounded-lg" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
+                  </SwiperSlide>
                 ))}
-              </div>
+              </Swiper>
             ) : similarProducts && similarProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Swiper
+                onSwiper={setSwiperInstance}
+                slidesPerView={4}
+                spaceBetween={20}
+                navigation={false}
+                modules={[Navigation, Autoplay]}
+                className="mySwiper"
+                autoplay={{
+                  delay: 3000,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }}
+                loop={true}
+                speed={1000}
+                breakpoints={{
+                  320: {
+                    slidesPerView: 1,
+                    spaceBetween: 10,
+                  },
+                  640: {
+                    slidesPerView: 2,
+                    spaceBetween: 15,
+                  },
+                  768: {
+                    slidesPerView: 3,
+                    spaceBetween: 20,
+                  },
+                  1024: {
+                    slidesPerView: 4,
+                    spaceBetween: 20,
+                  },
+                }}
+              >
                 {similarProducts.map((similarProduct) => {
                   // Similar products API returns a different structure than single product API
                   const productAny = similarProduct as unknown as {
@@ -1438,9 +1588,13 @@ const ProductDetailNew = () => {
                     discount: discountPercent > 0 ? discountPercent : undefined,
                   };
 
-                  return <ProductCard key={similarProduct.id} product={transformedProduct} />;
+                  return (
+                    <SwiperSlide key={similarProduct.id}>
+                      <ProductCard product={transformedProduct} />
+                    </SwiperSlide>
+                  );
                 })}
-              </div>
+              </Swiper>
             ) : null}
           </div>
 
@@ -1472,6 +1626,9 @@ const ProductDetailNew = () => {
             }}
           />
         )}
+
+        {/* Product Popularity Popup */}
+        {product && <ProductPopularityPopup productId={product.id} />}
 
         {/* Bulk Pricing Modal */}
         <Dialog open={showBulkPricingModal} onOpenChange={setShowBulkPricingModal}>

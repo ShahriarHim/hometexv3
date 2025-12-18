@@ -132,7 +132,36 @@
     "address": "Hometex Bangladesh, Dhaka, Bangladesh",
     "phone": "+880 1234-567890",
     "email": "info@hometex.com",
-    "sitemap": "Sitemap"
+    "sitemap": "Sitemap",
+    "customerSatisfaction": "Customer Satisfaction"
+  },
+  "customerSatisfaction": {
+    "close": "Close",
+    "metricValue": "2500K+",
+    "metricLabel": "Satisfied Customers",
+    "supportingText": "Join thousands of happy customers who trust Hometex for premium quality textiles and exceptional service.",
+    "primaryAction": "Shop Now",
+    "testimonialsTitle": "What Our Customers Say",
+    "testimonial1": {
+      "name": "Sarah Ahmed",
+      "role": "Home Decor Enthusiast",
+      "text": "The bedding collection exceeded my expectations. Premium quality and excellent customer service. Highly recommend!"
+    },
+    "testimonial2": {
+      "name": "Rashid Khan",
+      "role": "Corporate Buyer",
+      "text": "Outstanding quality for our hotel renovations. Professional service and timely delivery. Will definitely order again."
+    },
+    "testimonial3": {
+      "name": "Fatima Rahman",
+      "role": "Interior Designer",
+      "text": "Beautiful fabrics and great variety. The bath essentials are luxurious and the prices are very competitive."
+    },
+    "testimonial4": {
+      "name": "Mohammad Ali",
+      "role": "Satisfied Customer",
+      "text": "Fast shipping and excellent packaging. The products matched the descriptions perfectly. Very happy with my purchase!"
+    }
   },
   "contact": {
     "title": "Contact Us",

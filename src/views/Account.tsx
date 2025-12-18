@@ -5,16 +5,27 @@ import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "@/i18n/routing";
 import { orderService, userService } from "@/services/api";
 import type { CustomerOrderSummary, TrackingResponse } from "@/types/api/order";
-import { Heart, Loader2, Package, RefreshCcw, Settings, Truck, User } from "lucide-react";
+import { Loader2, RefreshCcw, Truck } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { FaBox, FaCog, FaHeart, FaUser } from "react-icons/fa";
 
 interface UserProfile {
   id?: number;
@@ -25,6 +36,75 @@ interface UserProfile {
   customer_id?: number;
   [key: string]: string | number | undefined;
 }
+
+// Memoized order card component for better performance
+const OrderCard = memo(
+  ({
+    order,
+    trackingStatus,
+    trackingLoading,
+    onTrack,
+  }: {
+    order: CustomerOrderSummary;
+    trackingStatus?: string;
+    trackingLoading: boolean;
+    onTrack: () => void;
+  }) => {
+    return (
+      <Card className="bg-slate-100 border-slate-300">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-lg">Order {order.order_number}</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Placed: {order.created_at} • Updated: {order.updated_at}
+            </p>
+          </div>
+          <Badge variant={order.order_status_string === "Completed" ? "default" : "outline"}>
+            {order.order_status_string}
+          </Badge>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="text-sm text-muted-foreground">
+              <div>Payment: {order.payment_method}</div>
+              <div>Status: {order.order_status_string}</div>
+              <div>Shop: {order.shop}</div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <div>Total: ৳{order.total}</div>
+              <div>Quantity: {order.quantity}</div>
+              {order.tracking_code && <div>Tracking: {order.tracking_code}</div>}
+            </div>
+          </div>
+          <Separator />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button asChild variant="ghost" size="sm">
+              <Link href={`/orders/${order.order_number}` as unknown as "/orders"}>
+                View Details
+              </Link>
+            </Button>
+            <Button variant="default" size="sm" onClick={onTrack} disabled={trackingLoading}>
+              {trackingLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Truck className="h-4 w-4 mr-2" />
+              )}
+              Track
+            </Button>
+            {trackingStatus && (
+              <div className="text-sm flex items-center gap-2">
+                <span className="font-medium text-muted-foreground">Delivery Status:</span>
+                <span className="text-foreground font-semibold">{trackingStatus}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+);
+
+OrderCard.displayName = "OrderCard";
 
 const Account = () => {
   const { isAuthenticated, user } = useAuth();
@@ -42,12 +122,32 @@ const Account = () => {
   const [ordersFetched, setOrdersFetched] = useState(false);
   const [trackingStatus, setTrackingStatus] = useState<Record<string, string>>({});
   const [trackingLoading, setTrackingLoading] = useState<Record<string, boolean>>({});
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [preferences, setPreferences] = useState({
+    emailNotifications: true,
+    orderUpdates: true,
+    marketingEmails: false,
+    smsNotifications: false,
+    newsletter: false,
+  });
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/");
     }
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    const savedPreferences = localStorage.getItem("userPreferences");
+    if (savedPreferences) {
+      try {
+        const parsed = JSON.parse(savedPreferences);
+        setPreferences(parsed);
+      } catch (error) {
+        console.error("Failed to parse user preferences:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -270,6 +370,19 @@ const Account = () => {
     return "Something went wrong";
   };
 
+  const handlePreferencesChange = (key: keyof typeof preferences, value: boolean) => {
+    setPreferences((prev) => {
+      const updated = { ...prev, [key]: value };
+      localStorage.setItem("userPreferences", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const handleSavePreferences = () => {
+    localStorage.setItem("userPreferences", JSON.stringify(preferences));
+    setIsPreferencesOpen(false);
+  };
+
   const handleTrack = async (order: CustomerOrderSummary) => {
     setTrackingLoading((prev) => ({ ...prev, [order.order_number]: true }));
     try {
@@ -353,60 +466,13 @@ const Account = () => {
     return (
       <div className="space-y-4">
         {orders.map((order) => (
-          <Card key={order.order_number}>
-            <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle className="text-lg">Order {order.order_number}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Placed: {order.created_at} • Updated: {order.updated_at}
-                </p>
-              </div>
-              <Badge variant={order.order_status_string === "Completed" ? "default" : "outline"}>
-                {order.order_status_string}
-              </Badge>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid gap-2 sm:grid-cols-2">
-                <div className="text-sm text-muted-foreground">
-                  <div>Payment: {order.payment_method}</div>
-                  <div>Status: {order.order_status_string}</div>
-                  <div>Shop: {order.shop}</div>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <div>Total: ৳{order.total}</div>
-                  <div>Quantity: {order.quantity}</div>
-                  {order.tracking_code && <div>Tracking: {order.tracking_code}</div>}
-                </div>
-              </div>
-              <Separator />
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => handleTrack(order)}
-                  disabled={trackingLoading[order.order_number]}
-                >
-                  {trackingLoading[order.order_number] ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <Truck className="h-4 w-4 mr-2" />
-                  )}
-                  Track
-                </Button>
-                <Button asChild variant="ghost" size="sm">
-                  <Link href={`/orders/${order.order_number}` as unknown as "/orders"}>
-                    View Details
-                  </Link>
-                </Button>
-              </div>
-              {trackingStatus[order.order_number] && (
-                <div className="text-sm text-muted-foreground">
-                  Current delivery status:{" "}
-                  <span className="text-foreground">{trackingStatus[order.order_number]}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <OrderCard
+            key={order.order_number}
+            order={order}
+            trackingStatus={trackingStatus[order.order_number]}
+            trackingLoading={trackingLoading[order.order_number]}
+            onTrack={() => handleTrack(order)}
+          />
         ))}
       </div>
     );
@@ -420,20 +486,28 @@ const Account = () => {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
-            <TabsTrigger value="profile">
-              <User className="h-4 w-4 mr-2" />
+            <TabsTrigger value="profile" className="group flex items-center gap-2">
+              <div className="text-yellow-600">
+                <FaUser className="h-5 w-5" />
+              </div>
               Profile
             </TabsTrigger>
-            <TabsTrigger value="orders">
-              <Package className="h-4 w-4 mr-2" />
+            <TabsTrigger value="orders" className="group flex items-center gap-2">
+              <div className="text-yellow-600">
+                <FaBox className="h-5 w-5" />
+              </div>
               Orders
             </TabsTrigger>
-            <TabsTrigger value="wishlist">
-              <Heart className="h-4 w-4 mr-2" />
+            <TabsTrigger value="wishlist" className="group flex items-center gap-2">
+              <div className="text-yellow-600">
+                <FaHeart className="h-5 w-5" />
+              </div>
               Wishlist
             </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4 mr-2" />
+            <TabsTrigger value="settings" className="group flex items-center gap-2">
+              <div className="text-yellow-600">
+                <FaCog className="h-5 w-5" />
+              </div>
               Settings
             </TabsTrigger>
           </TabsList>
@@ -519,7 +593,9 @@ const Account = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Manage your account preferences
                   </p>
-                  <Button variant="outline">Manage Preferences</Button>
+                  <Button variant="outline" onClick={() => setIsPreferencesOpen(true)}>
+                    Manage Preferences
+                  </Button>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">Security</h3>
@@ -534,6 +610,110 @@ const Account = () => {
         </Tabs>
       </main>
       <Footer />
+
+      <Dialog open={isPreferencesOpen} onOpenChange={setIsPreferencesOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Account Preferences</DialogTitle>
+            <DialogDescription>
+              Manage your account preferences and notification settings
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="email-notifications" className="text-base">
+                    Email Notifications
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receive email notifications about your account
+                  </p>
+                </div>
+                <Switch
+                  id="email-notifications"
+                  checked={preferences.emailNotifications}
+                  onCheckedChange={(checked) =>
+                    handlePreferencesChange("emailNotifications", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="order-updates" className="text-base">
+                    Order Updates
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Get notified about order status changes
+                  </p>
+                </div>
+                <Switch
+                  id="order-updates"
+                  checked={preferences.orderUpdates}
+                  onCheckedChange={(checked) => handlePreferencesChange("orderUpdates", checked)}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="marketing-emails" className="text-base">
+                    Marketing Emails
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receive promotional emails and special offers
+                  </p>
+                </div>
+                <Switch
+                  id="marketing-emails"
+                  checked={preferences.marketingEmails}
+                  onCheckedChange={(checked) => handlePreferencesChange("marketingEmails", checked)}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="sms-notifications" className="text-base">
+                    SMS Notifications
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receive text message notifications
+                  </p>
+                </div>
+                <Switch
+                  id="sms-notifications"
+                  checked={preferences.smsNotifications}
+                  onCheckedChange={(checked) =>
+                    handlePreferencesChange("smsNotifications", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="newsletter" className="text-base">
+                    Newsletter
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Subscribe to our newsletter for updates
+                  </p>
+                </div>
+                <Switch
+                  id="newsletter"
+                  checked={preferences.newsletter}
+                  onCheckedChange={(checked) => handlePreferencesChange("newsletter", checked)}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPreferencesOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSavePreferences}>Save Preferences</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

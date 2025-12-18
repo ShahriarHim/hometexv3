@@ -145,32 +145,32 @@ const PreHeader = () => {
           <div className="flex items-center space-x-6 ml-2 w-1/4">
             {/* My Account Dropdown */}
             <div
-              className="relative z-[160]"
+              className="relative z-[110]"
               onMouseEnter={handleDropdownEnter}
               onMouseLeave={handleDropdownLeave}
             >
               <Link
                 href="/account"
-                className="flex flex-col cursor-pointer hover:text-blue-600 group transition-all duration-200 pl-2"
+                className="flex items-center cursor-pointer hover:text-blue-600 group transition-all duration-200"
               >
-                <div className="flex items-center">
-                  <div className="bg-black group-hover:bg-blue-600 rounded-full p-1.5 mr-2 transition-all duration-200 shadow-sm">
-                    <User className="w-3.5 h-3.5 text-white" />
-                  </div>
+                <div className="bg-black group-hover:bg-blue-600 rounded-full p-1.5 mr-2 transition-all duration-200 shadow-sm">
+                  <User className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div className="flex flex-col">
                   <span className="text-sm whitespace-nowrap font-medium text-black group-hover:text-blue-600">
                     {accountLabel}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 ml-1 text-black group-hover:text-blue-600 group-hover:translate-y-0.5 transition-all duration-200" />
+                  {userType && (
+                    <span className="text-[10px] text-black capitalize font-medium leading-tight">
+                      {userType}
+                    </span>
+                  )}
                 </div>
-                {userType && (
-                  <span className="text-[10px] text-black ml-[30px] capitalize font-medium">
-                    {userType}
-                  </span>
-                )}
+                <ChevronDown className="w-3.5 h-3.5 ml-1 text-black group-hover:text-blue-600 group-hover:translate-y-0.5 transition-all duration-200" />
               </Link>
 
               {isAccountDropdownOpen && (
-                <div className="absolute top-full left-0 bg-white text-black rounded-xl shadow-lg border border-slate-200 z-[200] w-52 mt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full left-0 bg-white text-black rounded-xl shadow-lg border border-slate-200 z-[120] w-52 mt-2 animate-in fade-in slide-in-from-top-2 duration-200">
                   {/* Triangle Arrow */}
                   <div className="absolute -top-2 left-6 w-4 h-4 bg-white transform rotate-45 border-l border-t border-slate-200"></div>
 
@@ -217,7 +217,7 @@ const PreHeader = () => {
                         </span>
                       </div>
                       {isCurrencyDropdownOpen && (
-                        <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-32 -mr-1 transform translate-x-2 border border-slate-200 z-[200] animate-in fade-in slide-in-from-left-2 duration-200">
+                        <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-32 -mr-1 transform translate-x-2 border border-slate-200 z-[130] animate-in fade-in slide-in-from-left-2 duration-200">
                           <div className="absolute -left-2 top-3 w-4 h-4 bg-white transform rotate-45 border-l border-t border-slate-200"></div>
                           <ul className="py-2 relative bg-white rounded-xl">
                             {["USD", "GBP", "BDT"].map((currency) => (
@@ -256,7 +256,7 @@ const PreHeader = () => {
                         </span>
                       </div>
                       {isLanguageDropdownOpen && (
-                        <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-40 -mr-1 transform translate-x-2 border border-slate-200 z-[200] animate-in fade-in slide-in-from-left-2 duration-200">
+                        <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-40 -mr-1 transform translate-x-2 border border-slate-200 z-[130] animate-in fade-in slide-in-from-left-2 duration-200">
                           <div className="absolute -left-2 top-3 w-4 h-4 bg-white transform rotate-45 border-l border-t border-slate-200"></div>
                           <ul className="py-2 relative bg-white rounded-xl">
                             <li
