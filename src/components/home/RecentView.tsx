@@ -101,12 +101,12 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed right-4 top-1/2 -translate-y-1/2 z-40 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-l-lg shadow-lg transition-all duration-300 hover:shadow-xl flex items-center gap-2 group ${className}`}
+        className={`fixed right-4 top-1/2 -translate-y-1/2 z-40 bg-primary hover:bg-primary-hover text-black font-bold py-3 px-4 rounded-l-lg shadow-lg transition-all duration-300 hover:shadow-xl flex items-center gap-2 group ${className}`}
         aria-label="View recent products"
       >
         <Eye className="w-5 h-5 group-hover:scale-110 transition-transform" />
         {recentViews.length > 0 && (
-          <span className="bg-white text-teal-600 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="bg-black text-primary text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
             {recentViews.length > 9 ? "9+" : recentViews.length}
           </span>
         )}
@@ -118,14 +118,14 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
             ref={modalRef}
             className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-300"
           >
-            <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white p-6 flex items-center justify-between">
+            <div className="bg-primary text-black p-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-lg">
+                <div className="bg-black/20 p-2 rounded-lg">
                   <Eye className="w-6 h-6" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold">Recently Viewed Products</h2>
-                  <p className="text-teal-100 text-sm mt-1">
+                  <p className="text-black/80 text-sm mt-1">
                     {recentViews.length} {recentViews.length === 1 ? "item" : "items"}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
                     variant="ghost"
                     size="sm"
                     onClick={clearRecentViews}
-                    className="text-white hover:bg-white/20"
+                    className="text-black hover:bg-black/20"
                     title="Clear all"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
@@ -147,7 +147,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsOpen(false)}
-                  className="text-white hover:bg-white/20"
+                  className="text-black hover:bg-black/20"
                   aria-label="Close"
                 >
                   <X className="w-5 h-5" />
@@ -195,7 +195,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
                         </div>
                         <div className="flex-1 min-w-0 flex flex-col justify-between">
                           <div>
-                            <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors">
+                            <h3 className="font-semibold text-black line-clamp-2 group-hover:text-primary transition-colors">
                               {product.name}
                             </h3>
                             <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
@@ -205,7 +205,7 @@ export const RecentView: React.FC<RecentViewProps> = ({ className }) => {
                           </div>
                           <div className="mt-2 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="text-lg font-bold text-teal-600">
+                              <span className="text-lg font-bold text-primary">
                                 ৳{product.price.toLocaleString()}
                               </span>
                               {product.originalPrice && product.originalPrice > product.price && (

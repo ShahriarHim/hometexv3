@@ -146,8 +146,8 @@ const GenericProductCard = ({
             {stock > 0 && (
               <div className="absolute bottom-2 right-2 z-10 bg-primary/90 backdrop-blur-sm border border-primary rounded-full px-3 py-1.5 shadow-lg">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary-foreground animate-pulse"></div>
-                  <span className="text-xs font-bold text-primary-foreground">
+                  <div className="w-2 h-2 rounded-full bg-black animate-pulse"></div>
+                  <span className="text-xs font-bold text-black group-hover:text-black">
                     {stock} in stock
                   </span>
                 </div>
