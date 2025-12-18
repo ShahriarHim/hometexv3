@@ -48,12 +48,12 @@ export const CustomerSatisfactionModal: React.FC<CustomerSatisfactionModalProps>
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const onSelect = useCallback(() => {
-    if (!emblaApi) return;
+    if (!emblaApi) {return;}
     setSelectedIndex(emblaApi.selectedScrollSnap());
   }, [emblaApi]);
 
   useEffect(() => {
-    if (!emblaApi) return;
+    if (!emblaApi) {return;}
     onSelect();
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
@@ -111,7 +111,7 @@ export const CustomerSatisfactionModal: React.FC<CustomerSatisfactionModalProps>
     },
   ];
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div
@@ -228,3 +228,4 @@ export const CustomerSatisfactionModal: React.FC<CustomerSatisfactionModalProps>
     </div>
   );
 };
+

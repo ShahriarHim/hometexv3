@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/control-has-associated-label */
 "use client";
 
 import { Badge } from "@/components/ui/badge";
@@ -64,13 +63,13 @@ export const HotDealsQuickViewModal: React.FC<HotDealsQuickViewModalProps> = ({
         }
       } catch (error) {
         // Silent fail – keep fallback product data
-        // eslint-disable-next-line no-console
+
         console.error("Failed to load quick view product details", error);
       }
     };
 
     void fetchDetails();
-  }, [product?.id, isOpen]);
+  }, [product, isOpen]);
 
   const activeProduct = detailedProduct ?? product;
 
@@ -299,7 +298,7 @@ export const HotDealsQuickViewModal: React.FC<HotDealsQuickViewModalProps> = ({
               <div
                 className="rounded-2xl bg-muted/40 p-4 text-sm leading-relaxed text-muted-foreground"
                 // Description comes from trusted backend HTML
-                // eslint-disable-next-line react/no-danger
+
                 dangerouslySetInnerHTML={{ __html: activeProduct.description }}
               />
             )}
@@ -380,4 +379,3 @@ export const HotDealsQuickViewModal: React.FC<HotDealsQuickViewModalProps> = ({
 };
 
 export default HotDealsQuickViewModal;
-
