@@ -15,7 +15,7 @@ const sizeClasses = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-lg",
-  xl: "max-w-xl",
+  xl: "max-w-4xl",
   full: "max-w-full mx-4",
 };
 
@@ -49,9 +49,17 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <div
-        className={cn("relative bg-card rounded-lg shadow-lg w-full", sizeClasses[size], className)}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+      <div
+        className={cn(
+          "relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl",
+          "animate-in fade-in-0 zoom-in-95 duration-200",
+          sizeClasses[size],
+          className
+        )}
       >
         {title && (
           <div className="flex items-center justify-between p-6 border-b border-border">
@@ -67,12 +75,19 @@ export const Modal: React.FC<ModalProps> = ({
         {!title && (
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors z-10"
+            aria-label="Close"
+            className={cn(
+              "absolute right-0 top-0 z-10 flex h-10 w-10 items-center justify-center",
+              "rounded-bl-2xl bg-primary text-primary-foreground",
+              "transition duration-150 ease-out",
+              "hover:opacity-90 hover:translate-y-[1px] hover:translate-x-[-1px]",
+              "active:translate-y-[2px] active:translate-x-[-2px]"
+            )}
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         )}
-        <div className="p-6">{children}</div>
+        <div className="max-h-[90vh] overflow-y-auto p-0">{children}</div>
       </div>
     </div>
   );

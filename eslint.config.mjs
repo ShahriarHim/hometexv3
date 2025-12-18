@@ -16,9 +16,26 @@ export default [
   ...tseslint.configs.recommended,
 
   {
-    files: ["**/*.cjs", "**/*.mjs", "scripts/**/*.js", "next.config.*"],
+    files: [
+      "**/*.cjs",
+      "**/*.mjs",
+      "scripts/**/*.js",
+      "next.config.*",
+      "postcss.config.*",
+      "tailwind.config.*",
+    ],
     languageOptions: {
       globals: {
+        ...globals.node,
+      },
+    },
+  },
+
+  {
+    files: ["**/*.js", "**/*.jsx"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
         ...globals.node,
       },
     },

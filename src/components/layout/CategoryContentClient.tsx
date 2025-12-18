@@ -3,13 +3,13 @@
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductGridSkeleton } from "@/components/ui/ProductCardSkeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useInfiniteProductSearchFlat } from "@/hooks/useInfiniteProductSearch";
 import { Link } from "@/i18n/routing";
 import { transformAPIProductToProduct } from "@/lib/transforms";
 import type { Product } from "@/types";
 import type { CategoryTree } from "@/types/api";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
 import { CategoryPageSkeleton } from "./CategoryPageSkeleton";
 
 interface CategoryContentClientProps {
@@ -29,8 +29,6 @@ export function CategoryContentClient({
   pageTitle,
   pageDescription,
 }: CategoryContentClientProps) {
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
   // Validate that subId and childId exist in the category tree
   let isValidCategory = true;
   if (apiCategory && subId) {
@@ -69,28 +67,6 @@ export function CategoryContentClient({
   const products: Product[] = apiProducts.map((apiProduct) =>
     transformAPIProductToProduct(apiProduct as Parameters<typeof transformAPIProductToProduct>[0])
   );
-
-  // Intersection Observer for infinite scroll
-  useEffect(() => {
-    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(loadMoreRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const loading = isLoading;
 
@@ -221,15 +197,26 @@ export function CategoryContentClient({
               ))}
             </div>
 
-            {/* Infinite Scroll Trigger */}
+            {/* Load More Section */}
             {hasNextPage && (
-              <div ref={loadMoreRef} className="py-8 text-center">
-                {isFetchingNextPage && (
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p className="text-muted-foreground">Loading more products...</p>
-                  </div>
-                )}
+              <div className="py-8 text-center">
+                <p className="text-muted-foreground mb-4">
+                  You have seen {products.length} products
+                </p>
+                <Button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="min-w-[120px]"
+                >
+                  {isFetchingNextPage ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                      Loading...
+                    </>
+                  ) : (
+                    "Load More"
+                  )}
+                </Button>
               </div>
             )}
 

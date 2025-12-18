@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import styles from "./PriceDropNotification.module.css";
-import { Bell, Check, X } from "lucide-react";
-import { toast } from "sonner";
-import { getAuthToken, fetchWithFallback } from "@/lib/api";
+import { fetchWithFallback, getAuthToken } from "@/lib/api";
 import { env } from "@/lib/env";
+import { Bell, Check, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import styles from "./PriceDropNotification.module.css";
 
 interface PriceDropNotificationProps {
   product: {
