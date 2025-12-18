@@ -5,7 +5,7 @@ import { useRecentViews } from "@/hooks/use-recent-views";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
 import type { Product as ProductType } from "@/types";
-import { Clock, Heart, ShoppingCart } from "lucide-react";
+import { Clock, Eye, Heart, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Swiper as SwiperClass } from "swiper";
@@ -15,6 +15,7 @@ import "swiper/css/navigation";
 import { Autoplay, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import styles from "./HotDeals.module.css";
+import HotDealsQuickViewModal from "./HotDealsQuickViewModal";
 
 interface HotDealProduct {
   id: number;
@@ -45,6 +46,8 @@ const HotDeals = () => {
     minutes: 11,
     seconds: 51,
   });
+  const [quickViewProduct, setQuickViewProduct] = useState<ProductType | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -179,283 +182,333 @@ const HotDeals = () => {
     }
   };
 
+  const openQuickView = (product: HotDealProduct, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const productData = transformToProduct(product);
+    setQuickViewProduct(productData);
+    setIsQuickViewOpen(true);
+  };
+
+  const closeQuickView = () => {
+    setIsQuickViewOpen(false);
+    setQuickViewProduct(null);
+  };
+
   return (
-    <div className={styles["hot-deals-container"]}>
-      <div className={styles["hot-deals-box"]}>
-        <div className={styles["hot-deals-header"]}>
-          <div className={styles["hot-deals-title"]}>
-            <h2>
-              <span>Hot Deals!</span> Get Our Best Price
-            </h2>
-          </div>
-          <Link href="/products?filter=trending" className={styles["see-all-link"]}>
-            + See All Products
-          </Link>
-        </div>
-
-        <div className="flex">
-          <div className="bg-lime-500 p-4 rounded-lg text-center text-white mr-5 flex-shrink-0">
-            <div className="mb-3">
-              <div className="w-12 h-12 bg-lime-700/50 rounded-full flex items-center justify-center mx-auto">
-                <Clock className="w-6 h-6" />
-              </div>
+    <>
+      <div className={styles["hot-deals-container"]}>
+        <div className={styles["hot-deals-box"]}>
+          <div className={styles["hot-deals-header"]}>
+            <div className={styles["hot-deals-title"]}>
+              <h2>
+                <span>Hot Deals!</span> Get Our Best Price
+              </h2>
             </div>
-
-            <div className="text-4xl font-bold">{timeLeft.days}</div>
-            <div className="text-sm">DAYS</div>
-            <div className="text-4xl font-bold mt-2">
-              {timeLeft.hours.toString().padStart(2, "0")}
-            </div>
-            <div className="text-sm">HOURS</div>
-            <div className="text-4xl font-bold mt-2">
-              {timeLeft.minutes.toString().padStart(2, "0")}
-            </div>
-            <div className="text-sm">MINUTES</div>
-            <div className="text-4xl font-bold mt-2">
-              {timeLeft.seconds.toString().padStart(2, "0")}
-            </div>
-            <div className="text-sm">SECONDS</div>
+            <Link href="/products?filter=trending" className={styles["see-all-link"]}>
+              + See All Products
+            </Link>
           </div>
 
-          {isLoading ? (
-            <div className="flex-1 flex items-center justify-center min-h-[400px]">
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-                <p className="mt-4 text-gray-600">Loading products...</p>
+          <div className="flex">
+            <div className="bg-lime-500 p-4 rounded-lg text-center text-white mr-5 flex-shrink-0">
+              <div className="mb-3">
+                <div className="w-12 h-12 bg-lime-700/50 rounded-full flex items-center justify-center mx-auto">
+                  <Clock className="w-6 h-6" />
+                </div>
               </div>
-            </div>
-          ) : (
-            <Swiper
-              onSwiper={setSwiperInstance}
-              slidesPerView={4}
-              spaceBetween={20}
-              navigation={false}
-              modules={[Navigation, Autoplay]}
-              className="mySwiper"
-              autoplay={{
-                delay: 2500,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }}
-              loop={true}
-              speed={1000}
-              breakpoints={{
-                320: {
-                  slidesPerView: 1,
-                },
-                640: {
-                  slidesPerView: 2,
-                },
-                768: {
-                  slidesPerView: 3,
-                },
-                1024: {
-                  slidesPerView: 4,
-                },
-              }}
-            >
-              {products.map((product, index) => {
-                const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}`;
 
-                const handleProductClick = () => {
-                  const productForTracking: ProductType = {
-                    id: product.id.toString(),
-                    name: product.name,
-                    slug: product.product_slug || "",
-                    price: product.price,
-                    originalPrice:
-                      parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
-                    description: "",
-                    category: product.category_slug,
-                    subcategory: product.subcategory_slug,
-                    images: product.img ? [product.img] : [],
-                    primary_photo: product.primary_photo,
-                    inStock: product.stock > 0,
-                    rating: product.star || 4,
-                    reviewCount: 0,
-                    stock: product.stock,
+              <div className="text-4xl font-bold">{timeLeft.days}</div>
+              <div className="text-sm">DAYS</div>
+              <div className="text-4xl font-bold mt-2">
+                {timeLeft.hours.toString().padStart(2, "0")}
+              </div>
+              <div className="text-sm">HOURS</div>
+              <div className="text-4xl font-bold mt-2">
+                {timeLeft.minutes.toString().padStart(2, "0")}
+              </div>
+              <div className="text-sm">MINUTES</div>
+              <div className="text-4xl font-bold mt-2">
+                {timeLeft.seconds.toString().padStart(2, "0")}
+              </div>
+              <div className="text-sm">SECONDS</div>
+            </div>
+
+            {isLoading ? (
+              <div className="flex-1 flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
+                  <p className="mt-4 text-gray-600">Loading products...</p>
+                </div>
+              </div>
+            ) : (
+              <Swiper
+                onSwiper={setSwiperInstance}
+                slidesPerView={4}
+                spaceBetween={20}
+                navigation={false}
+                modules={[Navigation, Autoplay]}
+                className="mySwiper"
+                autoplay={{
+                  delay: 2500,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }}
+                loop
+                speed={1000}
+                breakpoints={{
+                  320: {
+                    slidesPerView: 1,
+                  },
+                  640: {
+                    slidesPerView: 2,
+                  },
+                  768: {
+                    slidesPerView: 3,
+                  },
+                  1024: {
+                    slidesPerView: 4,
+                  },
+                }}
+              >
+                {products.map((product, index) => {
+                  const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}`;
+
+                  const handleProductClick = () => {
+                    const productForTracking: ProductType = {
+                      id: product.id.toString(),
+                      name: product.name,
+                      slug: product.product_slug || "",
+                      price: product.price,
+                      originalPrice:
+                        parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
+                      description: "",
+                      category: product.category_slug,
+                      subcategory: product.subcategory_slug,
+                      images: product.img ? [product.img] : [],
+                      primary_photo: product.primary_photo,
+                      inStock: product.stock > 0,
+                      rating: product.star || 4,
+                      reviewCount: 0,
+                      stock: product.stock,
+                    };
+                    addRecentView(productForTracking);
                   };
-                  addRecentView(productForTracking);
-                };
 
-                return (
-                  <SwiperSlide
-                    key={index}
-                    className="owl2-item active"
-                    onMouseEnter={() => handleProductHover(true)}
-                    onMouseLeave={() => handleProductHover(false)}
-                  >
-                    <Link
-                      href={productUrl as never}
-                      onClick={handleProductClick}
-                      className="block h-full"
+                  return (
+                    <SwiperSlide
+                      // eslint-disable-next-line react/no-array-index-key
+                      key={index}
+                      className="owl2-item active"
+                      onMouseEnter={() => handleProductHover(true)}
+                      onMouseLeave={() => handleProductHover(false)}
                     >
-                      <div className={styles["product-item-container"]}>
-                        <div className={styles["product-image-container"]}>
-                          <img src={product.img} alt={product.name} loading="lazy" />
-                          {product.discount && (
-                            <div className={styles["discount-badge"]}>{product.discount}</div>
-                          )}
-                          <div className={styles.overlay}>
-                            <div className={styles["button-group"]}>
-                              <button
-                                title="Add to Cart"
-                                onClick={(e) => handleAddToCart(product, e)}
-                              >
-                                <ShoppingCart className="w-4 h-4" />
-                              </button>
-                              <button
-                                title={
-                                  isInWishlist(product.id.toString())
-                                    ? "Remove from Wishlist"
-                                    : "Add to Wishlist"
-                                }
-                                onClick={(e) => handleWishlistToggle(product, e)}
-                                className={
-                                  isInWishlist(product.id.toString()) ? styles["active-heart"] : ""
-                                }
-                              >
-                                <Heart
-                                  className={`w-4 h-4 ${isInWishlist(product.id.toString()) ? "fill-current" : ""}`}
-                                />
-                              </button>
-                            </div>
-                            <div className={styles["overlay-info"]}>
-                              <p className={styles["overlay-title"]}>{product.name}</p>
-                              <div className={styles["overlay-prices"]}>
-                                <span className={styles["price-new"]}>{product.displayPrice}</span>
-                                <span className={styles["price-old"]}>{product.originalPrice}</span>
+                      <Link
+                        href={productUrl as never}
+                        onClick={handleProductClick}
+                        className="block h-full"
+                      >
+                        <div className={styles["product-item-container"]}>
+                          <div className={styles["product-image-container"]}>
+                            <img src={product.img} alt={product.name} loading="lazy" />
+                            {product.discount && (
+                              <div className={styles["discount-badge"]}>{product.discount}</div>
+                            )}
+                            <div className={styles.overlay}>
+                              <div className={styles["button-group"]}>
+                                <button
+                                  title="Add to Cart"
+                                  onClick={(e) => handleAddToCart(product, e)}
+                                >
+                                  <ShoppingCart className="w-4 h-4" />
+                                </button>
+                                <button
+                                  title={
+                                    isInWishlist(product.id.toString())
+                                      ? "Remove from Wishlist"
+                                      : "Add to Wishlist"
+                                  }
+                                  onClick={(e) => handleWishlistToggle(product, e)}
+                                  className={
+                                    isInWishlist(product.id.toString())
+                                      ? styles["active-heart"]
+                                      : ""
+                                  }
+                                >
+                                  <Heart
+                                    className={`w-4 h-4 ${isInWishlist(product.id.toString()) ? "fill-current" : ""}`}
+                                  />
+                                </button>
+                                <button
+                                  title="Quick View"
+                                  onClick={(e) => openQuickView(product, e)}
+                                  className="flex items-center justify-center"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              </div>
+                              <div className={styles["overlay-info"]}>
+                                <p className={styles["overlay-title"]}>{product.name}</p>
+                                <div className={styles["overlay-prices"]}>
+                                  <span className={styles["price-new"]}>
+                                    {product.displayPrice}
+                                  </span>
+                                  <span className={styles["price-old"]}>
+                                    {product.originalPrice}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
+
+                          <div className={styles["product-title"]}>{product.name}</div>
+
+                          <div className={styles.rating}>
+                            {[...Array(5)].map((_, i) => (
+                              <span
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={i}
+                                className={i < product.star ? styles.star : styles["star-empty"]}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className={styles["price-container"]}>
+                            <span className={styles["price-new"]}>{product.displayPrice}</span>
+                            <span className={styles["price-old"]}>{product.originalPrice}</span>
+                          </div>
                         </div>
+                      </Link>
+                    </SwiperSlide>
+                  );
+                })}
 
-                        <div className={styles["product-title"]}>{product.name}</div>
+                {products.map((product, index) => {
+                  const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}`;
 
-                        <div className={styles.rating}>
-                          {[...Array(5)].map((_, i) => (
-                            <span
-                              key={i}
-                              className={i < product.star ? styles.star : styles["star-empty"]}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-
-                        <div className={styles["price-container"]}>
-                          <span className={styles["price-new"]}>{product.displayPrice}</span>
-                          <span className={styles["price-old"]}>{product.originalPrice}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                );
-              })}
-
-              {products.map((product, index) => {
-                const productUrl = `/products/${product.category_slug}/${product.subcategory_slug}/${product.id}`;
-
-                const handleProductClickCloned = () => {
-                  const productForTracking: ProductType = {
-                    id: product.id.toString(),
-                    name: product.name,
-                    slug: product.product_slug || "",
-                    price: product.price,
-                    originalPrice:
-                      parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
-                    description: "",
-                    category: product.category_slug,
-                    subcategory: product.subcategory_slug,
-                    images: product.img ? [product.img] : [],
-                    primary_photo: product.primary_photo,
-                    inStock: product.stock > 0,
-                    rating: product.star || 4,
-                    reviewCount: 0,
-                    stock: product.stock,
+                  const handleProductClickCloned = () => {
+                    const productForTracking: ProductType = {
+                      id: product.id.toString(),
+                      name: product.name,
+                      slug: product.product_slug || "",
+                      price: product.price,
+                      originalPrice:
+                        parseFloat(product.originalPrice.replace(/[^\d.]/g, "")) || undefined,
+                      description: "",
+                      category: product.category_slug,
+                      subcategory: product.subcategory_slug,
+                      images: product.img ? [product.img] : [],
+                      primary_photo: product.primary_photo,
+                      inStock: product.stock > 0,
+                      rating: product.star || 4,
+                      reviewCount: 0,
+                      stock: product.stock,
+                    };
+                    addRecentView(productForTracking);
                   };
-                  addRecentView(productForTracking);
-                };
 
-                return (
-                  <SwiperSlide
-                    key={`cloned-after-${index}`}
-                    className="owl2-item cloned"
-                    onMouseEnter={() => handleProductHover(true)}
-                    onMouseLeave={() => handleProductHover(false)}
-                  >
-                    <Link
-                      href={productUrl as never}
-                      onClick={handleProductClickCloned}
-                      className="block h-full"
+                  return (
+                    <SwiperSlide
+                      key={`cloned-after-${index}`}
+                      className="owl2-item cloned"
+                      onMouseEnter={() => handleProductHover(true)}
+                      onMouseLeave={() => handleProductHover(false)}
                     >
-                      <div className={styles["product-item-container"]}>
-                        <div className={styles["product-image-container"]}>
-                          <img src={product.img} alt={product.name} loading="lazy" />
-                          {product.discount && (
-                            <div className={styles["discount-badge"]}>{product.discount}</div>
-                          )}
-                          <div className={styles.overlay}>
-                            <div className={styles["button-group"]}>
-                              <button
-                                title="Add to Cart"
-                                onClick={(e) => handleAddToCart(product, e)}
-                              >
-                                <ShoppingCart className="w-4 h-4" />
-                              </button>
-                              <button
-                                title={
-                                  isInWishlist(product.id.toString())
-                                    ? "Remove from Wishlist"
-                                    : "Add to Wishlist"
-                                }
-                                onClick={(e) => handleWishlistToggle(product, e)}
-                                className={
-                                  isInWishlist(product.id.toString()) ? styles["active-heart"] : ""
-                                }
-                              >
-                                <Heart
-                                  className={`w-4 h-4 ${isInWishlist(product.id.toString()) ? "fill-current" : ""}`}
-                                />
-                              </button>
-                            </div>
-                            <div className={styles["overlay-info"]}>
-                              <p className={styles["overlay-title"]}>{product.name}</p>
-                              <div className={styles["overlay-prices"]}>
-                                <span className={styles["price-new"]}>{product.displayPrice}</span>
-                                <span className={styles["price-old"]}>{product.originalPrice}</span>
+                      <Link
+                        href={productUrl as never}
+                        onClick={handleProductClickCloned}
+                        className="block h-full"
+                      >
+                        <div className={styles["product-item-container"]}>
+                          <div className={styles["product-image-container"]}>
+                            <img src={product.img} alt={product.name} loading="lazy" />
+                            {product.discount && (
+                              <div className={styles["discount-badge"]}>{product.discount}</div>
+                            )}
+                            <div className={styles.overlay}>
+                              <div className={styles["button-group"]}>
+                                <button
+                                  title="Add to Cart"
+                                  onClick={(e) => handleAddToCart(product, e)}
+                                >
+                                  <ShoppingCart className="w-4 h-4" />
+                                </button>
+                                <button
+                                  title={
+                                    isInWishlist(product.id.toString())
+                                      ? "Remove from Wishlist"
+                                      : "Add to Wishlist"
+                                  }
+                                  onClick={(e) => handleWishlistToggle(product, e)}
+                                  className={
+                                    isInWishlist(product.id.toString())
+                                      ? styles["active-heart"]
+                                      : ""
+                                  }
+                                >
+                                  <Heart
+                                    className={`w-4 h-4 ${isInWishlist(product.id.toString()) ? "fill-current" : ""}`}
+                                  />
+                                </button>
+                                <button
+                                  title="Quick View"
+                                  onClick={(e) => openQuickView(product, e)}
+                                  className="flex items-center justify-center"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              </div>
+                              <div className={styles["overlay-info"]}>
+                                <p className={styles["overlay-title"]}>{product.name}</p>
+                                <div className={styles["overlay-prices"]}>
+                                  <span className={styles["price-new"]}>
+                                    {product.displayPrice}
+                                  </span>
+                                  <span className={styles["price-old"]}>
+                                    {product.originalPrice}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className={styles["product-title"]}>{product.name}</div>
+                          <div className={styles["product-title"]}>{product.name}</div>
 
-                        <div className={styles.rating}>
-                          {[...Array(5)].map((_, i) => (
-                            <span
-                              key={i}
-                              className={i < product.star ? styles.star : styles["star-empty"]}
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
+                          <div className={styles.rating}>
+                            {[...Array(5)].map((_, i) => (
+                              <span
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={i}
+                                className={i < product.star ? styles.star : styles["star-empty"]}
+                              >
+                                ★
+                              </span>
+                            ))}
+                          </div>
 
-                        <div className={styles["price-container"]}>
-                          <span className={styles["price-new"]}>{product.displayPrice}</span>
-                          <span className={styles["price-old"]}>{product.originalPrice}</span>
+                          <div className={styles["price-container"]}>
+                            <span className={styles["price-new"]}>{product.displayPrice}</span>
+                            <span className={styles["price-old"]}>{product.originalPrice}</span>
+                          </div>
                         </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                );
-              })}
-            </Swiper>
-          )}
+                      </Link>
+                    </SwiperSlide>
+                  );
+                })}
+              </Swiper>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <HotDealsQuickViewModal
+        isOpen={isQuickViewOpen}
+        onClose={closeQuickView}
+        product={quickViewProduct}
+      />
+    </>
   );
 };
 
