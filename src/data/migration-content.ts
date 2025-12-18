@@ -111,21 +111,21 @@ export const infoHighlights: InfoHighlight[] = [
     id: "search",
     title: "Your Search Ends Here!",
     description:
-      "We believe in innovation, simplification, modernization, implementing something extraordinary that wasn't adopted before ...",
+      "Discover textiles that fuse innovation, simplicity, and modern design—thoughtfully crafted pieces you won’t find in ordinary collections.",
     icon: "/images/icons/i1.png",
   },
   {
     id: "experience",
     title: "Experience with us!",
     description:
-      "We'll never let you down\"-providing the most compelling shopping experience possible.",
+      "We pair premium quality with concierge-level service to deliver a seamless, confidence-inspiring shopping experience every time.",
     icon: "/images/icons/i2.png",
   },
   {
     id: "global",
     title: "Happiness; It's Global!",
     description:
-      "We spread happiness throughout the world from Hometex Bangladesh. Get to know more from our Shipping & Delivery Page.",
+      "From Dhaka to your doorway, we ship warmth and comfort worldwide—explore details on our Shipping & Delivery page.",
     icon: "/images/icons/i3.png",
   },
 ];

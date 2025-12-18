@@ -1,12 +1,11 @@
 "use client";
-
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
 import type { Product as ProductType } from "@/types";
-import { Clock, Eye, Heart, ShoppingCart } from "lucide-react";
+import { Clock, Heart, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Swiper as SwiperClass } from "swiper";
@@ -40,7 +39,6 @@ const HotDeals = () => {
   const { addRecentView } = useRecentViews();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-
   const [timeLeft, setTimeLeft] = useState({
     days: 2,
     hours: 7,
@@ -307,15 +305,6 @@ const HotDeals = () => {
                                 <ShoppingCart className="w-4 h-4" />
                               </button>
                               <button
-                                title="Quick View"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
                                 title={
                                   isInWishlist(product.id.toString())
                                     ? "Remove from Wishlist"
@@ -413,15 +402,6 @@ const HotDeals = () => {
                                 onClick={(e) => handleAddToCart(product, e)}
                               >
                                 <ShoppingCart className="w-4 h-4" />
-                              </button>
-                              <button
-                                title="Quick View"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <Eye className="w-4 h-4" />
                               </button>
                               <button
                                 title={
