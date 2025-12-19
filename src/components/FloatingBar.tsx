@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import CartPopup from "./CartPopup";
 import ChatPopup from "./ChatPopup";
 import WishlistPopup from "./WishlistPopup";
+import { CategoriesPopup } from "./CategoriesPopup";
 
 const FloatingBar = () => {
   const [showBar, setShowBar] = useState(false); // Visibility based on scroll
@@ -291,25 +292,8 @@ const FloatingBar = () => {
       {/* Wishlist Popup */}
       <WishlistPopup isOpen={isWishOpen} onClose={() => setIsWishOpen(false)} />
 
-      {/* Static Placeholders for Popups (Visual only for now as requested) */}
-
-      {/* Categories Popup Placeholder */}
-      {showCategoriesPopup && (
-        <div className="categories-popup-overlay" onClick={() => setShowCategoriesPopup(false)}>
-          <div className="categories-popup" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setShowCategoriesPopup(false)}>
-              ×
-            </button>
-            <div className="popup-header">
-              <h2>Browse Categories</h2>
-              <p>Discover our collection</p>
-            </div>
-            <div className="popup-content flex items-center justify-center p-10">
-              <p className="text-gray-500">Categories Content Placeholder</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Categories Popup */}
+      <CategoriesPopup isOpen={showCategoriesPopup} onClose={() => setShowCategoriesPopup(false)} />
 
       {/* Recently Viewed Popup */}
       {showRecentlyViewed && (
