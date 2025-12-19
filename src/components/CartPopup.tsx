@@ -22,7 +22,9 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Don't close if login dialog is open
-      if (showLoginRequired) return;
+      if (showLoginRequired) {
+        return;
+      }
 
       if (cartRef.current && !cartRef.current.contains(event.target as Node) && isOpen) {
         onClose();

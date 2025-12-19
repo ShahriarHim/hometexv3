@@ -1,8 +1,8 @@
 "use client";
 
+import { productService } from "@/services/api";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { productService } from "@/services/api";
 
 interface CategoriesPopupProps {
   isOpen: boolean;
@@ -18,7 +18,9 @@ export const CategoriesPopup = ({ isOpen, onClose }: CategoriesPopupProps) => {
   const itemsPerPage = 8;
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      return;
+    }
 
     const fetchCategories = async () => {
       try {
@@ -42,12 +44,18 @@ export const CategoriesPopup = ({ isOpen, onClose }: CategoriesPopupProps) => {
   const displayedCategories = categories.slice(startIndex, startIndex + itemsPerPage);
 
   const getImageUrl = (imagePath: string | null) => {
-    if (!imagePath) return "/placeholder.svg";
-    if (imagePath.startsWith("http")) return imagePath;
+    if (!imagePath) {
+      return "/placeholder.svg";
+    }
+    if (imagePath.startsWith("http")) {
+      return imagePath;
+    }
     return `${process.env.NEXT_PUBLIC_IMAGE_URL || ""}${imagePath}`;
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-[1000]" onClick={onClose}>

@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import { useRouter } from "@/i18n/routing";
+// Removed unused router to satisfy lint
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,7 +17,6 @@ import { useState } from "react";
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
   const [showLoginRequired, setShowLoginRequired] = useState(false);
 
   const totalPrice = getTotalPrice();

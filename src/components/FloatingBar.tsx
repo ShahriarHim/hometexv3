@@ -19,9 +19,9 @@ import {
 } from "react-icons/fa";
 import { toast } from "sonner";
 import CartPopup from "./CartPopup";
+import { CategoriesPopup } from "./CategoriesPopup";
 import ChatPopup from "./ChatPopup";
 import WishlistPopup from "./WishlistPopup";
-import { CategoriesPopup } from "./CategoriesPopup";
 
 const FloatingBar = () => {
   const [showBar, setShowBar] = useState(false); // Visibility based on scroll

@@ -73,10 +73,10 @@ export const useAccountData = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (process.env.NODE_ENV === "development") {
-        console.log("Auth State - isAuthenticated:", isAuthenticated, "user:", user);
+        console.warn("Auth State - isAuthenticated:", isAuthenticated, "user:", user);
         const token = localStorage.getItem("hometex-auth-token");
-        console.log("LocalStorage token:", token ? `${token.substring(0, 20)}...` : "null");
-        console.log("LocalStorage user:", localStorage.getItem("hometex-user"));
+        console.warn("LocalStorage token:", token ? `${token.substring(0, 20)}...` : "null");
+        console.warn("LocalStorage user:", localStorage.getItem("hometex-user"));
       }
 
       if (!isAuthenticated) {
@@ -92,7 +92,7 @@ export const useAccountData = () => {
         const response = await userService.getProfile();
 
         if (process.env.NODE_ENV === "development") {
-          console.log("Profile data received:", response);
+          console.warn("Profile data received:", response);
         }
 
         const userData = response.user;
