@@ -137,7 +137,7 @@ export const ProductStickyBar = ({
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 bg-[#E8FE00] border-b border-[#E8FE00]/20 shadow-lg ${
+      className={`fixed top-0 left-0 right-0 z-50 bg-[#E8FE00] border-b border-[#C5CEE8] shadow-lg ${
         isVisible
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 -translate-y-full pointer-events-none"
@@ -153,7 +153,7 @@ export const ProductStickyBar = ({
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-4 py-3">
           {/* Product Image */}
-          <div className="relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden border-2 border-black/10 shadow-sm">
+          <div className="relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden border-2 border-[#C5CEE8] shadow-sm">
             <Image
               src={productImage || "/placeholder.svg"}
               alt={productName}
@@ -181,7 +181,7 @@ export const ProductStickyBar = ({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 bg-white/90 hover:bg-white border-black/20 text-black"
+              className="h-8 w-8 bg-white/90 hover:bg-white border-[#C5CEE8] text-black"
               onClick={handleDecrease}
               disabled={quantity <= minQuantity || !isInStock}
             >
@@ -196,7 +196,7 @@ export const ProductStickyBar = ({
                   onQuantityChange(newQuantity);
                 }
               }}
-              className="w-16 text-center border border-black/20 rounded px-2 py-1 text-sm bg-white/90 text-black font-medium"
+              className="w-16 text-center border border-[#C5CEE8] rounded px-2 py-1 text-sm bg-white/90 text-black font-medium"
               min={minQuantity}
               max={maxQuantity}
               disabled={!isInStock}
@@ -204,7 +204,7 @@ export const ProductStickyBar = ({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 bg-white/90 hover:bg-white border-black/20 text-black"
+              className="h-8 w-8 bg-white/90 hover:bg-white border-[#C5CEE8] text-black"
               onClick={handleIncrease}
               disabled={quantity >= maxQuantity || !isInStock}
             >

@@ -2,7 +2,6 @@ import HotDeals from "@/components/home/HotDeals";
 import { HeroShowcase } from "@/views/home/HeroShowcase";
 import { InfoHighlights } from "@/views/home/InfoHighlights";
 import { NewsletterCta } from "@/views/home/NewsletterCta";
-import { PrefooterShowcase } from "@/views/home/PrefooterShowcase";
 import dynamic from "next/dynamic";
 
 interface SectionSkeletonProps {
@@ -22,42 +21,31 @@ const SectionSkeleton = ({ title }: SectionSkeletonProps) => (
   </section>
 );
 
-const BestSellers = dynamic(() => import("@/views/home/BestSellers").then((m) => m.BestSellers), {
-  loading: () => <SectionSkeleton title="Best Sellers" />,
-});
-
-const TrendingProducts = dynamic(
-  () => import("@/views/home/TrendingProducts").then((m) => m.TrendingProducts),
-  { loading: () => <SectionSkeleton title="Trending Products" /> }
-);
-
-const OnSaleProducts = dynamic(
-  () => import("@/views/home/OnSaleProducts").then((m) => m.OnSaleProducts),
-  { loading: () => <SectionSkeleton title="On Sale" /> }
-);
-
-const ProductShowcaseTabs = dynamic(
-  () => import("@/views/home/ProductShowcaseTabs").then((m) => m.ProductShowcaseTabs),
-  { loading: () => <SectionSkeleton title="Products" />, ssr: false }
-);
-
 const CollectionSpotlight = dynamic(
   () => import("@/views/home/CollectionSpotlight").then((m) => m.CollectionSpotlight),
   { loading: () => <SectionSkeleton title="Collections" /> }
+);
+
+const CategorySpotlight = dynamic(
+  () => import("@/views/home/CategorySpotlight").then((m) => m.CategorySpotlight),
+  { loading: () => <SectionSkeleton title="Categories" /> }
+);
+const ProductShowcaseTabs = dynamic(
+  () => import("@/views/home/ProductShowcaseTabs").then((m) => m.ProductShowcaseTabs),
+  { loading: () => <SectionSkeleton title="Products" />, ssr: false }
 );
 
 const PromoGrid = dynamic(() => import("@/views/home/PromoGrid").then((m) => m.PromoGrid), {
   loading: () => <SectionSkeleton title="Promotions" />,
 });
 
-const BrandSpotlight = dynamic(
-  () => import("@/views/home/BrandSpotlight").then((m) => m.BrandSpotlight),
-  { loading: () => <SectionSkeleton title="Brands" /> }
-);
+// const NewArrival = dynamic(() => import("@/views/home/NewArrival").then((m) => m.NewArrival), {
+//   loading: () => <SectionSkeleton title="New Arrivals" />,
+// });
 
-const CategorySpotlight = dynamic(
-  () => import("@/views/home/CategorySpotlight").then((m) => m.CategorySpotlight),
-  { loading: () => <SectionSkeleton title="Categories" /> }
+const MattressSection = dynamic(
+  () => import("@/views/home/MattressSection").then((m) => m.MattressSection),
+  { loading: () => <SectionSkeleton title="Mattress" /> }
 );
 
 const DealHighlights = dynamic(
@@ -65,23 +53,54 @@ const DealHighlights = dynamic(
   { loading: () => <SectionSkeleton title="Deals" /> }
 );
 
+const BestSellers = dynamic(() => import("@/views/home/BestSellers").then((m) => m.BestSellers), {
+  loading: () => <SectionSkeleton title="Best Sellers" />,
+});
+
+const CustomerFeedbackSection = dynamic(
+  () => import("@/views/home/CustomerFeedbackSection").then((m) => m.CustomerFeedbackSection),
+  { loading: () => <SectionSkeleton title="Customer Feedback" /> }
+);
+
 export const HomeView = () => {
   return (
     <main className="flex-1">
+      {/* 1. Home Slider */}
       <HeroShowcase />
-      <InfoHighlights />
-      <HotDeals />
-      <BestSellers />
-      <TrendingProducts />
-      <OnSaleProducts />
-      <ProductShowcaseTabs />
+
+      {/* 2. Shop By Collection */}
       <CollectionSpotlight />
-      <PromoGrid />
-      <BrandSpotlight />
+
+      {/* 3. Satisfaction Quality Guaranteed */}
+      <InfoHighlights />
+
+      {/* 4. Category Section */}
       <CategorySpotlight />
+
+      {/* 5. Hot Deal Section */}
+      <HotDeals />
+
+      {/* 6. Banner Section */}
+      <PromoGrid />
+
+      {/* 7. New Arrival */}
+      {/* <NewArrival /> */}
+      <ProductShowcaseTabs />
+
+      {/* 8. Mattress Section */}
+      <MattressSection />
+
+      {/* 9. Sub Category Banner */}
       <DealHighlights />
+
+      {/* 10. Most Popular */}
+      <BestSellers />
+
+      {/* 11. Banner */}
       <NewsletterCta />
-      <PrefooterShowcase />
+
+      {/* 12. Customer Feedback Section */}
+      <CustomerFeedbackSection />
     </main>
   );
 };

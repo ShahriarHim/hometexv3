@@ -35,21 +35,34 @@ export const reviewService = {
    * Create a new review
    */
   createReview: async (data: CreateReviewRequest): Promise<ReviewResponse> => {
-    // Ensure product_id and user_id are strings as API expects
-    const payload: Record<string, string | number> = {
-      product_id: String(data.product_id),
-      rating: Number(data.rating),
-      comment: String(data.comment),
-    };
+    const formData = new FormData();
+    formData.append("product_id", String(data.product_id));
+    formData.append("rating", String(data.rating));
+    formData.append("comment", String(data.comment));
 
-    // Only include user_id if provided
+    if (data.title) {
+      formData.append("title", data.title);
+    }
+
     if (data.user_id !== undefined && data.user_id !== null) {
-      payload.user_id = String(data.user_id);
+      formData.append("user_id", String(data.user_id));
+    }
+
+    if (Array.isArray(data.images)) {
+      data.images.forEach((file) => {
+        if (file instanceof File) {
+          formData.append("images[]", file);
+        }
+      });
     }
 
     if (process.env.NODE_ENV === "development") {
       // eslint-disable-next-line no-console
-      console.log("Creating review with payload:", payload);
+      console.log("Creating review with form data:", {
+        product_id: String(data.product_id),
+        rating: String(data.rating),
+        hasImages: Boolean(data.images?.length),
+      });
       // eslint-disable-next-line no-console
       console.log("API URL:", env.apiBaseUrl);
     }
@@ -57,10 +70,9 @@ export const reviewService = {
     const response = await fetchWithFallback("/api/store-review", env.apiBaseUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(payload),
+      body: formData,
     });
 
     if (process.env.NODE_ENV === "development") {
@@ -90,16 +102,37 @@ export const reviewService = {
     reviewId: string | number,
     data: UpdateReviewRequest
   ): Promise<ReviewResponse> => {
-    const response = await fetchWithFallback(`/api/update-review/${reviewId}`, env.apiBaseUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
+    const shouldSendMultipart = Array.isArray(data.images) && data.images.length > 0;
+    const headers: Record<string, string> = { Accept: "application/json" };
+
+    let body: BodyInit;
+
+    if (shouldSendMultipart) {
+      const formData = new FormData();
+      if (data.rating !== undefined) {
+        formData.append("rating", String(data.rating));
+      }
+      if (data.comment !== undefined) {
+        formData.append("comment", String(data.comment));
+      }
+      data.images?.forEach((file) => {
+        if (file instanceof File) {
+          formData.append("images[]", file);
+        }
+      });
+      body = formData;
+    } else {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify({
         rating: data.rating,
         comment: data.comment,
-      }),
+      });
+    }
+
+    const response = await fetchWithFallback(`/api/update-review/${reviewId}`, env.apiBaseUrl, {
+      method: "PUT",
+      headers,
+      body,
     });
 
     return handleApiResponse<ReviewResponse>(response);

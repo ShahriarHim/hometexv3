@@ -1,8 +1,10 @@
 "use client";
 
+import { LoginRequired } from "@/components/common/LoginRequired";
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaEye, FaShoppingCart, FaTrashAlt } from "react-icons/fa";
 
 interface CartPopupProps {
@@ -12,11 +14,18 @@ interface CartPopupProps {
 
 const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
   const { items, removeFromCart, clearCart, getTotalPrice } = useCart();
+  const { isAuthenticated } = useAuth();
   const cartRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const [showLoginRequired, setShowLoginRequired] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Don't close if login dialog is open
+      if (showLoginRequired) {
+        return;
+      }
+
       if (cartRef.current && !cartRef.current.contains(event.target as Node) && isOpen) {
         onClose();
       }
@@ -26,11 +35,17 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, showLoginRequired]);
 
-  const handleCheckoutClick = () => {
-    router.push("/checkout");
-    onClose();
+  const handleCheckoutClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling
+
+    if (!isAuthenticated) {
+      setShowLoginRequired(true); // Show login dialog while keeping sidebar visible
+    } else {
+      router.push("/checkout");
+      onClose();
+    }
   };
 
   const handleRemoveAll = () => {
@@ -160,14 +175,16 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
                 <FaEye className="text-white" />
                 View Cart
               </button>
-              <button
-                onClick={handleCheckoutClick}
-                disabled={items.length === 0}
-                className="inline-flex items-center gap-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 px-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FaShoppingCart className="text-white" />
-                Checkout
-              </button>
+              {isAuthenticated && (
+                <button
+                  onClick={handleCheckoutClick}
+                  disabled={items.length === 0}
+                  className="inline-flex items-center gap-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 px-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaShoppingCart className="text-white" />
+                  Checkout
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -210,6 +227,12 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
           }
         }
       `}</style>
+
+      <LoginRequired
+        isOpen={showLoginRequired}
+        onOpenChange={setShowLoginRequired}
+        onClose={onClose}
+      />
     </div>
   );
 };
