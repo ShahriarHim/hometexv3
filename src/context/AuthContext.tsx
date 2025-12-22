@@ -134,6 +134,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("hometex-user", JSON.stringify(loggedInUser));
       localStorage.setItem("hometex-auth-token", token);
 
+      // Debug logging
+      if (typeof window !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.log("[Login] Token stored successfully:", {
+          tokenLength: token.length,
+          userId: loggedInUser.id,
+          hasToken: !!localStorage.getItem("hometex-auth-token"),
+        });
+      }
+
       toast.success(response.message || "Logged in successfully!");
     } catch (error) {
       if (error instanceof Error) {
