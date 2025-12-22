@@ -1,6 +1,6 @@
-import createNextIntlPlugin from 'next-intl/plugin';
+import createNextIntlPlugin from "next-intl/plugin";
 
-const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const securityHeaders = [
   {
@@ -32,11 +32,21 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     dangerouslyAllowSVG: true,
-    unoptimized: process.env.NODE_ENV === 'development', // Bypass private IP restriction in dev
+    unoptimized: process.env.NODE_ENV === "development", // Bypass private IP restriction in dev
     remotePatterns: [
       {
         protocol: "https",
         hostname: "www.hometexbd.ltd",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "staging-api.hometexbd.ltd",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "staging-api.hometexbd.ltd",
         pathname: "/**",
       },
       {
@@ -73,4 +83,3 @@ const nextConfig = {
 };
 
 export default withNextIntl(nextConfig);
-
