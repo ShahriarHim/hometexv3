@@ -81,11 +81,11 @@ export const authenticatedFetch = (url: string, options: RequestInit = {}): Prom
     Object.assign(headers, { Authorization: `Bearer ${token}` });
   }
 
-  // Include credentials to send cookies with requests
+  // Use the Bearer token in the Authorization header
+  // Don't use credentials: "include" as it conflicts with CORS wildcard origin
   const fetchOptions: RequestInit = {
     ...options,
     headers,
-    credentials: "include", // This ensures cookies are sent with cross-origin requests
   };
 
   // Allow credentials to be overridden per request if needed
