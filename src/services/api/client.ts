@@ -53,7 +53,9 @@ export const getAuthTokenFromCookie = (): string | null => {
   if (typeof window !== "undefined") {
     // Client-side: try localStorage first, then cookies
     const localToken = localStorage.getItem("hometex-auth-token");
-    if (localToken) return localToken;
+    if (localToken) {
+      return localToken;
+    }
 
     // Fall back to cookies
     const match = document.cookie.match(/hometex-auth-token=([^;]+)/);
