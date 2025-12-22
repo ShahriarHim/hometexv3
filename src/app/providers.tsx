@@ -1,5 +1,6 @@
 "use client";
 
+import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,20 +27,22 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <OrderProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <TooltipProvider>
-                {children}
-                <Toaster />
-                <Sonner />
-              </TooltipProvider>
-            </WishlistProvider>
-          </CartProvider>
-        </OrderProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <NextAuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <OrderProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <TooltipProvider>
+                  {children}
+                  <Toaster />
+                  <Sonner />
+                </TooltipProvider>
+              </WishlistProvider>
+            </CartProvider>
+          </OrderProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </NextAuthProvider>
   );
 }

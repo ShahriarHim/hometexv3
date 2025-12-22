@@ -7,8 +7,8 @@
   width: 350px;
   max-width: calc(100vw - 40px);
   max-height: calc(100vh - 40px);
-  background-color: #fff;
-  border: 1px solid #ddd;
+  background-color: white;
+  border: 1px solid hsl(var(--border));
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   z-index: 1050;
@@ -32,8 +32,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px;
-  border-bottom: 1px solid #eee;
-  background-color: #f9f9f9;
+  border-bottom: 1px solid hsl(var(--border));
+  background-color: white;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
 }
@@ -41,20 +41,20 @@
 .popupTitle {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: black;
 }
 
 .popupClose {
   background: none;
   border: none;
-  color: #888;
+  color: hsl(var(--text-secondary));
   cursor: pointer;
   font-size: 18px;
   transition: color 0.3s ease;
 }
 
 .popupClose:hover {
-  color: #333;
+  color: black;
 }
 
 .popupBody {
@@ -67,9 +67,11 @@
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid hsl(var(--border));
   border-radius: 5px;
   font-size: 14px;
+  background-color: white;
+  color: black;
 }
 
 .popupList {
@@ -80,13 +82,14 @@
 
 .popupListItem {
   padding: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid hsl(var(--border));
   cursor: pointer;
   transition: background-color 0.3s ease;
+  color: black;
 }
 
 .popupListItem:hover {
-  background-color: #f9f9f9;
+  background-color: hsl(var(--secondary-light));
 }
 
 .popupFooter {
@@ -94,8 +97,8 @@
   justify-content: space-around;
   align-items: center;
   padding: 10px 0;
-  border-top: 1px solid #eee;
-  background-color: #f9f9f9;
+  border-top: 1px solid hsl(var(--border));
+  background-color: white;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
 }
@@ -105,13 +108,13 @@
   flex-direction: column;
   align-items: center;
   font-size: 12px;
-  color: #888;
+  color: hsl(var(--text-secondary));
   cursor: pointer;
   transition: color 0.3s ease;
 }
 
 .footerItem:hover {
-  color: #333;
+  color: black;
 }
 
 .footerIcon {
@@ -119,7 +122,7 @@
 }
 
 .footerItemActive {
-  color: #ff007a;
+  color: hsl(var(--primary));
 }
 
 .messageSection {
@@ -132,9 +135,10 @@
   flex: 1;
   margin-bottom: 10px;
   padding: 10px;
-  background-color: #f9f9f9;
+  background-color: hsl(var(--secondary-light));
   border-radius: 5px;
   min-height: 150px;
+  color: black;
 }
 
 .messageInputContainer {
@@ -146,15 +150,17 @@
 .messageInput {
   flex: 1;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid hsl(var(--border));
   border-radius: 5px;
   font-size: 14px;
+  background-color: white;
+  color: black;
 }
 
 .sendButton {
   padding: 10px 20px;
-  background-color: #ff007a;
-  color: white;
+  background-color: hsl(var(--primary));
+  color: black;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -163,14 +169,14 @@
 }
 
 .sendButton:hover {
-  background-color: #e6006d;
+  background-color: hsl(var(--primary-hover));
 }
 
 .sendMessageButton {
   width: 100%;
   padding: 12px;
-  background-color: #ff007a;
-  color: white;
+  background-color: hsl(var(--primary));
+  color: black;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -180,7 +186,7 @@
 }
 
 .sendMessageButton:hover {
-  background-color: #e6006d;
+  background-color: hsl(var(--primary-hover));
 }
 
 @keyframes fadeIn {

@@ -2,12 +2,17 @@
  * Review API Types
  */
 
-import type { ApiResponse, ApiMeta } from "./common";
+import type { ApiMeta, ApiResponse } from "./common";
 
 export interface ReviewProduct {
   id: number;
   name: string;
   slug: string;
+}
+
+export interface ReviewMedia {
+  id?: number | string;
+  url: string;
 }
 
 export interface ReviewUser {
@@ -32,13 +37,19 @@ export interface Review {
   is_helpful_count: number;
   created_at: string;
   updated_at: string;
+  images?: string[];
+  media_urls?: string[];
+  media?: ReviewMedia[];
 }
 
 export interface ReviewResponse extends ApiResponse<Review> {
   meta?: ApiMeta;
 }
 
-export interface ReviewsListResponse extends ApiResponse<{ reviews: Review[] }> {
+export interface ReviewsListResponse extends ApiResponse<{
+  reviews: Review[];
+  total_reviews?: number;
+}> {
   meta?: ApiMeta;
 }
 
@@ -48,10 +59,12 @@ export interface CreateReviewRequest {
   rating: number;
   comment: string;
   title?: string;
+  images?: File[];
 }
 
 export interface UpdateReviewRequest {
   rating?: number;
   comment?: string;
   title?: string;
+  images?: File[];
 }

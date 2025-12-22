@@ -18,10 +18,14 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           port: 22
           script: |
-            cd ${{ secrets.STAGING_PATH }}
+            cd /var/www/hometexv3-staging
+
             git fetch origin
             git checkout staging
             git pull origin staging
+
             npm install
+            rm -rf .next
             npm run build
-            pm2 restart hometex-staging
+
+            pm2 reload ecosystem.config.cjs --only hometex-staging

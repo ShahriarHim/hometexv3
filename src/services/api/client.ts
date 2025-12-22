@@ -36,12 +36,44 @@ const getBaseUrl = (productionBaseUrl: string): string => {
 };
 
 /**
- * Get authentication token from localStorage
+ * Get authentication token from localStorage (client-side)
  */
 export const getAuthToken = (): string | null => {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("hometex-auth-token");
+    const token = localStorage.getItem("hometex-auth-token");
+
+    // Debug logging - always log on staging to help debug
+    if (!token && (process.env.NODE_ENV === "development" || typeof window !== "undefined")) {
+      console.warn(
+        "[getAuthToken] No token found in localStorage. User might need to log in again."
+      );
+      // eslint-disable-next-line no-console
+      console.log("[getAuthToken] localStorage keys:", Object.keys(localStorage));
+    }
+
+    return token;
   }
+  return null;
+};
+
+/**
+ * Get authentication token from cookies (server-side and client-side)
+ * This is used for server-side rendering and API requests
+ */
+export const getAuthTokenFromCookie = (): string | null => {
+  if (typeof window !== "undefined") {
+    // Client-side: try localStorage first, then cookies
+    const localToken = localStorage.getItem("hometex-auth-token");
+    if (localToken) {
+      return localToken;
+    }
+
+    // Fall back to cookies
+    const match = document.cookie.match(/hometex-auth-token=([^;]+)/);
+    return match ? match[1] : null;
+  }
+
+  // Server-side: check headers (this requires context to be passed)
   return null;
 };
 
@@ -50,6 +82,20 @@ export const getAuthToken = (): string | null => {
  */
 export const authenticatedFetch = (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = getAuthToken();
+
+  // Debug logging for token retrieval - enabled for all environments during debugging
+  if (typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
+    console.log(`[authenticatedFetch] API Request:`, {
+      url,
+      hasToken: !!token,
+      tokenLength: token?.length || 0,
+      tokenPreview: token?.substring(0, 15),
+      isGoogleToken: token?.startsWith("ya29"),
+      hasAuthHeader: !!token,
+    });
+  }
+
   const headers = {
     ...options.headers,
     "Content-Type": "application/json",
@@ -58,10 +104,12 @@ export const authenticatedFetch = (url: string, options: RequestInit = {}): Prom
 
   if (token) {
     Object.assign(headers, { Authorization: `Bearer ${token}` });
+  } else if (typeof window !== "undefined") {
+    console.warn(`[authenticatedFetch] No token found for authenticated request to ${url}`);
   }
 
-  // Only include credentials if explicitly requested in options
-  // This avoids CORS issues when server uses wildcard Access-Control-Allow-Origin
+  // Use the Bearer token in the Authorization header
+  // Don't use credentials: "include" as it conflicts with CORS wildcard origin
   const fetchOptions: RequestInit = {
     ...options,
     headers,

@@ -26,7 +26,7 @@ export const EmptyState = ({
         <Icon className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
         <h2 className="text-2xl font-bold mb-2">{title}</h2>
         <p className="text-muted-foreground mb-6">{description}</p>
-        <Button asChild>
+        <Button asChild className="hover:text-black">
           <Link href={actionHref as never}>{actionLabel}</Link>
         </Button>
       </CardContent>

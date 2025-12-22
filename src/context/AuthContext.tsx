@@ -2,6 +2,7 @@
 
 import { clearRecentViewsStorage } from "@/hooks/use-recent-views";
 import { ApiError, authService, userService } from "@/services/api";
+import { signOut, useSession } from "next-auth/react";
 import React, { createContext, startTransition, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -40,6 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const savedUser = localStorage.getItem("hometex-user");
@@ -49,6 +51,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     }
   }, []);
+
+  // Sync NextAuth session with local auth context
+  useEffect(() => {
+    if (session?.user && session.user.email) {
+      const sessionWithToken = session as unknown as Record<string, unknown>;
+      // eslint-disable-next-line no-console
+      console.log("[AuthContext] Session detected:", {
+        hasBackendToken: !!sessionWithToken.backendToken,
+        hasAccessToken: !!sessionWithToken.accessToken,
+        backendTokenLength: (sessionWithToken.backendToken as string)?.length || 0,
+        backendTokenPreview: (sessionWithToken.backendToken as string)?.substring(0, 15),
+        accessTokenLength: (sessionWithToken.accessToken as string)?.length || 0,
+        accessTokenPreview: (sessionWithToken.accessToken as string)?.substring(0, 15),
+      });
+
+      // Use backendId if available (from Google OAuth), otherwise use session user ID
+      const userId = sessionWithToken.backendId
+        ? String(sessionWithToken.backendId)
+        : session.user.id || `google-${Date.now()}`;
+
+      // Use backendToken (the JWT from our API) instead of accessToken (Google OAuth token)
+      const backendToken =
+        (sessionWithToken.backendToken as string) || (sessionWithToken.accessToken as string);
+
+      // eslint-disable-next-line no-console
+      console.log("[AuthContext] Selected token to use:", {
+        tokenLength: backendToken?.length || 0,
+        tokenPreview: backendToken?.substring(0, 15),
+        isBackendToken: !!sessionWithToken.backendToken,
+        isGoogleToken: backendToken?.startsWith("ya29"),
+      });
+
+      const googleUser: User = {
+        id: userId,
+        email: session.user.email,
+        name: session.user.name || "",
+        avatar: session.user.image || undefined,
+        token: backendToken,
+      };
+      setUser(googleUser);
+      localStorage.setItem("hometex-user", JSON.stringify(googleUser));
+      if (backendToken) {
+        localStorage.setItem("hometex-auth-token", backendToken);
+        // eslint-disable-next-line no-console
+        console.log("[AuthContext] Token stored in localStorage:", {
+          tokenLength: backendToken.length,
+          tokenPreview: backendToken.substring(0, 15),
+          isGoogleToken: backendToken.startsWith("ya29"),
+        });
+      }
+    }
+  }, [session]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -107,6 +161,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(loggedInUser);
       localStorage.setItem("hometex-user", JSON.stringify(loggedInUser));
       localStorage.setItem("hometex-auth-token", token);
+
+      // Debug logging
+      if (typeof window !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.log("[AuthContext Login] Token stored:", {
+          tokenLength: token.length,
+          tokenPreview: token.substring(0, 15),
+          userId: loggedInUser.id,
+          hasToken: !!localStorage.getItem("hometex-auth-token"),
+          isGoogleToken: token.startsWith("ya29"),
+        });
+      }
 
       toast.success(response.message || "Logged in successfully!");
     } catch (error) {
@@ -278,6 +344,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      // If user is logged in via NextAuth (Google OAuth), sign out from NextAuth
+      if (session?.user) {
+        await signOut({ redirect: false });
+      }
+
+      // Call backend logout
       await authService.logout();
     } catch {
       // ignore API errors on logout

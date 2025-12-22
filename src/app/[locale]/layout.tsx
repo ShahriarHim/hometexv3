@@ -7,18 +7,10 @@ import { env } from "@/lib/env";
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { Quicksand } from "next/font/google";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import "../globals.css";
 import { Providers } from "../providers";
-
-const quicksand = Quicksand({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-quicksand",
-  weight: ["400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
@@ -49,33 +41,23 @@ export default async function LocaleLayout({
   children: ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  // Await params (Next.js 15+)
   const { locale } = await params;
 
-  // Ensure that the incoming `locale` is valid
   if (!routing.locales.includes(locale as (typeof routing.locales)[number])) {
     notFound();
   }
 
-  // Providing all messages to the client side is the easiest way to get started
   const messages = await getMessages({ locale });
 
   return (
-    <html lang={locale} className={quicksand.variable} suppressHydrationWarning>
-      <body
-        className="min-h-screen bg-background text-foreground antialiased font-sans"
-        suppressHydrationWarning
-      >
-        <ErrorBoundary>
-          <NextIntlClientProvider messages={messages}>
-            <Providers>
-              {children}
-              <FloatingBar />
-              <CookiesManager />
-            </Providers>
-          </NextIntlClientProvider>
-        </ErrorBoundary>
-      </body>
-    </html>
+    <ErrorBoundary>
+      <NextIntlClientProvider messages={messages}>
+        <Providers>
+          {children}
+          <FloatingBar />
+          <CookiesManager />
+        </Providers>
+      </NextIntlClientProvider>
+    </ErrorBoundary>
   );
 }

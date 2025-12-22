@@ -1,5 +1,6 @@
 "use client";
 
+import { getPusherClient } from "@/lib/pusher";
 import { Eye } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import styles from "./ProductPopularityPopup.module.css";
@@ -17,11 +18,44 @@ export const ProductPopularityPopup: React.FC<ProductPopularityPopupProps> = ({ 
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
   useEffect(() => {
-    // Generate random numbers for demo data
-    const randomViewers = Math.floor(Math.random() * 50) + 15; // 15-64 viewers
-    const randomSold = Math.floor(Math.random() * 15) + 3; // 3-17 sold
+    if (!productId) {
+      return;
+    }
 
-    setViewersCount(randomViewers);
+    // Generate unique user ID for this session
+    const userId = `user-${Math.random().toString(36).substring(2, 15)}`;
+    // Use public channel instead of presence channel (no auth needed)
+    const channelName = `product-${productId}`;
+
+    // Get initial viewer count
+    fetch(`/api/product-viewers?productId=${productId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.viewerCount !== undefined) {
+          setViewersCount(data.viewerCount);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch viewer count:", err));
+
+    // Join the product page
+    fetch("/api/product-viewers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId, action: "join", userId }),
+    }).catch((err) => console.error("Failed to join:", err));
+
+    // Subscribe to real-time updates
+    const pusher = getPusherClient();
+    const channel = pusher.subscribe(channelName);
+
+    channel.bind("viewer-update", (data: { viewerCount: number; productId: number }) => {
+      if (data.productId === productId) {
+        setViewersCount(data.viewerCount);
+      }
+    });
+
+    // Generate sold count (this can remain static or come from API)
+    const randomSold = Math.floor(Math.random() * 15) + 3; // 3-17 sold
     setSoldCount(randomSold);
 
     // Initial delay: 10-15 seconds after page load
@@ -75,21 +109,24 @@ export const ProductPopularityPopup: React.FC<ProductPopularityPopupProps> = ({ 
       popupAlternateInterval = setInterval(alternatePopup, Math.floor(Math.random() * 4000) + 8000); // 8-12 seconds
     }, initialDelay);
 
-    // Update numbers periodically for dynamic feel
-    const numberUpdateInterval = setInterval(() => {
-      const newViewers = Math.floor(Math.random() * 50) + 15;
-      const newSold = Math.floor(Math.random() * 15) + 3;
-      setViewersCount(newViewers);
-      setSoldCount(newSold);
-    }, 15000); // Update every 15 seconds
-
+    // Cleanup function
     return () => {
       clearTimeout(initialTimeout);
       clearTimeout(autoHideTimeout);
-      clearInterval(numberUpdateInterval);
       if (popupAlternateInterval) {
         clearInterval(popupAlternateInterval);
       }
+
+      // Leave the product page
+      fetch("/api/product-viewers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, action: "leave", userId }),
+      }).catch((err) => console.error("Failed to leave:", err));
+
+      // Unsubscribe from Pusher channel
+      const pusher = getPusherClient();
+      pusher.unsubscribe(channelName);
     };
   }, [productId]);
 

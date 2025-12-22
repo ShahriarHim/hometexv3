@@ -1,15 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FcGoogle } from "react-icons/fc";
+import { toast } from "sonner";
 
 const Auth = () => {
   const router = useRouter();
@@ -94,10 +97,28 @@ const Auth = () => {
   const handleSocialLogin = async (provider: "google" | "facebook") => {
     setLoading(true);
     try {
-      await socialLogin(provider);
-      router.push("/" as never);
+      if (provider === "google") {
+        // Use NextAuth for Google login
+        const result = await signIn("google", {
+          redirect: false,
+          callbackUrl: "/",
+        });
+
+        if (result?.error) {
+          toast.error("Failed to sign in with Google");
+          console.error("Google sign in error:", result.error);
+        } else if (result?.ok) {
+          toast.success("Logged in with Google successfully!");
+          router.push("/" as never);
+        }
+      } else {
+        // Facebook login still uses the old method for now
+        await socialLogin(provider);
+        router.push("/" as never);
+      }
     } catch (error) {
       console.error(error);
+      toast.error(`Failed to sign in with ${provider}`);
     } finally {
       setLoading(false);
     }
@@ -333,11 +354,12 @@ const Auth = () => {
 
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full flex items-center justify-center gap-2 font-medium hover:bg-gray-50"
                 onClick={() => handleSocialLogin("google")}
                 disabled={loading}
               >
-                Continue with Google
+                <FcGoogle size={20} />
+                {loading ? "Signing in..." : "Continue with Google"}
               </Button>
             </div>
           </CardContent>

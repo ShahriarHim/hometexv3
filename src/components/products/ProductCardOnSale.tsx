@@ -45,7 +45,9 @@ const ProductCardOnSale = ({ product }: { product: Product }) => {
                 <div className="absolute bottom-2 right-2 z-10 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 shadow-lg">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-stock-high animate-pulse"></div>
-                    <span className="text-xs font-bold text-stock-high">{stock} in stock</span>
+                    <span className="text-xs font-bold text-stock-high group-hover:text-black">
+                      {stock} in stock
+                    </span>
                   </div>
                 </div>
               )}

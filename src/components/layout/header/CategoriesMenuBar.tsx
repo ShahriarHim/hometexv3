@@ -123,8 +123,8 @@ export const CategoriesMenuBar = ({ categories }: CategoriesMenuBarProps) => {
                       href={`/categories/${createCategorySlug(category.name)}`}
                       className={cn(
                         "inline-flex h-10 items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-semibold uppercase whitespace-nowrap transition-all duration-200",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        activeMenu === category.id && "bg-accent text-accent-foreground"
+                        "hover:bg-primary hover:text-foreground",
+                        activeMenu === category.id && "bg-primary text-foreground"
                       )}
                     >
                       {category.name}
