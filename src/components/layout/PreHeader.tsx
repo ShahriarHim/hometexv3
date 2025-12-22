@@ -52,10 +52,20 @@ const PreHeader = () => {
     const fetchUserType = async () => {
       if (isAuthenticated) {
         try {
+          // Check if token exists before making the request
+          const token = typeof window !== "undefined" ? localStorage.getItem("hometex-auth-token") : null;
+          if (!token) {
+            console.warn("[PreHeader] User is authenticated but no token found in localStorage");
+            setUserType(undefined);
+            return;
+          }
+
           const profileResponse = await userService.getProfile();
           setUserType(profileResponse.user?.user_type);
         } catch (error) {
           console.error("Failed to fetch user profile:", error);
+          // If fetching profile fails, user might not be authenticated anymore
+          setUserType(undefined);
         }
       } else {
         setUserType(undefined);
