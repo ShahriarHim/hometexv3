@@ -2,6 +2,7 @@
 
 import { clearRecentViewsStorage } from "@/hooks/use-recent-views";
 import { ApiError, authService, userService } from "@/services/api";
+import { signOut, useSession } from "next-auth/react";
 import React, { createContext, startTransition, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -40,6 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const savedUser = localStorage.getItem("hometex-user");
@@ -49,6 +51,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     }
   }, []);
+
+  // Sync NextAuth session with local auth context
+  useEffect(() => {
+    if (session?.user && session.user.email) {
+      const sessionWithToken = session as unknown as Record<string, unknown>;
+      // Use backendId if available (from Google OAuth), otherwise use session user ID
+      const userId = sessionWithToken.backendId
+        ? String(sessionWithToken.backendId)
+        : session.user.id || `google-${Date.now()}`;
+
+      const googleUser: User = {
+        id: userId,
+        email: session.user.email,
+        name: session.user.name || "",
+        avatar: session.user.image || undefined,
+        token: sessionWithToken.accessToken as string,
+      };
+      setUser(googleUser);
+      localStorage.setItem("hometex-user", JSON.stringify(googleUser));
+      if (sessionWithToken.accessToken) {
+        localStorage.setItem("hometex-auth-token", String(sessionWithToken.accessToken));
+      }
+    }
+  }, [session]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -278,6 +304,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      // If user is logged in via NextAuth (Google OAuth), sign out from NextAuth
+      if (session?.user) {
+        await signOut({ redirect: false });
+      }
+
+      // Call backend logout
       await authService.logout();
     } catch {
       // ignore API errors on logout
