@@ -56,6 +56,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (session?.user && session.user.email) {
       const sessionWithToken = session as unknown as Record<string, unknown>;
+      // eslint-disable-next-line no-console
+      console.log("[AuthContext] Session detected:", {
+        hasBackendToken: !!sessionWithToken.backendToken,
+        hasAccessToken: !!sessionWithToken.accessToken,
+        backendTokenLength: (sessionWithToken.backendToken as string)?.length || 0,
+        backendTokenPreview: (sessionWithToken.backendToken as string)?.substring(0, 15),
+        accessTokenLength: (sessionWithToken.accessToken as string)?.length || 0,
+        accessTokenPreview: (sessionWithToken.accessToken as string)?.substring(0, 15),
+      });
+
       // Use backendId if available (from Google OAuth), otherwise use session user ID
       const userId = sessionWithToken.backendId
         ? String(sessionWithToken.backendId)
@@ -64,6 +74,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Use backendToken (the JWT from our API) instead of accessToken (Google OAuth token)
       const backendToken =
         (sessionWithToken.backendToken as string) || (sessionWithToken.accessToken as string);
+
+      // eslint-disable-next-line no-console
+      console.log("[AuthContext] Selected token to use:", {
+        tokenLength: backendToken?.length || 0,
+        tokenPreview: backendToken?.substring(0, 15),
+        isBackendToken: !!sessionWithToken.backendToken,
+        isGoogleToken: backendToken?.startsWith("ya29"),
+      });
 
       const googleUser: User = {
         id: userId,
@@ -77,9 +95,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (backendToken) {
         localStorage.setItem("hometex-auth-token", backendToken);
         // eslint-disable-next-line no-console
-        console.log("[Google OAuth] Backend token stored:", {
+        console.log("[AuthContext] Token stored in localStorage:", {
           tokenLength: backendToken.length,
-          tokenPreview: `${backendToken.substring(0, 10)}...`,
+          tokenPreview: backendToken.substring(0, 15),
           isGoogleToken: backendToken.startsWith("ya29"),
         });
       }
@@ -147,10 +165,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Debug logging
       if (typeof window !== "undefined") {
         // eslint-disable-next-line no-console
-        console.log("[Login] Token stored successfully:", {
+        console.log("[AuthContext Login] Token stored:", {
           tokenLength: token.length,
+          tokenPreview: token.substring(0, 15),
           userId: loggedInUser.id,
           hasToken: !!localStorage.getItem("hometex-auth-token"),
+          isGoogleToken: token.startsWith("ya29"),
         });
       }
 

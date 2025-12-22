@@ -86,10 +86,13 @@ export const authenticatedFetch = (url: string, options: RequestInit = {}): Prom
   // Debug logging for token retrieval - enabled for all environments during debugging
   if (typeof window !== "undefined") {
     // eslint-disable-next-line no-console
-    console.log(`[authenticatedFetch] Token found: ${token ? "YES" : "NO"}`, {
+    console.log(`[authenticatedFetch] API Request:`, {
       url,
+      hasToken: !!token,
       tokenLength: token?.length || 0,
-      tokenPreview: token ? `${token.substring(0, 10)}...` : "none",
+      tokenPreview: token?.substring(0, 15),
+      isGoogleToken: token?.startsWith("ya29"),
+      hasAuthHeader: !!token,
     });
   }
 

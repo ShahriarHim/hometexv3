@@ -50,6 +50,12 @@ export const authOptions: NextAuthOptions = {
       // Handle Google OAuth sign in
       if (account?.provider === "google" && user) {
         try {
+          // eslint-disable-next-line no-console
+          console.log("[NextAuth signIn] Google OAuth detected, calling backend...", {
+            email: user.email,
+            name: user.name,
+          });
+
           // Try to register/login the user with the backend
           const profileData = profile as unknown as Record<string, unknown>;
           const picture =
@@ -61,16 +67,41 @@ export const authOptions: NextAuthOptions = {
             image: picture,
           });
 
-          if (response.success && response.token && response.user) {
+          // eslint-disable-next-line no-console
+          console.log("[NextAuth signIn] Backend response received:", {
+            hasSuccess: !!response.success,
+            hasToken: !!(response as unknown as Record<string, unknown>).token,
+            hasUser: !!(response as unknown as Record<string, unknown>).user,
+            tokenType: (response as unknown as Record<string, unknown>).token
+              ? typeof (response as unknown as Record<string, unknown>).token
+              : "none",
+            tokenLength: ((response as unknown as Record<string, unknown>).token as string)?.length || 0,
+            tokenPreview: ((response as unknown as Record<string, unknown>).token as string)?.substring(0, 15),
+          });
+
+          if (
+            (response as unknown as Record<string, unknown>).success &&
+            (response as unknown as Record<string, unknown>).token &&
+            (response as unknown as Record<string, unknown>).user
+          ) {
             // Store token in user object for JWT callback
             const userWithToken = user as unknown as Record<string, unknown>;
-            userWithToken.token = response.token;
-            userWithToken.backendId = response.user.id;
+            userWithToken.token = (response as unknown as Record<string, unknown>).token;
+            userWithToken.backendId = (
+              (response as unknown as Record<string, unknown>).user as Record<string, unknown>
+            ).id;
+            // eslint-disable-next-line no-console
+            console.log("[NextAuth signIn] Token stored in user object", {
+              tokenLength: (userWithToken.token as string).length,
+              backendId: userWithToken.backendId,
+            });
             return true;
           }
+
+          console.warn("[NextAuth signIn] Backend response missing required fields");
           return true; // Allow sign in even if backend sync fails
         } catch (error) {
-          console.error("Google auth backend error:", error);
+          console.error("[NextAuth signIn] Backend error:", error);
           return true; // Allow sign in
         }
       }
@@ -81,11 +112,24 @@ export const authOptions: NextAuthOptions = {
       if (account && user) {
         const userWithToken = user as unknown as Record<string, unknown>;
         if (account.provider === "google") {
+          const backendToken = userWithToken.token as string | undefined;
+          const googleToken = account.access_token as string | undefined;
+
+          // eslint-disable-next-line no-console
+          console.log("[NextAuth jwt] Processing Google login:", {
+            hasBackendToken: !!backendToken,
+            backendTokenLength: backendToken?.length || 0,
+            backendTokenPreview: backendToken?.substring(0, 15),
+            hasGoogleToken: !!googleToken,
+            googleTokenLength: googleToken?.length || 0,
+            usingToken: backendToken ? "backend" : "google",
+          });
+
           // For Google login, store the backend token from our API
-          token.accessToken = (userWithToken.token as string) || account.access_token;
+          token.accessToken = backendToken || googleToken;
           token.provider = "google";
           token.backendId = userWithToken.backendId as string | undefined;
-          token.backendToken = userWithToken.token as string; // Backend JWT token
+          token.backendToken = backendToken; // Backend JWT token
         } else if (account.provider === "credentials") {
           // For credentials login, store the token from your backend
           token.accessToken = userWithToken.token as string;
@@ -103,6 +147,17 @@ export const authOptions: NextAuthOptions = {
         sessionWithToken.backendToken = token.backendToken; // Add backend token to session
         sessionWithToken.provider = token.provider;
         sessionWithToken.backendId = token.backendId;
+
+        // eslint-disable-next-line no-console
+        console.log("[NextAuth session] Session updated:", {
+          provider: token.provider,
+          hasAccessToken: !!sessionWithToken.accessToken,
+          accessTokenLength: (sessionWithToken.accessToken as string)?.length || 0,
+          accessTokenPreview: (sessionWithToken.accessToken as string)?.substring(0, 15),
+          hasBackendToken: !!sessionWithToken.backendToken,
+          backendTokenLength: (sessionWithToken.backendToken as string)?.length || 0,
+          backendTokenPreview: (sessionWithToken.backendToken as string)?.substring(0, 15),
+        });
       }
       return session;
     },
