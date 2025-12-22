@@ -53,7 +53,8 @@ const PreHeader = () => {
       if (isAuthenticated) {
         try {
           // Check if token exists before making the request
-          const token = typeof window !== "undefined" ? localStorage.getItem("hometex-auth-token") : null;
+          const token =
+            typeof window !== "undefined" ? localStorage.getItem("hometex-auth-token") : null;
           if (!token) {
             console.warn("[PreHeader] User is authenticated but no token found in localStorage");
             setUserType(undefined);

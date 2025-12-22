@@ -41,15 +41,16 @@ const getBaseUrl = (productionBaseUrl: string): string => {
 export const getAuthToken = (): string | null => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("hometex-auth-token");
-    
+
     // Debug logging - always log on staging to help debug
     if (!token && (process.env.NODE_ENV === "development" || typeof window !== "undefined")) {
-      // eslint-disable-next-line no-console
-      console.warn("[getAuthToken] No token found in localStorage. User might need to log in again.");
+      console.warn(
+        "[getAuthToken] No token found in localStorage. User might need to log in again."
+      );
       // eslint-disable-next-line no-console
       console.log("[getAuthToken] localStorage keys:", Object.keys(localStorage));
     }
-    
+
     return token;
   }
   return null;
@@ -81,7 +82,7 @@ export const getAuthTokenFromCookie = (): string | null => {
  */
 export const authenticatedFetch = (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = getAuthToken();
-  
+
   // Debug logging for token retrieval
   if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
     // eslint-disable-next-line no-console
@@ -100,7 +101,6 @@ export const authenticatedFetch = (url: string, options: RequestInit = {}): Prom
   if (token) {
     Object.assign(headers, { Authorization: `Bearer ${token}` });
   } else if (typeof window !== "undefined") {
-    // eslint-disable-next-line no-console
     console.warn(`[authenticatedFetch] No token found for authenticated request to ${url}`);
   }
 
