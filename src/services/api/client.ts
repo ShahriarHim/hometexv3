@@ -36,12 +36,31 @@ const getBaseUrl = (productionBaseUrl: string): string => {
 };
 
 /**
- * Get authentication token from localStorage
+ * Get authentication token from localStorage (client-side)
  */
 export const getAuthToken = (): string | null => {
   if (typeof window !== "undefined") {
     return localStorage.getItem("hometex-auth-token");
   }
+  return null;
+};
+
+/**
+ * Get authentication token from cookies (server-side and client-side)
+ * This is used for server-side rendering and API requests
+ */
+export const getAuthTokenFromCookie = (): string | null => {
+  if (typeof window !== "undefined") {
+    // Client-side: try localStorage first, then cookies
+    const localToken = localStorage.getItem("hometex-auth-token");
+    if (localToken) return localToken;
+
+    // Fall back to cookies
+    const match = document.cookie.match(/hometex-auth-token=([^;]+)/);
+    return match ? match[1] : null;
+  }
+
+  // Server-side: check headers (this requires context to be passed)
   return null;
 };
 
@@ -60,11 +79,11 @@ export const authenticatedFetch = (url: string, options: RequestInit = {}): Prom
     Object.assign(headers, { Authorization: `Bearer ${token}` });
   }
 
-  // Only include credentials if explicitly requested in options
-  // This avoids CORS issues when server uses wildcard Access-Control-Allow-Origin
+  // Include credentials to send cookies with requests
   const fetchOptions: RequestInit = {
     ...options,
     headers,
+    credentials: "include", // This ensures cookies are sent with cross-origin requests
   };
 
   // Allow credentials to be overridden per request if needed
