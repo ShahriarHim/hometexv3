@@ -83,12 +83,13 @@ export const getAuthTokenFromCookie = (): string | null => {
 export const authenticatedFetch = (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = getAuthToken();
 
-  // Debug logging for token retrieval
-  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  // Debug logging for token retrieval - enabled for all environments during debugging
+  if (typeof window !== "undefined") {
     // eslint-disable-next-line no-console
     console.log(`[authenticatedFetch] Token found: ${token ? "YES" : "NO"}`, {
       url,
       tokenLength: token?.length || 0,
+      tokenPreview: token ? `${token.substring(0, 10)}...` : "none",
     });
   }
 
