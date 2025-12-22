@@ -61,17 +61,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ? String(sessionWithToken.backendId)
         : session.user.id || `google-${Date.now()}`;
 
+      // Use backendToken (the JWT from our API) instead of accessToken (Google OAuth token)
+      const backendToken =
+        (sessionWithToken.backendToken as string) || (sessionWithToken.accessToken as string);
+
       const googleUser: User = {
         id: userId,
         email: session.user.email,
         name: session.user.name || "",
         avatar: session.user.image || undefined,
-        token: sessionWithToken.accessToken as string,
+        token: backendToken,
       };
       setUser(googleUser);
       localStorage.setItem("hometex-user", JSON.stringify(googleUser));
-      if (sessionWithToken.accessToken) {
-        localStorage.setItem("hometex-auth-token", String(sessionWithToken.accessToken));
+      if (backendToken) {
+        localStorage.setItem("hometex-auth-token", backendToken);
+        // eslint-disable-next-line no-console
+        console.log("[Google OAuth] Backend token stored:", {
+          tokenLength: backendToken.length,
+          tokenPreview: `${backendToken.substring(0, 10)}...`,
+          isGoogleToken: backendToken.startsWith("ya29"),
+        });
       }
     }
   }, [session]);
