@@ -37,28 +37,6 @@ interface AuthContextType {
   socialLogin: (provider: "google" | "facebook") => Promise<void>;
 }
 
-/**
- * Helper function to set authentication token in cookie
- * Cookies work both client-side and server-side
- */
-const setAuthTokenCookie = (token: string) => {
-  if (typeof window !== "undefined") {
-    // Set cookie with 30-day expiration
-    const expiresDate = new Date();
-    expiresDate.setDate(expiresDate.getDate() + 30);
-    document.cookie = `hometex-auth-token=${token}; expires=${expiresDate.toUTCString()}; path=/; SameSite=Lax`;
-  }
-};
-
-/**
- * Helper function to clear authentication token cookie
- */
-const clearAuthTokenCookie = () => {
-  if (typeof window !== "undefined") {
-    document.cookie = "hometex-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  }
-};
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -94,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("hometex-user", JSON.stringify(googleUser));
       if (sessionWithToken.accessToken) {
         localStorage.setItem("hometex-auth-token", String(sessionWithToken.accessToken));
-        setAuthTokenCookie(String(sessionWithToken.accessToken)); // Also set in cookie
       }
     }
   }, [session]);
@@ -156,7 +133,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(loggedInUser);
       localStorage.setItem("hometex-user", JSON.stringify(loggedInUser));
       localStorage.setItem("hometex-auth-token", token);
-      setAuthTokenCookie(token); // Also store in cookie for server-side requests
 
       toast.success(response.message || "Logged in successfully!");
     } catch (error) {
@@ -243,7 +219,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(newUser);
       localStorage.setItem("hometex-user", JSON.stringify(newUser));
       localStorage.setItem("hometex-auth-token", token);
-      setAuthTokenCookie(token); // Also store in cookie for server-side requests
 
       toast.success(message || "Account created successfully!");
     } catch (error) {
@@ -346,7 +321,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem("hometex-wishlist");
       localStorage.removeItem("hometex-orders");
       clearRecentViewsStorage(); // Clear recent views on logout
-      clearAuthTokenCookie(); // Clear cookie as well
 
       // Then clear user state - this will trigger context effects to clear their state
       setUser(null);
