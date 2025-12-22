@@ -75,8 +75,11 @@ export const authOptions: NextAuthOptions = {
             tokenType: (response as unknown as Record<string, unknown>).token
               ? typeof (response as unknown as Record<string, unknown>).token
               : "none",
-            tokenLength: ((response as unknown as Record<string, unknown>).token as string)?.length || 0,
-            tokenPreview: ((response as unknown as Record<string, unknown>).token as string)?.substring(0, 15),
+            tokenLength:
+              ((response as unknown as Record<string, unknown>).token as string)?.length || 0,
+            tokenPreview: (
+              (response as unknown as Record<string, unknown>).token as string
+            )?.substring(0, 15),
           });
 
           if (
