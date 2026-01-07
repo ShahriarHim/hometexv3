@@ -174,11 +174,13 @@ export const ProductCard = ({
     >
       {/* Image Section */}
       <div className="relative overflow-hidden bg-gray-50 rounded-t-lg aspect-square">
-        <Link
-          href={productUrl as never}
-          onClick={handleProductClick}
-          className="block w-full h-full relative group/image overflow-hidden"
-        >
+        <div className="block w-full h-full relative group/image overflow-hidden">
+          <Link
+            href={productUrl as never}
+            onClick={handleProductClick}
+            className="absolute inset-0 z-0"
+          />
+
           {/* Hot Deals Hover Effect - Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/5 to-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity duration-1000 ease-in-out z-10 pointer-events-none" />
 
@@ -186,13 +188,13 @@ export const ProductCard = ({
           <div className="absolute -top-1/2 -left-[60%] w-[20%] h-[200%] bg-white/10 rotate-[35deg] pointer-events-none transition-all duration-1000 ease-in-out z-20 opacity-0 group-hover/image:left-[130%] group-hover/image:opacity-100" />
 
           {/* Quick View Button - Right Side, Icon Only, Sequenced Fade In */}
-          <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col gap-2 pointer-events-none">
+          <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col gap-2">
             {/* Quick View */}
             <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 ease-in-out delay-100">
               <button
                 type="button"
                 onClick={openQuickView}
-                className="w-[40px] h-[40px] rounded-[12px] bg-white text-[#333] shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex items-center justify-center border-none hover:bg-[#84cc16] hover:text-white hover:shadow-[0_5px_15px_rgba(132,204,22,0.3)] transition-all duration-300 cursor-pointer pointer-events-auto transform hover:scale-110"
+                className="w-[40px] h-[40px] rounded-[12px] bg-white text-[#333] shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex items-center justify-center border-none hover:bg-[#84cc16] hover:text-white hover:shadow-[0_5px_15px_rgba(132,204,22,0.3)] transition-all duration-300 cursor-pointer transform hover:scale-110"
               >
                 <Eye className="w-5 h-5 transition-transform duration-300" />
               </button>
@@ -206,7 +208,7 @@ export const ProductCard = ({
             )}
           </div>
 
-          <div className="relative w-full h-full flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
             <Image
               src={imageUrl}
               alt={product.name || "Product Image"}
@@ -224,7 +226,7 @@ export const ProductCard = ({
 
           {/* Stock Indicator - Fade out on hover */}
           {stock > 0 && (
-            <div className="absolute bottom-2 right-2 z-10 bg-primary/90 backdrop-blur-sm border border-primary rounded-full px-3 py-1.5 shadow-lg group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out">
+            <div className="absolute bottom-2 right-2 z-10 bg-primary/90 backdrop-blur-sm border border-primary rounded-full px-3 py-1.5 shadow-lg group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out pointer-events-none">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-black animate-pulse"></div>
                 <span className="text-xs font-bold text-black">{stock} in stock</span>
@@ -232,14 +234,14 @@ export const ProductCard = ({
             </div>
           )}
           {stock === 0 && (
-            <div className="absolute bottom-2 right-2 z-10 bg-red-500/95 backdrop-blur-sm border border-red-600 rounded-full px-3 py-1.5 shadow-lg group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out">
+            <div className="absolute bottom-2 right-2 z-10 bg-red-500/95 backdrop-blur-sm border border-red-600 rounded-full px-3 py-1.5 shadow-lg group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out pointer-events-none">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-white"></div>
                 <span className="text-xs font-bold text-white">Out of stock</span>
               </div>
             </div>
           )}
-        </Link>
+        </div>
 
         {/* Badges - Fade out on hover */}
         <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out">

@@ -10,7 +10,11 @@ const PriceFormatter = ({ amount, className }: Props) => {
     return <span className={cn("font-medium", className)}>0৳</span>;
   }
 
-  return <span className={cn("font-medium", className)}>{amount.toLocaleString()}৳</span>;
+  return (
+    <span className={cn("font-medium", className)} suppressHydrationWarning>
+      {amount.toLocaleString()}৳
+    </span>
+  );
 };
 
 export default PriceFormatter;

@@ -17,7 +17,6 @@ import { env } from "@/lib/env";
 import { productService } from "@/services/api";
 import type { Product } from "@/types";
 import type { CategoryTree } from "@/types/api";
-import type { Product as APIProductType } from "@/types/api/product";
 import { Grid3x3, LayoutGrid, List, Loader2, Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -90,6 +89,9 @@ const Products = () => {
   const [categories, setCategories] = useState<CategoryTree[]>([]);
   const [loading, setLoading] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -141,8 +143,14 @@ const Products = () => {
                 price: salePrice,
                 originalPrice: discountPercent > 0 ? originalPrice : undefined,
                 description: "",
-                category: product.category?.slug || "general",
-                subcategory: product.sub_category?.slug,
+                category:
+                  product.category?.slug ||
+                  product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "product",
+                subcategory:
+                  product.sub_category?.slug ||
+                  product.sub_category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "all",
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
                 inStock: (product.stock ?? 0) > 0,
@@ -161,6 +169,8 @@ const Products = () => {
             );
 
             setApiProducts(inStockProducts);
+            setHasMore(false);
+            setPage(1);
           }
         } catch (err) {
           console.error("Error fetching trending products:", err);
@@ -198,8 +208,14 @@ const Products = () => {
                 price: salePrice,
                 originalPrice: discountPercent > 0 ? originalPrice : undefined,
                 description: "",
-                category: product.category?.slug || "general",
-                subcategory: product.sub_category?.slug,
+                category:
+                  product.category?.slug ||
+                  product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "product",
+                subcategory:
+                  product.sub_category?.slug ||
+                  product.sub_category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "all",
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
                 inStock: (product.stock ?? 0) > 0,
@@ -218,6 +234,8 @@ const Products = () => {
             );
 
             setApiProducts(inStockProducts);
+            setHasMore(false);
+            setPage(1);
           }
         } catch (err) {
           console.error("Error fetching bestsellers products:", err);
@@ -252,8 +270,14 @@ const Products = () => {
                 price: salePrice,
                 originalPrice: discountPercent > 0 ? originalPrice : undefined,
                 description: "",
-                category: product.category?.slug || "general",
-                subcategory: product.sub_category?.slug,
+                category:
+                  product.category?.slug ||
+                  product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "product",
+                subcategory:
+                  product.sub_category?.slug ||
+                  product.sub_category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "all",
                 childSubcategory: product.child_sub_category?.slug,
                 images: product.primary_photo ? [product.primary_photo] : ["/placeholder.svg"],
                 inStock: (product.stock ?? 0) > 0,
@@ -272,6 +296,8 @@ const Products = () => {
             );
 
             setApiProducts(inStockProducts);
+            setHasMore(false);
+            setPage(1);
           }
         } catch (err) {
           console.error("Error fetching on-sale products:", err);
@@ -282,55 +308,65 @@ const Products = () => {
 
       fetchOnSaleProducts();
     } else {
-      const fetchAllProducts = async () => {
+      const fetchAllProducts = async (pageToFetch = 1) => {
         try {
-          setLoading(true);
+          if (pageToFetch === 1) {
+            setLoading(true);
+            setHasMore(true);
+          } else {
+            setLoadingMore(true);
+          }
+
           const response = await productService.getProducts({
-            per_page: 100,
+            page: pageToFetch,
+            per_page: 20,
           });
 
           if (response.success && response.data?.products) {
             const transformedProducts: Product[] = response.data.products.map(
-              (product: APIProductType) => {
-                // Handle price - API returns final_price or sale_price
-                const salePrice = product.final_price ?? product.sale_price ?? product.price ?? 0;
-                const originalPrice = product.regular_price ?? product.price ?? 0;
+              (product: APIProduct) => {
+                // Consistent with other blocks: use sell_price and original_price
+                const discountPercent = product.sell_price?.discount || 0;
+                const originalPrice = product.original_price || product.sell_price?.price || 0;
+                const salePrice = product.sell_price?.price || 0;
 
-                // Handle discount_percent
-                const discountPercent = product.discount_percent ?? 0;
+                // Handle category - API returns object with slug/name
+                const categorySlug =
+                  product.category?.slug ||
+                  product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "product";
 
-                // Handle category - API returns object with slug
-                const categorySlug = product.category?.slug || "general";
+                // Handle subcategory
+                const subcategorySlug =
+                  product.sub_category?.slug ||
+                  product.sub_category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "all";
 
-                // Handle images - API has images array
-                const images =
-                  product.images && product.images.length > 0
+                // Handle images - API has primary_photo or images array
+                const images = product.primary_photo
+                  ? [product.primary_photo]
+                  : product.images && product.images.length > 0
                     ? product.images
-                    : product.thumbnail
-                      ? [product.thumbnail]
-                      : ["/placeholder.svg"];
+                    : ["/placeholder.svg"];
 
                 // Handle stock
-                const stockQty = product.stock_quantity ?? 0;
-                const inStock = product.stock_status === "in_stock" && stockQty > 0;
+                const stockQty = product.stock ?? product.stock_quantity ?? 0;
+                const inStock = stockQty > 0;
 
                 return {
                   id: product.id.toString(),
                   name: product.name,
                   slug: product.slug,
                   price: salePrice,
-                  originalPrice:
-                    discountPercent > 0 && originalPrice && typeof originalPrice === "number"
-                      ? originalPrice
-                      : undefined,
+                  originalPrice: discountPercent > 0 ? originalPrice : undefined,
                   description: product.description || product.short_description || "",
                   category: categorySlug,
-                  subcategory: undefined,
-                  childSubcategory: undefined,
+                  subcategory: subcategorySlug,
+                  childSubcategory: product.child_sub_category?.slug,
                   images: images,
                   inStock: inStock,
-                  rating: product.rating || 4.0,
-                  reviewCount: product.reviews_count || 5,
+                  rating: 4.0,
+                  reviewCount: 5,
                   discount: discountPercent > 0 ? discountPercent : undefined,
                   isNew: product.is_new ?? false,
                   isFeatured: product.is_featured ?? false,
@@ -339,18 +375,121 @@ const Products = () => {
               }
             );
 
-            setApiProducts(transformedProducts);
+            if (pageToFetch === 1) {
+              setApiProducts(transformedProducts);
+            } else {
+              setApiProducts((prev) => [...prev, ...transformedProducts]);
+            }
+
+            const pagination = response.data.pagination;
+            if (pagination) {
+              setHasMore(pagination.current_page < pagination.last_page);
+              setPage(pagination.current_page);
+            } else {
+              setHasMore(false);
+            }
+          } else {
+            setHasMore(false);
           }
         } catch (err) {
           console.error("Error fetching all products:", err);
         } finally {
           setLoading(false);
+          setLoadingMore(false);
         }
       };
 
-      fetchAllProducts();
+      fetchAllProducts(1);
     }
   }, [isTrending, isBestsellers, isOnSale]);
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      // Find the fetch function we should call
+      // Currently only fetchAllProducts supports pagination cleanly
+      if (!isTrending && !isBestsellers && !isOnSale) {
+        const fetchAllProducts = async (pageToFetch: number) => {
+          try {
+            setLoadingMore(true);
+            const response = await productService.getProducts({
+              page: pageToFetch,
+              per_page: 20,
+            });
+
+            if (response.success && response.data?.products) {
+              const transformedProducts: Product[] = response.data.products.map(
+                (product: APIProduct) => {
+                  const discountPercent = product.sell_price?.discount || 0;
+                  const originalPrice = product.original_price || product.sell_price?.price || 0;
+                  const salePrice = product.sell_price?.price || 0;
+
+                  const categorySlug =
+                    product.category?.slug ||
+                    product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                    "product";
+                  const subcategorySlug =
+                    product.sub_category?.slug ||
+                    product.sub_category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                    "all";
+
+                  const images = product.primary_photo
+                    ? [product.primary_photo]
+                    : product.images && product.images.length > 0
+                      ? product.images
+                      : ["/placeholder.svg"];
+
+                  const stockQty = product.stock ?? product.stock_quantity ?? 0;
+                  const inStock = stockQty > 0;
+
+                  return {
+                    id: product.id.toString(),
+                    name: product.name,
+                    slug: product.slug,
+                    price: salePrice,
+                    originalPrice: discountPercent > 0 ? originalPrice : undefined,
+                    description: product.description || product.short_description || "",
+                    category: categorySlug,
+                    subcategory: subcategorySlug,
+                    childSubcategory: product.child_sub_category?.slug,
+                    images: images,
+                    inStock: inStock,
+                    rating: 4.0,
+                    reviewCount: 5,
+                    discount: discountPercent > 0 ? discountPercent : undefined,
+                    isNew: product.is_new ?? false,
+                    isFeatured: product.is_featured ?? false,
+                    stock: stockQty,
+                  };
+                }
+              );
+
+              setApiProducts((prev) => [...prev, ...transformedProducts]);
+
+              const pagination = response.data.pagination;
+              if (pagination) {
+                setHasMore(pagination.current_page < pagination.last_page);
+                setPage(pagination.current_page);
+              } else {
+                setHasMore(false);
+              }
+            } else {
+              setHasMore(false);
+            }
+          } catch (err) {
+            console.error("Error loading more products:", err);
+          } finally {
+            setLoadingMore(false);
+          }
+        };
+
+        fetchAllProducts(page + 1);
+      } else {
+        // For Trending/Bestsellers/OnSale, we might not have pagination from API
+        // in which case we disable Load More
+        setHasMore(false);
+      }
+    }
+  };
 
   const sourceProducts = apiProducts;
 
@@ -546,7 +685,28 @@ const Products = () => {
               ))}
             </div>
 
-            {sortedProducts.length === 0 && (
+            {hasMore && (
+              <div className="mt-12 flex justify-center pb-8">
+                <Button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  variant="outline"
+                  size="lg"
+                  className="min-w-[200px] border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 rounded-full font-bold h-12"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Loading More...
+                    </>
+                  ) : (
+                    "Load More Products"
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {sortedProducts.length === 0 && !loading && (
               <div className="text-center py-16">
                 <p className="text-muted-foreground text-lg">No products found</p>
               </div>

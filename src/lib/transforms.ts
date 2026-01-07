@@ -430,10 +430,11 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
     category:
       apiProduct.category?.slug ||
       apiProduct.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
-      "uncategorized",
+      "product",
     subcategory:
       apiProduct.sub_category?.slug ||
-      apiProduct.sub_category?.name?.toLowerCase().replace(/\s+/g, "-"),
+      apiProduct.sub_category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+      "all",
     childSubcategory:
       apiProduct.child_sub_category?.slug ||
       apiProduct.child_sub_category?.name?.toLowerCase().replace(/\s+/g, "-"),
