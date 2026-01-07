@@ -46,6 +46,16 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "api.hometexbangladesh.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "staging.hometexbangladesh.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "staging-api.hometexbd.ltd",
         pathname: "/**",
       },
