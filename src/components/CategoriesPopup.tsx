@@ -64,14 +64,15 @@ export const CategoriesPopup = ({ isOpen, onClose }: CategoriesPopupProps) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-start">
+        {/* Header */}
+        <div className="sticky top-0 bg-primary text-black border-b border-primary/20 p-6 flex justify-between items-start z-10">
           <div>
             <h2 className="text-2xl font-bold">Browse Categories</h2>
-            <p className="text-gray-500 text-sm mt-1">Discover our collection</p>
+            <p className="text-black/80 text-sm mt-1">Discover our collection</p>
           </div>
           <button
             onClick={onClose}
-            className="text-2xl text-gray-400 hover:text-gray-600 font-light"
+            className="text-2xl text-black hover:text-black/70 hover:bg-black/10 rounded-full w-10 h-10 flex items-center justify-center transition-colors font-light"
           >
             ×
           </button>

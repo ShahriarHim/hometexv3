@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "@/i18n/routing";
 import type { CustomerOrderSummary } from "@/types/api/order";
-import { Loader2, RefreshCcw, Truck } from "lucide-react";
+import { Eye, Loader2, RefreshCcw, Truck } from "lucide-react";
 import { memo } from "react";
 
 // Memoized order card component for better performance
@@ -48,22 +48,33 @@ const OrderCard = memo(
           </div>
           <Separator />
           <div className="flex flex-wrap items-center gap-3">
+            {/* View Details */}
+            <Button asChild variant="default" size="sm">
+              <Link
+                href={`/orders/${order.order_number}`}
+                className="flex items-center gap-2 hover:text-black"
+              >
+                <Eye className="h-4 w-4 shrink-0" />
+                <span>View Details</span>
+              </Link>
+            </Button>
+
+            {/* Track */}
             <Button
-              asChild
-              variant="outline"
+              variant="default"
               size="sm"
-              className="border-primary text-primary hover:text-black"
+              onClick={onTrack}
+              disabled={trackingLoading}
+              className="flex items-center gap-2"
             >
-              <Link href={`/orders/${order.order_number}`}>View Details</Link>
-            </Button>
-            <Button variant="default" size="sm" onClick={onTrack} disabled={trackingLoading}>
               {trackingLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
               ) : (
-                <Truck className="h-4 w-4 mr-2" />
+                <Truck className="h-4 w-4 shrink-0" />
               )}
-              Track
+              <span>Track</span>
             </Button>
+
             {trackingStatus && (
               <div className="text-sm flex items-center gap-2">
                 <span className="font-medium text-muted-foreground">Delivery Status:</span>

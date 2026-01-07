@@ -159,30 +159,49 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
             <div className="text-lg font-semibold mb-3 text-right">
               Total: ৳{getTotalPrice().toLocaleString()}
             </div>
-            <div className="flex justify-between items-center gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={handleRemoveAll}
                 disabled={items.length === 0}
-                className="inline-flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+                className="h-10 flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 px-2"
+                title="Remove All"
               >
-                <FaTrashAlt className="text-red-400" size={14} />
-                Remove All
+                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  <FaTrashAlt className="text-red-400 w-full h-full" />
+                </div>
+                <span className="hidden sm:inline">Remove</span>
               </button>
               <button
                 onClick={handleViewCart}
-                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium"
+                className="h-10 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium px-2"
+                title="View Cart"
               >
-                <FaEye size={14} />
-                View Cart
+                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  <FaEye className="w-full h-full" />
+                </div>
+                <span className="hidden sm:inline">Cart</span>
               </button>
-              {isAuthenticated && (
+              {isAuthenticated ? (
                 <button
                   onClick={handleCheckoutClick}
                   disabled={items.length === 0}
-                  className="inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-emerald-500"
+                  className="h-10 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-emerald-500 px-2"
+                  title="Checkout"
                 >
-                  <FaShoppingCart size={14} />
-                  Checkout
+                  <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                    <FaShoppingCart className="w-full h-full" />
+                  </div>
+                  <span className="hidden sm:inline">Checkout</span>
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="h-10 flex items-center justify-center gap-2 bg-gray-600 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed px-2"
+                >
+                  <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                    <FaShoppingCart className="w-full h-full" />
+                  </div>
+                  <span className="hidden sm:inline">Checkout</span>
                 </button>
               )}
             </div>

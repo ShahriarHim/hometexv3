@@ -171,7 +171,7 @@ const Corporate = () => {
                     <Phone className="h-5 w-5 text-primary mt-0.5" />
                     <div>
                       <p className="font-medium">Phone</p>
-                      <p className="text-sm text-muted-foreground">+880 1234-567890</p>
+                      <p className="text-sm text-muted-foreground">01795256087</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">

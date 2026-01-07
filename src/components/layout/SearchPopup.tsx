@@ -1,6 +1,6 @@
 "use client";
 
-import GenericProductCard from "@/components/products/GenericProductCard";
+import { ProductCard } from "@/components/products/ProductCard";
 import { ProductGridSkeleton } from "@/components/ui/ProductCardSkeleton";
 import { useInfiniteProductSearchFlat } from "@/hooks/useInfiniteProductSearch";
 import { productService } from "@/services/api/product.service";
@@ -269,13 +269,16 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
                     {products.map((product) => (
                       <div key={product.id}>
-                        <GenericProductCard
+                        <ProductCard
                           product={{
                             ...product,
                             id: product.id.toString(),
-                            discount_percent: product.discount_percent
-                              ? String(product.discount_percent)
-                              : undefined,
+                            inStock: product.stock_status === "in_stock",
+                            reviewCount: 0,
+                            description: product.description || "",
+                            category: product.category?.slug || "",
+                            subcategory: product.sub_category?.slug || "",
+                            rating: product.average_rating || 0,
                           }}
                           showSaleLabel={true}
                           showTrendingIcon={true}

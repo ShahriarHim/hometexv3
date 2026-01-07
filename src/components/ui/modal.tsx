@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import * as React from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
   isOpen: boolean;
@@ -27,6 +28,13 @@ export const Modal: React.FC<ModalProps> = ({
   size = "md",
   className,
 }) => {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -43,19 +51,19 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) {
+  if (!isOpen || !mounted) {
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl",
+          "relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl mx-4",
           "animate-in fade-in-0 zoom-in-95 duration-200",
           sizeClasses[size],
           className
@@ -89,6 +97,7 @@ export const Modal: React.FC<ModalProps> = ({
         )}
         <div className="max-h-[90vh] overflow-y-auto p-0">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

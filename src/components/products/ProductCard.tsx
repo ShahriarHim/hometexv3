@@ -2,14 +2,19 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
-import { Flame, Heart, Leaf, ShoppingCart, Star, TrendingUp } from "lucide-react";
+import { Eye, Flame, Heart, Leaf, Star, TrendingUp } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import HotDealsQuickViewModal from "../home/HotDealsQuickViewModal";
+import { MakeOfferButton } from "./MakeOfferButton";
+import PriceView from "./PriceView";
+import Title from "./Title";
 
 // Helper function to get active badges in priority order (max 2)
 const getActiveBadges = (badges?: Product["badges"]) => {
@@ -73,491 +78,331 @@ const getActiveBadges = (badges?: Product["badges"]) => {
 interface ProductCardProps {
   product: Product;
   viewMode?: "grid-5" | "grid-3" | "list";
+  showSaleLabel?: boolean;
+  showTrendingIcon?: boolean;
+  className?: string;
 }
 
-/**
- * Determines which card variant to show based on priority rules:
- * 1. Featured > Out of Stock > Price Rule > Even/Odd Rule
- * 2. If product.isFeatured === true → force Concave Card
- * 3. If product.stock === 0 → force Standard Card
- * 4. If product.price > 5000 → force Concave Card
- * 5. Otherwise: product.id % 2 === 0 → Concave Card, else Standard Card
- */
-const getCardType = (product: Product): "concave" | "standard" => {
-  // Priority 1: Featured products → Concave Card
-  if (product.isFeatured === true) {
-    return "concave";
-  }
-
-  // Priority 2: Out of stock → Standard Card
-  if (product.stock === 0) {
-    return "standard";
-  }
-
-  // Priority 3: Price > 5000 → Concave Card
-  if (product.price > 5000) {
-    return "concave";
-  }
-
-  // Priority 4: Even/Odd rule based on product ID
-  const productIdNum = parseInt(product.id, 10) || 0;
-  return productIdNum % 2 === 0 ? "concave" : "standard";
-};
-
-// Standard Card Component (Component B)
-const StandardCard = ({
+export const ProductCard = ({
   product,
-  viewMode,
-  handlers,
-}: {
-  product: Product;
-  viewMode: "grid-5" | "grid-3" | "list";
-  handlers: {
-    addToCart: () => void;
-    wishlistToggle: () => void;
-    productClick: () => void;
-    inWishlist: boolean;
-    imageLoaded: boolean;
-    setImageLoaded: (loaded: boolean) => void;
-  };
-}) => {
-  const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || "all"}/${product.id}`;
-
-  if (viewMode === "list") {
-    return (
-      <div className="group relative bg-card rounded-lg border border-border hover:shadow-lg transition-shadow p-4">
-        <div className="flex gap-6">
-          <Link
-            href={productUrl as never}
-            onClick={handlers.productClick}
-            className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg"
-          >
-            <img
-              src={product.primary_photo || product.images[0] || "/placeholder.svg"}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-              {product.discount && (
-                <Badge className="bg-destructive text-destructive-foreground text-xs">
-                  -{product.discount}%
-                </Badge>
-              )}
-              {product.badges?.is_on_sale && (
-                <Badge variant="destructive" className="animate-pulse text-xs">
-                  <Flame className="w-3 h-3 mr-1" />
-                  Sale
-                </Badge>
-              )}
-            </div>
-            {(() => {
-              const activeBadges = getActiveBadges(product.badges);
-              const hasLegacyNew = !product.badges?.is_new && product.isNew;
-
-              return (
-                <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-                  {activeBadges.map((badge) => (
-                    <Badge key={badge.key} className={`${badge.className} whitespace-nowrap`}>
-                      {badge.icon}
-                      {badge.label}
-                    </Badge>
-                  ))}
-                  {hasLegacyNew && activeBadges.length < 2 && (
-                    <Badge className="bg-primary text-xs whitespace-nowrap">New</Badge>
-                  )}
-                </div>
-              );
-            })()}
-          </Link>
-
-          <div className="flex-1 flex flex-col">
-            <Link href={productUrl as never} onClick={handlers.productClick}>
-              <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
-                {product.name}
-              </h3>
-            </Link>
-            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
-
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i < Math.floor(product.rating)
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">({product.reviewCount})</span>
-            </div>
-
-            <div className="mt-auto flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-foreground">
-                  ৳{product.price.toLocaleString()}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-lg text-muted-foreground line-through">
-                    ৳{product.originalPrice.toLocaleString()}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handlers.addToCart}>
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Add to Cart
-                </Button>
-                <Button
-                  size="icon"
-                  variant={handlers.inWishlist ? "default" : "outline"}
-                  onClick={handlers.wishlistToggle}
-                >
-                  <Heart className={`h-4 w-4 ${handlers.inWishlist ? "fill-current" : ""}`} />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-      <Link href={productUrl as never} onClick={handlers.productClick}>
-        <div className="relative aspect-square overflow-hidden bg-muted">
-          <img
-            src={product.primary_photo || product.images[0] || "/placeholder.svg"}
-            alt={product.name}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
-              handlers.imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
-            onLoad={() => handlers.setImageLoaded(true)}
-          />
-          {!handlers.imageLoaded && <div className="absolute inset-0 bg-muted animate-pulse" />}
-          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-            {product.discount && (
-              <Badge className="bg-destructive text-destructive-foreground text-xs">
-                {product.discount}% OFF
-              </Badge>
-            )}
-            {product.badges?.is_on_sale && (
-              <Badge variant="destructive" className="animate-pulse text-xs">
-                <Flame className="w-3 h-3 mr-1" />
-                Sale
-              </Badge>
-            )}
-          </div>
-          {(() => {
-            const activeBadges = getActiveBadges(product.badges);
-            const hasLegacyNew = !product.badges?.is_new && product.isNew;
-
-            return (
-              <div className="absolute top-2 right-2 z-20 flex flex-col gap-1">
-                {activeBadges.map((badge) => (
-                  <Badge key={badge.key} className={`${badge.className} whitespace-nowrap`}>
-                    {badge.icon}
-                    {badge.label}
-                  </Badge>
-                ))}
-                {hasLegacyNew && activeBadges.length < 2 && (
-                  <Badge className="bg-sage text-white text-xs whitespace-nowrap">New</Badge>
-                )}
-              </div>
-            );
-          })()}
-        </div>
-      </Link>
-      <CardContent className="p-4">
-        <Link href={productUrl as never} onClick={handlers.productClick}>
-          <h3 className="font-medium text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
-            {product.name}
-          </h3>
-        </Link>
-        <div className="flex items-center space-x-1 mb-2">
-          <Star className="h-4 w-4 fill-primary text-primary" />
-          <span className="text-sm font-medium">{product.rating}</span>
-          <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-lg font-bold text-foreground">
-            ৳{product.price.toLocaleString()}
-          </span>
-          {product.originalPrice && (
-            <span className="text-sm text-muted-foreground line-through">
-              ৳{product.originalPrice.toLocaleString()}
-            </span>
-          )}
-        </div>
-      </CardContent>
-      <CardFooter className="p-4 pt-0 flex space-x-2">
-        <Button onClick={handlers.addToCart} className="flex-1" size="sm">
-          <ShoppingCart className="h-4 w-4 mr-1" />
-          Add to Cart
-        </Button>
-        <Button
-          onClick={handlers.wishlistToggle}
-          variant={handlers.inWishlist ? "default" : "outline"}
-          size="icon"
-          className="shrink-0"
-        >
-          <Heart className={`h-4 w-4 ${handlers.inWishlist ? "fill-current" : ""}`} />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
-
-// Concave Card Component (Component A)
-const ConcaveCard = ({
-  product,
-  viewMode,
-  handlers,
-}: {
-  product: Product;
-  viewMode: "grid-5" | "grid-3" | "list";
-  handlers: {
-    addToCart: () => void;
-    wishlistToggle: () => void;
-    productClick: () => void;
-    inWishlist: boolean;
-    imageLoaded: boolean;
-    setImageLoaded: (loaded: boolean) => void;
-  };
-}) => {
-  const productUrl = `/products/${product.category}/${product.childSubcategory || product.subcategory || "all"}/${product.id}`;
-
-  if (viewMode === "list") {
-    return (
-      <div className="group relative bg-card rounded-lg border border-border hover:shadow-lg transition-shadow p-4">
-        <div className="flex gap-6">
-          <Link
-            href={productUrl as never}
-            onClick={handlers.productClick}
-            className="relative w-48 h-48 flex-shrink-0 overflow-hidden bg-muted rounded-lg"
-          >
-            <img
-              src={product.primary_photo || product.images[0] || "/placeholder.svg"}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-              {product.discount && (
-                <Badge className="bg-destructive text-destructive-foreground text-xs">
-                  -{product.discount}%
-                </Badge>
-              )}
-              {product.badges?.is_on_sale && (
-                <Badge variant="destructive" className="animate-pulse text-xs">
-                  <Flame className="w-3 h-3 mr-1" />
-                  Sale
-                </Badge>
-              )}
-            </div>
-            {(() => {
-              const activeBadges = getActiveBadges(product.badges);
-              const hasLegacyNew = !product.badges?.is_new && product.isNew;
-
-              return (
-                <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
-                  {activeBadges.map((badge) => (
-                    <Badge key={badge.key} className={`${badge.className} whitespace-nowrap`}>
-                      {badge.icon}
-                      {badge.label}
-                    </Badge>
-                  ))}
-                  {hasLegacyNew && activeBadges.length < 2 && (
-                    <Badge className="bg-primary text-xs whitespace-nowrap">New</Badge>
-                  )}
-                </div>
-              );
-            })()}
-          </Link>
-
-          <div className="flex-1 flex flex-col">
-            <Link href={productUrl as never} onClick={handlers.productClick}>
-              <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
-                {product.name}
-              </h3>
-            </Link>
-            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
-
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i < Math.floor(product.rating)
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">({product.reviewCount})</span>
-            </div>
-
-            <div className="mt-auto flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-foreground">
-                  ৳{product.price.toLocaleString()}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-lg text-muted-foreground line-through">
-                    ৳{product.originalPrice.toLocaleString()}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handlers.addToCart}>
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Add to Cart
-                </Button>
-                <Button
-                  size="icon"
-                  variant={handlers.inWishlist ? "default" : "outline"}
-                  onClick={handlers.wishlistToggle}
-                >
-                  <Heart className={`h-4 w-4 ${handlers.inWishlist ? "fill-current" : ""}`} />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-2 border-primary/20 shadow-[inset_0_2px_8px_rgba(0,0,0,0.1)] bg-gradient-to-br from-card to-card/95">
-      <Link href={productUrl as never} onClick={handlers.productClick}>
-        <div className="relative aspect-square overflow-hidden bg-muted">
-          <img
-            src={product.primary_photo || product.images[0] || "/placeholder.svg"}
-            alt={product.name}
-            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
-              handlers.imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
-            onLoad={() => handlers.setImageLoaded(true)}
-          />
-          {!handlers.imageLoaded && <div className="absolute inset-0 bg-muted animate-pulse" />}
-          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-            {product.discount && (
-              <Badge className="bg-destructive text-destructive-foreground text-xs">
-                {product.discount}% OFF
-              </Badge>
-            )}
-            {product.badges?.is_on_sale && (
-              <Badge variant="destructive" className="animate-pulse text-xs">
-                <Flame className="w-3 h-3 mr-1" />
-                Sale
-              </Badge>
-            )}
-          </div>
-          {(() => {
-            const activeBadges = getActiveBadges(product.badges);
-            const hasLegacyNew = !product.badges?.is_new && product.isNew;
-
-            return (
-              <div className="absolute top-2 right-2 z-20 flex flex-col gap-1">
-                {activeBadges.map((badge) => (
-                  <Badge key={badge.key} className={`${badge.className} whitespace-nowrap`}>
-                    {badge.icon}
-                    {badge.label}
-                  </Badge>
-                ))}
-                {hasLegacyNew && activeBadges.length < 2 && (
-                  <Badge className="bg-sage text-white text-xs whitespace-nowrap">New</Badge>
-                )}
-              </div>
-            );
-          })()}
-        </div>
-      </Link>
-      <CardContent className="p-4">
-        <Link href={productUrl as never} onClick={handlers.productClick}>
-          <h3 className="font-medium text-foreground mb-2 line-clamp-2 hover:text-primary transition-colors">
-            {product.name}
-          </h3>
-        </Link>
-        <div className="flex items-center space-x-1 mb-2">
-          <Star className="h-4 w-4 fill-primary text-primary" />
-          <span className="text-sm font-medium">{product.rating}</span>
-          <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-lg font-bold text-foreground">
-            ৳{product.price.toLocaleString()}
-          </span>
-          {product.originalPrice && (
-            <span className="text-sm text-muted-foreground line-through">
-              ৳{product.originalPrice.toLocaleString()}
-            </span>
-          )}
-        </div>
-      </CardContent>
-      <CardFooter className="p-4 pt-0 flex space-x-2">
-        <Button onClick={handlers.addToCart} className="flex-1" size="sm">
-          <ShoppingCart className="h-4 w-4 mr-1" />
-          Add to Cart
-        </Button>
-        <Button
-          onClick={handlers.wishlistToggle}
-          variant={handlers.inWishlist ? "default" : "outline"}
-          size="icon"
-          className="shrink-0"
-        >
-          <Heart className={`h-4 w-4 ${handlers.inWishlist ? "fill-current" : ""}`} />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
-
-export const ProductCard = ({ product, viewMode = "grid-3" }: ProductCardProps) => {
+  viewMode: _viewMode = "grid-3",
+  showSaleLabel = true,
+  showTrendingIcon = true,
+  className,
+}: ProductCardProps) => {
   const { addToCart } = useCart();
-  const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { addRecentView } = useRecentViews();
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [isRestockRequested, setIsRestockRequested] = useState(false);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
-  const inWishlist = isInWishlist(product.id);
-
-  const handleAddToCart = () => {
-    addToCart(product);
+  const openQuickView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsQuickViewOpen(true);
   };
 
-  const handleWishlistToggle = () => {
-    if (inWishlist) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist(product);
+  const closeQuickView = () => {
+    setIsQuickViewOpen(false);
+  };
+
+  // Helper functions to extract values (ported from GenericProductCard)
+  const getCategoryName = (): string => {
+    if (!product.category) {
+      return "";
     }
+    // Handle case where category might be a string or an object
+    if (typeof product.category === "string") {
+      return product.category;
+    }
+    // Safe access for object property
+    return (product.category as { name?: string }).name || "";
   };
+
+  const getSubcategoryName = (): string => {
+    // product.subcategory is the standard property, sub_category might be legacy or from API transform
+    const sub =
+      product.subcategory ||
+      (product as unknown as { sub_category?: { name?: string } | string }).sub_category;
+    if (!sub) {
+      return "all";
+    }
+    if (typeof sub === "string") {
+      return sub;
+    }
+    return (sub as { name?: string }).name || "all";
+  };
+
+  const getImageUrl = (): string => {
+    if (product.primary_photo) {
+      return product.primary_photo;
+    }
+    if (product.images && product.images.length > 0) {
+      return product.images[0];
+    }
+    return "/placeholder.svg";
+  };
+
+  // Stock logic
+  const stock =
+    typeof product.stock === "number"
+      ? product.stock
+      : product.inStock === true
+        ? 100
+        : product.inStock === false
+          ? 0
+          : 50;
+
+  const categoryName = getCategoryName();
+  const subcategoryName = getSubcategoryName();
+  const imageUrl = getImageUrl();
+
+  // Use product URL generation logic
+  const productUrl = `/products/${categoryName}/${subcategoryName}/${product.id}`;
 
   const handleProductClick = () => {
     addRecentView(product);
   };
 
-  const cardType = getCardType(product);
+  return (
+    <div
+      className={cn(
+        "text-sm border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden flex flex-col h-full",
+        className
+      )}
+    >
+      {/* Image Section */}
+      <div className="relative overflow-hidden bg-gray-50 rounded-t-lg aspect-square">
+        <Link
+          href={productUrl as never}
+          onClick={handleProductClick}
+          className="block w-full h-full relative group/image overflow-hidden"
+        >
+          {/* Hot Deals Hover Effect - Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/5 to-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity duration-1000 ease-in-out z-10 pointer-events-none" />
 
-  const handlers = {
-    addToCart: handleAddToCart,
-    wishlistToggle: handleWishlistToggle,
-    productClick: handleProductClick,
-    inWishlist,
-    imageLoaded,
-    setImageLoaded,
-  };
+          {/* Hot Deals Hover Effect - Shine */}
+          <div className="absolute -top-1/2 -left-[60%] w-[20%] h-[200%] bg-white/10 rotate-[35deg] pointer-events-none transition-all duration-1000 ease-in-out z-20 opacity-0 group-hover/image:left-[130%] group-hover/image:opacity-100" />
 
-  if (cardType === "concave") {
-    return <ConcaveCard product={product} viewMode={viewMode} handlers={handlers} />;
-  }
+          {/* Quick View Button - Right Side, Icon Only, Sequenced Fade In */}
+          <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 flex flex-col gap-2 pointer-events-none">
+            {/* Quick View */}
+            <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 ease-in-out delay-100">
+              <button
+                type="button"
+                onClick={openQuickView}
+                className="w-[40px] h-[40px] rounded-[12px] bg-white text-[#333] shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex items-center justify-center border-none hover:bg-[#84cc16] hover:text-white hover:shadow-[0_5px_15px_rgba(132,204,22,0.3)] transition-all duration-300 cursor-pointer pointer-events-auto transform hover:scale-110"
+              >
+                <Eye className="w-5 h-5 transition-transform duration-300" />
+              </button>
+            </div>
 
-  return <StandardCard product={product} viewMode={viewMode} handlers={handlers} />;
+            {/* Make Offer - Only if in stock */}
+            {stock > 0 && (
+              <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 ease-in-out delay-100">
+                <MakeOfferButton product={product} />
+              </div>
+            )}
+          </div>
+
+          <div className="relative w-full h-full flex items-center justify-center">
+            <Image
+              src={imageUrl}
+              alt={product.name || "Product Image"}
+              fill
+              className={cn(
+                "object-contain p-4 transition-transform duration-1000 ease-in-out",
+                stock !== 0 && "group-hover:scale-105",
+                !isImageLoaded && "opacity-0",
+                isImageLoaded && "opacity-100"
+              )}
+              onLoad={() => setIsImageLoaded(true)}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+
+          {/* Stock Indicator - Fade out on hover */}
+          {stock > 0 && (
+            <div className="absolute bottom-2 right-2 z-10 bg-primary/90 backdrop-blur-sm border border-primary rounded-full px-3 py-1.5 shadow-lg group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-black animate-pulse"></div>
+                <span className="text-xs font-bold text-black">{stock} in stock</span>
+              </div>
+            </div>
+          )}
+          {stock === 0 && (
+            <div className="absolute bottom-2 right-2 z-10 bg-red-500/95 backdrop-blur-sm border border-red-600 rounded-full px-3 py-1.5 shadow-lg group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-white"></div>
+                <span className="text-xs font-bold text-white">Out of stock</span>
+              </div>
+            </div>
+          )}
+        </Link>
+
+        {/* Badges - Fade out on hover */}
+        <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out">
+          {product.discount && product.discount > 0 ? (
+            <Badge className="bg-destructive text-destructive-foreground text-xs shadow-md border-0">
+              -{product.discount}%
+            </Badge>
+          ) : showSaleLabel && product.badges?.is_on_sale ? (
+            <Badge variant="destructive" className="animate-pulse text-xs shadow-md border-0">
+              <Flame className="w-3 h-3 mr-1" />
+              Sale
+            </Badge>
+          ) : showTrendingIcon &&
+            (product.badges?.is_trending || (!product.discount && !product.badges?.is_on_sale)) ? (
+            <Link
+              href="/deal"
+              className="border-2 border-accent-secondary bg-white/95 backdrop-blur-sm p-2 rounded-full hover:bg-accent-secondary/10 transition-colors shadow-md block"
+            >
+              <Flame
+                size={20}
+                fill="hsl(var(--accent-secondary))"
+                className="text-accent-secondary"
+              />
+            </Link>
+          ) : null}
+        </div>
+
+        {/* Extra Badges (top right) - Fade out on hover */}
+        {(() => {
+          const activeBadges = getActiveBadges(product.badges);
+          const hasLegacyNew = !product.badges?.is_new && product.isNew;
+
+          if (activeBadges.length === 0 && !hasLegacyNew) {
+            return null;
+          }
+
+          return (
+            <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end group-hover/image:opacity-0 transition-opacity duration-1000 ease-in-out">
+              {activeBadges.map((badge) => (
+                <Badge
+                  key={badge.key}
+                  className={cn(badge.className, "whitespace-nowrap shadow-sm")}
+                >
+                  {badge.icon}
+                  {badge.label}
+                </Badge>
+              ))}
+              {hasLegacyNew && activeBadges.length < 2 && (
+                <Badge className="bg-emerald-500 text-white text-xs whitespace-nowrap shadow-sm border-0">
+                  New
+                </Badge>
+              )}
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* Content Section */}
+      {/* Content Section */}
+      <div className="p-4 flex flex-col gap-2 flex-1 text-left">
+        {categoryName && (
+          <p className="uppercase line-clamp-1 text-xs font-semibold text-gray-500 tracking-wider">
+            {categoryName}
+          </p>
+        )}
+
+        <div className="flex justify-between items-start gap-2">
+          <Link
+            href={productUrl as never}
+            onClick={handleProductClick}
+            className="hover:text-accent transition-colors block flex-1"
+          >
+            <Title className="text-sm font-bold text-gray-900 leading-tight line-clamp-2">
+              {product.name}
+            </Title>
+          </Link>
+          <PriceView
+            price={product.price}
+            originalPrice={product.originalPrice}
+            discount={product.discount}
+            className="flex-col items-end gap-0.5"
+            priceClassName="text-black text-lg"
+          />
+        </div>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1">
+          {[...Array(5)].map((_, index) => (
+            <Star
+              key={`star-${product.id}-${index}`}
+              className={cn(
+                "h-3.5 w-3.5",
+                index < Math.floor(product.rating || 0)
+                  ? "text-yellow-400 fill-yellow-400"
+                  : "text-gray-200 fill-gray-200"
+              )}
+            />
+          ))}
+          {(product.reviewCount || 0) > 0 && (
+            <span className="text-xs text-gray-500 ml-1">({product.reviewCount})</span>
+          )}
+        </div>
+
+        <div className="mt-auto pt-2 space-y-3">
+          {/* Actions - Single Unit Add to Cart + Wishlist */}
+          <div className="flex items-center gap-2">
+            {stock === 0 ? (
+              // Out of Stock / Request Restock Button
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!isRestockRequested) {
+                    setIsRestockRequested(true);
+                  }
+                }}
+                disabled={isRestockRequested}
+                className={cn(
+                  "flex-1 font-semibold tracking-wide flex items-center justify-center gap-2",
+                  "bg-orange-100 text-orange-900 border border-orange-200 hover:bg-orange-200",
+                  isRestockRequested && "opacity-80 cursor-not-allowed"
+                )}
+                size="sm"
+              >
+                <span>{isRestockRequested ? "Restock Requested" : "Request Restock"}</span>
+              </Button>
+            ) : (
+              // In Stock / Add to Cart Button
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  addToCart(product, 1);
+                }}
+                className="flex-1 font-semibold tracking-wide flex items-center justify-center gap-2 h-9 text-xs uppercase"
+              >
+                <span>Add to Cart</span>
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              size="icon"
+              className={cn(
+                "h-9 w-9 flex-shrink-0 border-input hover:bg-accent hover:text-accent-foreground transition-colors",
+                isInWishlist(product.id) &&
+                  "text-red-500 hover:text-red-600 border-red-200 bg-red-50"
+              )}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isInWishlist(product.id)) {
+                  removeFromWishlist(product.id);
+                } else {
+                  addToWishlist(product);
+                }
+              }}
+              title={isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+            >
+              <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} />
+            </Button>
+          </div>
+        </div>
+      </div>
+      <HotDealsQuickViewModal isOpen={isQuickViewOpen} onClose={closeQuickView} product={product} />
+    </div>
+  );
 };

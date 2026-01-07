@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 // Removed unused router to satisfy lint
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -152,17 +152,24 @@ const Cart = () => {
                   <span>৳{grandTotal.toLocaleString()}</span>
                 </div>
                 {isAuthenticated ? (
-                  <Button asChild className="w-full" size="lg" variant="premium">
-                    <Link href="/checkout">Proceed to Checkout</Link>
+                  <Button asChild className="w-full group" size="lg" variant="premium">
+                    <Link
+                      href="/checkout"
+                      className="flex items-center justify-center gap-2 hover:text-black"
+                    >
+                      Proceed to Checkout
+                      <ArrowRight className="h-4 w-4 text-primary-foreground group-hover:text-white transition-colors opacity-100" />
+                    </Link>
                   </Button>
                 ) : (
                   <Button
-                    className="w-full"
                     size="lg"
                     variant="premium"
                     onClick={handleProceedToCheckout}
+                    className="w-full group flex items-center justify-center gap-2"
                   >
                     Proceed to Checkout
+                    <ArrowRight className="h-4 w-4 text-primary-foreground group-hover:text-white transition-colors opacity-100" />
                   </Button>
                 )}
                 <Button asChild variant="outline" className="w-full mt-3">

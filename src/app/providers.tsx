@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { MakeOfferProvider } from "@/context/MakeOfferContext";
 import { OrderProvider } from "@/context/OrderContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -33,11 +34,13 @@ export function Providers({ children }: { children: ReactNode }) {
           <OrderProvider>
             <CartProvider>
               <WishlistProvider>
-                <TooltipProvider>
-                  {children}
-                  <Toaster />
-                  <Sonner />
-                </TooltipProvider>
+                <MakeOfferProvider>
+                  <TooltipProvider>
+                    {children}
+                    <Toaster />
+                    <Sonner />
+                  </TooltipProvider>
+                </MakeOfferProvider>
               </WishlistProvider>
             </CartProvider>
           </OrderProvider>
