@@ -381,7 +381,10 @@ const PreHeader = () => {
                 <span className="text-sm font-bold text-black group-hover:text-blue-600 leading-tight transition-colors duration-300">
                   {t("cart")}
                 </span>
-                <span className="text-xs font-bold text-black group-hover:text-blue-600 leading-tight transition-colors duration-300">
+                <span
+                  className="text-xs font-bold text-black group-hover:text-blue-600 leading-tight transition-colors duration-300"
+                  suppressHydrationWarning
+                >
                   ৳{cartTotal.toLocaleString()}
                 </span>
               </div>
