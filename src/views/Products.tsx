@@ -27,7 +27,7 @@ interface APIProduct {
   id: number;
   name: string;
   slug: string;
-  price?: string;
+  price?: string | number;
   original_price?: number;
   regular_price?: number;
   final_price?: number;
