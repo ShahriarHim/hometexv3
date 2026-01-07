@@ -2,7 +2,7 @@
 
 ## Problem
 
-**Error:** `GET http://staging-api.hometexbd.ltd/api/my-profile 401 (Unauthorized)`
+**Error:** `GET https://api.hometexbangladesh.org/api/my-profile 401 (Unauthorized)`
 
 Works locally but fails on the staging server. User is getting "Unauthenticated" errors even after successful login.
 
