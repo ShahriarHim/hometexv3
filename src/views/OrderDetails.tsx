@@ -1005,7 +1005,9 @@ const OrderDetails = () => {
                       )}
                       <div>
                         <p className="text-sm text-muted-foreground">Payment Status</p>
-                        <div className="mt-1">{getPaymentStatusBadge(order.payment_status)}</div>
+                        <div className="mt-1">
+                          {getPaymentStatusBadge(order.order_status_string)}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

@@ -62,6 +62,8 @@ export interface Order {
   notes?: string;
   tracking_number?: string;
   transaction_id?: string;
+  is_gift?: boolean;
+  gift_fee?: number;
   created_at: string;
   updated_at: string;
 }
@@ -89,9 +91,13 @@ export interface CreateOrderRequest {
   };
   notes?: string;
   coupon_code?: string;
+  is_gift?: boolean;
+  gift_fee?: number;
   additionalDetails?: {
     notes?: string;
     couponCode?: string;
+    isGift?: boolean;
+    giftFee?: number;
   };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import GenericProductCard from "@/components/products/GenericProductCard";
+import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { fetchPublicWithFallback } from "@/lib/api";
 import { env } from "@/lib/env";
@@ -191,7 +191,7 @@ export const BestSellers = () => {
           >
             {products.map((product) => (
               <SwiperSlide key={product.id}>
-                <GenericProductCard product={product} showSaleLabel={false} />
+                <ProductCard product={product} showSaleLabel={false} />
               </SwiperSlide>
             ))}
           </Swiper>

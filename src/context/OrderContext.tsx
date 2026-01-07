@@ -43,6 +43,8 @@ export interface Order {
   orderNumber?: string;
   notes?: string;
   couponCode?: string;
+  isGift?: boolean;
+  giftFee?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -325,9 +327,13 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       },
       notes: orderData.notes,
       coupon_code: orderData.couponCode,
+      is_gift: orderData.isGift,
+      gift_fee: orderData.giftFee,
       additionalDetails: {
         notes: orderData.notes,
         couponCode: orderData.couponCode,
+        isGift: orderData.isGift,
+        giftFee: orderData.giftFee,
       },
     };
 
