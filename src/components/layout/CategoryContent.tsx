@@ -83,7 +83,7 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
       {apiCategory && !subId && (
         <div className="container mx-auto px-4 py-8">
           <h2 className="text-2xl font-semibold mb-4 text-center">Browse by Subcategory</h2>
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-2 justify-center ">
             {apiCategory.subcategories.map((sub) => (
               <Link
                 key={sub.id}
@@ -94,7 +94,7 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
               >
                 <Badge
                   variant="outline"
-                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                  className="cursor-pointer hover:!bg-gray-100 !text-black hover:!text-black transition-colors border-gray-300"
                 >
                   {sub.name}
                 </Badge>
@@ -121,7 +121,7 @@ export const CategoryContent = ({ slug, subId, childId }: CategoryContentProps) 
                 >
                   <Badge
                     variant="outline"
-                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                    className="cursor-pointer hover:!bg-gray-100 !text-black hover:!text-black transition-colors border-gray-300"
                   >
                     {child.name}
                   </Badge>

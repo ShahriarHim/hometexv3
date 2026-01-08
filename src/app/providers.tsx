@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { MakeOfferProvider } from "@/context/MakeOfferContext";
 import { OrderProvider } from "@/context/OrderContext";
 import { WishlistProvider } from "@/context/WishlistContext";
@@ -35,11 +36,13 @@ export function Providers({ children }: { children: ReactNode }) {
             <CartProvider>
               <WishlistProvider>
                 <MakeOfferProvider>
-                  <TooltipProvider>
-                    {children}
-                    <Toaster />
-                    <Sonner />
-                  </TooltipProvider>
+                  <CurrencyProvider>
+                    <TooltipProvider>
+                      {children}
+                      <Toaster />
+                      <Sonner />
+                    </TooltipProvider>
+                  </CurrencyProvider>
                 </MakeOfferProvider>
               </WishlistProvider>
             </CartProvider>

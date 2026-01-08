@@ -1,3 +1,4 @@
+import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -6,13 +7,15 @@ interface Props {
 }
 
 const PriceFormatter = ({ amount, className }: Props) => {
+  const { formatPrice } = useCurrency();
+
   if (amount === undefined || amount === null || isNaN(amount)) {
-    return <span className={cn("font-medium", className)}>0৳</span>;
+    return <span className={cn("font-medium", className)}>{formatPrice(0)}</span>;
   }
 
   return (
     <span className={cn("font-medium", className)} suppressHydrationWarning>
-      {amount.toLocaleString()}৳
+      {formatPrice(amount)}
     </span>
   );
 };

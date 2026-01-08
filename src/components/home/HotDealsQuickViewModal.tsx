@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { api, transformAPIProductToProduct } from "@/lib/api";
@@ -89,6 +90,58 @@ export const HotDealsQuickViewModal: React.FC<HotDealsQuickViewModalProps> = ({
       removeFromWishlist(activeProduct.id);
     } else {
       addToWishlist(activeProduct);
+    }
+  };
+
+  const { toast } = useToast();
+
+  const handleShare = (platform: "facebook" | "twitter" | "instagram" | "other") => {
+    if (!activeProduct) {
+      return;
+    }
+
+    const url = `${window.location.origin}${productUrl}`;
+    const text = `Check out ${activeProduct.name} on HomeTex!`;
+
+    switch (platform) {
+      case "facebook":
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+          "_blank"
+        );
+        break;
+      case "twitter":
+        window.open(
+          `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(
+            text
+          )}`,
+          "_blank"
+        );
+        break;
+      case "instagram":
+        navigator.clipboard.writeText(url);
+        toast({
+          title: "Link copied",
+          description: "Product link copied to clipboard for Instagram sharing.",
+        });
+        break;
+      case "other":
+        if (navigator.share) {
+          navigator
+            .share({
+              title: activeProduct.name,
+              text: text,
+              url: url,
+            })
+            .catch(console.error);
+        } else {
+          navigator.clipboard.writeText(url);
+          toast({
+            title: "Link copied",
+            description: "Product link copied to clipboard.",
+          });
+        }
+        break;
     }
   };
 
@@ -262,28 +315,32 @@ export const HotDealsQuickViewModal: React.FC<HotDealsQuickViewModalProps> = ({
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80"
+                        onClick={() => handleShare("facebook")}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-[#1877F2] hover:text-white transition-colors"
                         aria-label="Share on Facebook"
                       >
                         <Facebook className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80"
+                        onClick={() => handleShare("twitter")}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-[#1DA1F2] hover:text-white transition-colors"
                         aria-label="Share on X"
                       >
                         <Twitter className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80"
+                        onClick={() => handleShare("instagram")}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-gradient-to-tr from-[#FFDC80] via-[#F56040] to-[#E1306C] hover:text-white transition-colors"
                         aria-label="Share on Instagram"
                       >
                         <Instagram className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80"
+                        onClick={() => handleShare("other")}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-gray-700 hover:text-white transition-colors"
                         aria-label="More share options"
                       >
                         <Share2 className="h-3.5 w-3.5" />

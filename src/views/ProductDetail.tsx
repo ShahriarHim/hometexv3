@@ -2,6 +2,7 @@
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import PriceFormatter from "@/components/products/PriceFormatter";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
 import { ProductStickyBar } from "@/components/products/ProductStickyBar";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
 import { trackEvent } from "@/lib/analytics";
@@ -185,13 +187,26 @@ const ProductReviews = dynamic(
   }
 );
 
+const FrequentlyBoughtTogether = dynamic(
+  () =>
+    import("@/components/products/FrequentlyBoughtTogether").then((mod) => ({
+      default: mod.FrequentlyBoughtTogether,
+    })),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg" />,
+  }
+);
+
 const ProductDetailNew = () => {
   const params = useParams<{ id?: string }>();
   const router = useRouter();
   const id = params?.id;
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
+
   const { addRecentView } = useRecentViews();
+  const { formatPrice } = useCurrency();
 
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
@@ -736,7 +751,6 @@ const ProductDetailNew = () => {
             productImage={getProductImage()}
             productName={product.name}
             price={displayPrice}
-            currencySymbol={pricing?.currency_symbol ?? "৳"}
             isInStock={isInStock}
             quantity={quantity}
             minQuantity={product.minimum_order_quantity ?? 1}
@@ -986,15 +1000,15 @@ const ProductDetailNew = () => {
               {/* Pricing */}
               <div className="space-y-3">
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                    {pricing?.currency_symbol}
-                    {displayPrice.toLocaleString()}
-                  </span>
+                  <PriceFormatter
+                    amount={displayPrice}
+                    className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
+                  />
                   {(currentSalePrice || currentRegularPrice > currentPrice) && (
-                    <span className="text-2xl text-muted-foreground line-through decoration-2">
-                      {pricing?.currency_symbol}
-                      {currentRegularPrice.toLocaleString()}
-                    </span>
+                    <PriceFormatter
+                      amount={currentRegularPrice}
+                      className="text-2xl text-muted-foreground line-through decoration-2"
+                    />
                   )}
                   {isDiscountActive && discountValue > 0 && (
                     <Badge variant="destructive" className="text-lg px-4 py-1.5 animate-pulse">
@@ -1019,8 +1033,7 @@ const ProductDetailNew = () => {
                     className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     {showTaxIncluded ? "Incl." : "Excl."} {pricing?.tax.rate ?? 0}% tax
-                    {!(pricing?.tax.included ?? true) &&
-                      ` (+${pricing?.currency_symbol}${taxAmount.toFixed(2)})`}
+                    {!(pricing?.tax.included ?? true) && ` (+${formatPrice(taxAmount)})`}
                   </Button>
                 </div>
 
@@ -1049,8 +1062,7 @@ const ProductDetailNew = () => {
                               <div key={idx} className="text-xs text-blue-700">
                                 Buy {tier.min_quantity}
                                 {tier.max_quantity && `-${tier.max_quantity}`}:{" "}
-                                {pricing?.currency_symbol}
-                                {tier.price} each
+                                <PriceFormatter amount={tier.price} /> each
                                 {tier.discount_percentage &&
                                   ` (${tier.discount_percentage.toFixed(1)}% off)`}
                               </div>
@@ -1172,24 +1184,37 @@ const ProductDetailNew = () => {
 
               {/* Actions */}
               <div ref={addToCartSectionRef} className="flex gap-3">
-                <Button
-                  onClick={handleAddToCart}
-                  size="lg"
-                  className="flex-1 shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                  disabled={!isInStock || product?.status !== "active"}
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Add to Cart
-                </Button>
-                <Button
-                  onClick={handleBuyNow}
-                  size="lg"
-                  variant="default"
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all hover:scale-105"
-                  disabled={!isInStock || product?.status !== "active"}
-                >
-                  ⚡ Buy Now
-                </Button>
+                {isInStock ? (
+                  <>
+                    <Button
+                      onClick={handleAddToCart}
+                      size="lg"
+                      className="flex-1 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                      disabled={product?.status !== "active"}
+                    >
+                      <ShoppingCart className="mr-2 h-5 w-5" />
+                      Add to Cart
+                    </Button>
+                    <Button
+                      onClick={handleBuyNow}
+                      size="lg"
+                      variant="default"
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all hover:scale-105"
+                      disabled={product?.status !== "active"}
+                    >
+                      ⚡ Buy Now
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="flex-1 bg-gray-200 text-gray-500 cursor-not-allowed"
+                    disabled
+                  >
+                    Request Stock
+                  </Button>
+                )}
                 <Button
                   onClick={handleWishlistToggle}
                   variant={inWishlist ? "default" : "outline"}
@@ -1460,6 +1485,16 @@ const ProductDetailNew = () => {
             </TabsContent>
           </Tabs>
 
+          {/* Frequently Bought Together */}
+          {product && ["412"].includes(String(product.id)) && (
+            <div className="mb-12">
+              <FrequentlyBoughtTogether
+                productIds={[39, 40]}
+                currentProductId={String(product.id)}
+              />
+            </div>
+          )}
+
           {/* Related Products */}
           <div className="space-y-6">
             <h2 className="text-3xl font-bold">Similar Products</h2>
@@ -1599,7 +1634,7 @@ const ProductDetailNew = () => {
           </div>
 
           {/* Legacy Related Products Section - Keep for compatibility */}
-          {product?.related_products && (
+          {/* {product?.related_products && (
             <div className="space-y-8 mt-12">
               {product.related_products.frequently_bought_together &&
                 product.related_products.frequently_bought_together.length > 0 && (
@@ -1611,7 +1646,7 @@ const ProductDetailNew = () => {
                   </div>
                 )}
             </div>
-          )}
+          )} */}
         </main>
 
         <Footer />
