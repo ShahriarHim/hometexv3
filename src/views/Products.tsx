@@ -142,7 +142,7 @@ const Products = () => {
                 slug: product.slug,
                 price: salePrice,
                 originalPrice: discountPercent > 0 ? originalPrice : undefined,
-                description: "",
+                description: product.description || product.short_description || "",
                 category:
                   product.category?.slug ||
                   product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
@@ -207,7 +207,7 @@ const Products = () => {
                 slug: product.slug,
                 price: salePrice,
                 originalPrice: discountPercent > 0 ? originalPrice : undefined,
-                description: "",
+                description: product.description || product.short_description || "",
                 category:
                   product.category?.slug ||
                   product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
@@ -269,7 +269,7 @@ const Products = () => {
                 slug: product.slug,
                 price: salePrice,
                 originalPrice: discountPercent > 0 ? originalPrice : undefined,
-                description: "",
+                description: product.description || product.short_description || "",
                 category:
                   product.category?.slug ||
                   product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||

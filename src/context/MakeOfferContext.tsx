@@ -5,6 +5,7 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 export interface Offer {
   productId: string;
   price: number;
+  quantity: number;
   message?: string;
   status: "submitted" | "rejected" | "accepted";
   timestamp: number;
@@ -12,7 +13,12 @@ export interface Offer {
 
 interface MakeOfferContextType {
   offers: Record<string, Offer>;
-  submitOffer: (productId: string, price: number, message?: string) => Promise<boolean>;
+  submitOffer: (
+    productId: string,
+    price: number,
+    quantity: number,
+    message?: string
+  ) => Promise<boolean>;
   getOfferStatus: (productId: string) => Offer | undefined;
 }
 
@@ -21,7 +27,12 @@ const MakeOfferContext = createContext<MakeOfferContextType | undefined>(undefin
 export function MakeOfferProvider({ children }: { children: ReactNode }) {
   const [offers, setOffers] = useState<Record<string, Offer>>({});
 
-  const submitOffer = async (productId: string, price: number, message?: string) => {
+  const submitOffer = async (
+    productId: string,
+    price: number,
+    quantity: number,
+    message?: string
+  ) => {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -31,6 +42,7 @@ export function MakeOfferProvider({ children }: { children: ReactNode }) {
       [productId]: {
         productId,
         price,
+        quantity,
         message,
         status: "submitted",
         timestamp: Date.now(),

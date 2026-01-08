@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import PriceFormatter from "./PriceFormatter";
 
 interface ProductStickyBarProps {
   productImage: string;
   productName: string;
   price: number;
-  currencySymbol: string;
   isInStock: boolean;
   quantity: number;
   minQuantity: number;
@@ -27,7 +27,6 @@ export const ProductStickyBar = ({
   productImage,
   productName,
   price,
-  currencySymbol,
   isInStock,
   quantity,
   minQuantity,
@@ -170,10 +169,7 @@ export const ProductStickyBar = ({
 
           {/* Price */}
           <div className="flex-shrink-0 hidden sm:block">
-            <span className="text-lg font-bold text-black">
-              {currencySymbol}
-              {price.toLocaleString()}
-            </span>
+            <PriceFormatter amount={price} className="text-lg font-bold text-black" />
           </div>
 
           {/* Quantity Controls */}
@@ -214,16 +210,27 @@ export const ProductStickyBar = ({
 
           {/* Add to Cart Button */}
           <div className="flex-shrink-0">
-            <Button
-              onClick={onAddToCart}
-              size="sm"
-              className="bg-black text-white hover:bg-black/90 shadow-md hover:shadow-lg transition-all border-0"
-              disabled={!isInStock}
-            >
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Add to Cart</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
+            {isInStock ? (
+              <Button
+                onClick={onAddToCart}
+                size="sm"
+                className="bg-black text-white hover:bg-black/90 shadow-md hover:shadow-lg transition-all border-0"
+              >
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Add to Cart</span>
+                <span className="sm:hidden">Add</span>
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="bg-gray-200 text-gray-500 cursor-not-allowed"
+                disabled
+              >
+                <span className="hidden sm:inline">Request Stock</span>
+                <span className="sm:hidden">Request</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>

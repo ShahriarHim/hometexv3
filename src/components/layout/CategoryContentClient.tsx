@@ -138,7 +138,7 @@ export function CategoryContentClient({
               >
                 <Badge
                   variant="outline"
-                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                  className="cursor-pointer hover:!bg-gray-100 !text-black hover:!text-black transition-colors border-gray-300"
                 >
                   {sub.name}
                 </Badge>
@@ -165,7 +165,7 @@ export function CategoryContentClient({
                 >
                   <Badge
                     variant="outline"
-                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                    className="cursor-pointer hover:!bg-gray-100 !text-black hover:!text-black transition-colors border-gray-300"
                   >
                     {child.name}
                   </Badge>

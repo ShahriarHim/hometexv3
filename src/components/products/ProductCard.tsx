@@ -80,14 +80,18 @@ interface ProductCardProps {
   viewMode?: "grid-5" | "grid-3" | "list";
   showSaleLabel?: boolean;
   showTrendingIcon?: boolean;
+  hidePrice?: boolean;
+  hideRating?: boolean;
   className?: string;
 }
 
 export const ProductCard = ({
   product,
-  viewMode: _viewMode = "grid-3",
+  viewMode = "grid-3",
   showSaleLabel = true,
   showTrendingIcon = true,
+  hidePrice = false,
+  hideRating = false,
   className,
 }: ProductCardProps) => {
   const { addToCart } = useCart();
@@ -159,7 +163,11 @@ export const ProductCard = ({
   const imageUrl = getImageUrl();
 
   // Use product URL generation logic
-  const productUrl = `/products/${categoryName}/${subcategoryName}/${product.id}`;
+  // Ensure we have valid segments for the URL to match the [category]/[childCategory]/[id] route
+  const urlCategory = categoryName ? encodeURIComponent(categoryName) : "all";
+  const urlSubcategory = subcategoryName ? encodeURIComponent(subcategoryName) : "all";
+
+  const productUrl = `/products/${urlCategory}/${urlSubcategory}/${product.id}`;
 
   const handleProductClick = () => {
     addRecentView(product);
@@ -168,12 +176,20 @@ export const ProductCard = ({
   return (
     <div
       className={cn(
-        "text-sm border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden flex flex-col h-full",
+        "text-sm border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden flex",
+        viewMode === "list" ? "flex-row" : "flex-col h-full",
         className
       )}
     >
       {/* Image Section */}
-      <div className="relative overflow-hidden bg-gray-50 rounded-t-lg aspect-square">
+      <div
+        className={cn(
+          "relative overflow-hidden bg-gray-50",
+          viewMode === "list"
+            ? "w-48 shrink-0 border-r border-gray-100 aspect-square"
+            : "w-full aspect-square rounded-t-lg"
+        )}
+      >
         <div className="block w-full h-full relative group/image overflow-hidden">
           <Link
             href={productUrl as never}
@@ -301,108 +317,194 @@ export const ProductCard = ({
 
       {/* Content Section */}
       {/* Content Section */}
-      <div className="p-4 flex flex-col gap-2 flex-1 text-left">
-        {categoryName && (
-          <p className="uppercase line-clamp-1 text-xs font-semibold text-gray-500 tracking-wider">
-            {categoryName}
-          </p>
+      <div
+        className={cn(
+          "p-4 flex flex-1 text-left",
+          viewMode === "list" ? "flex-row gap-6 items-center" : "flex-col gap-2"
         )}
+      >
+        {/* Main Info */}
+        <div className="flex-1 flex flex-col gap-2">
+          {categoryName && (
+            <p className="uppercase line-clamp-1 text-xs font-semibold text-gray-500 tracking-wider">
+              {categoryName}
+            </p>
+          )}
 
-        <div className="flex justify-between items-start gap-2">
-          <Link
-            href={productUrl as never}
-            onClick={handleProductClick}
-            className="hover:text-accent transition-colors block flex-1"
-          >
-            <Title className="text-sm font-bold text-gray-900 leading-tight line-clamp-2">
-              {product.name}
-            </Title>
-          </Link>
-          <PriceView
-            price={product.price}
-            originalPrice={product.originalPrice}
-            discount={product.discount}
-            className="flex-col items-end gap-0.5"
-            priceClassName="text-black text-lg"
-          />
-        </div>
+          <div className="flex justify-between items-start gap-2">
+            <Link
+              href={productUrl as never}
+              onClick={handleProductClick}
+              className="hover:text-accent transition-colors block flex-1"
+            >
+              <Title className="text-sm font-bold text-gray-900 leading-tight line-clamp-2">
+                {product.name}
+              </Title>
+            </Link>
+            {!hidePrice && viewMode !== "list" && (
+              <PriceView
+                price={product.price}
+                originalPrice={product.originalPrice}
+                discount={product.discount}
+                className="flex-col items-end gap-0.5"
+                priceClassName="text-black text-lg"
+              />
+            )}
+          </div>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, index) => (
-            <Star
-              key={`star-${product.id}-${index}`}
-              className={cn(
-                "h-3.5 w-3.5",
-                index < Math.floor(product.rating || 0)
-                  ? "text-yellow-400 fill-yellow-400"
-                  : "text-gray-200 fill-gray-200"
+          {/* Rating */}
+          {!hideRating && (
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, index) => (
+                <Star
+                  key={`star-${product.id}-${index}`}
+                  className={cn(
+                    "h-3.5 w-3.5",
+                    index < Math.floor(product.rating || 0)
+                      ? "text-yellow-400 fill-yellow-400"
+                      : "text-gray-200 fill-gray-200"
+                  )}
+                />
+              ))}
+              {(product.reviewCount || 0) > 0 && (
+                <span className="text-xs text-gray-500 ml-1">({product.reviewCount})</span>
               )}
-            />
-          ))}
-          {(product.reviewCount || 0) > 0 && (
-            <span className="text-xs text-gray-500 ml-1">({product.reviewCount})</span>
+            </div>
+          )}
+
+          {/* Description - List Mode Only */}
+          {viewMode === "list" && product.description && (
+            <p className="text-sm text-gray-500 line-clamp-2 mt-1">{product.description}</p>
+          )}
+
+          {/* Grid Mode Actions */}
+          {viewMode !== "list" && (
+            <div className="mt-auto pt-2 space-y-3">
+              <div className="flex items-center gap-2">
+                {stock === 0 ? (
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!isRestockRequested) {
+                        setIsRestockRequested(true);
+                      }
+                    }}
+                    disabled={isRestockRequested}
+                    className={cn(
+                      "flex-1 font-semibold tracking-wide flex items-center justify-center gap-2",
+                      "bg-orange-100 text-orange-900 border border-orange-200 hover:bg-orange-200",
+                      isRestockRequested && "opacity-80 cursor-not-allowed"
+                    )}
+                    size="sm"
+                  >
+                    <span>{isRestockRequested ? "Restock Requested" : "Request Restock"}</span>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      addToCart(product, 1);
+                    }}
+                    className="flex-1 font-semibold tracking-wide flex items-center justify-center gap-2 h-9 text-xs uppercase"
+                  >
+                    <span>Add to Cart</span>
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={cn(
+                    "h-9 w-9 flex-shrink-0 border-input hover:bg-accent hover:text-accent-foreground transition-colors",
+                    isInWishlist(product.id) &&
+                      "text-red-500 hover:text-red-600 border-red-200 bg-red-50"
+                  )}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (isInWishlist(product.id)) {
+                      removeFromWishlist(product.id);
+                    } else {
+                      addToWishlist(product);
+                    }
+                  }}
+                  title={isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                >
+                  <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} />
+                </Button>
+              </div>
+            </div>
           )}
         </div>
 
-        <div className="mt-auto pt-2 space-y-3">
-          {/* Actions - Single Unit Add to Cart + Wishlist */}
-          <div className="flex items-center gap-2">
-            {stock === 0 ? (
-              // Out of Stock / Request Restock Button
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!isRestockRequested) {
-                    setIsRestockRequested(true);
-                  }
-                }}
-                disabled={isRestockRequested}
-                className={cn(
-                  "flex-1 font-semibold tracking-wide flex items-center justify-center gap-2",
-                  "bg-orange-100 text-orange-900 border border-orange-200 hover:bg-orange-200",
-                  isRestockRequested && "opacity-80 cursor-not-allowed"
-                )}
-                size="sm"
-              >
-                <span>{isRestockRequested ? "Restock Requested" : "Request Restock"}</span>
-              </Button>
-            ) : (
-              // In Stock / Add to Cart Button
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  addToCart(product, 1);
-                }}
-                className="flex-1 font-semibold tracking-wide flex items-center justify-center gap-2 h-9 text-xs uppercase"
-              >
-                <span>Add to Cart</span>
-              </Button>
+        {/* List Mode Right Column (Price + Actions) */}
+        {viewMode === "list" && (
+          <div className="flex flex-col justify-center items-end gap-4 min-w-[180px] pl-6 border-l border-gray-100 py-2">
+            {!hidePrice && (
+              <PriceView
+                price={product.price}
+                originalPrice={product.originalPrice}
+                discount={product.discount}
+                className="flex-col items-end gap-0.5"
+                priceClassName="text-black text-2xl font-bold"
+              />
             )}
 
-            <Button
-              variant="outline"
-              size="icon"
-              className={cn(
-                "h-9 w-9 flex-shrink-0 border-input hover:bg-accent hover:text-accent-foreground transition-colors",
-                isInWishlist(product.id) &&
-                  "text-red-500 hover:text-red-600 border-red-200 bg-red-50"
+            <div className="flex items-center gap-2 w-full">
+              {stock === 0 ? (
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!isRestockRequested) {
+                      setIsRestockRequested(true);
+                    }
+                  }}
+                  disabled={isRestockRequested}
+                  className={cn(
+                    "flex-1 font-semibold tracking-wide flex items-center justify-center gap-2",
+                    "bg-orange-100 text-orange-900 border border-orange-200 hover:bg-orange-200",
+                    isRestockRequested && "opacity-80 cursor-not-allowed"
+                  )}
+                  size="sm"
+                >
+                  <span>{isRestockRequested ? "Restock Requested" : "Request Restock"}</span>
+                </Button>
+              ) : (
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addToCart(product, 1);
+                  }}
+                  className="flex-1 font-semibold tracking-wide flex items-center justify-center gap-2 h-9 text-xs uppercase"
+                >
+                  <span>Add to Cart</span>
+                </Button>
               )}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (isInWishlist(product.id)) {
-                  removeFromWishlist(product.id);
-                } else {
-                  addToWishlist(product);
-                }
-              }}
-              title={isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
-            >
-              <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} />
-            </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 flex-shrink-0 border-input hover:bg-accent hover:text-accent-foreground transition-colors",
+                  isInWishlist(product.id) &&
+                    "text-red-500 hover:text-red-600 border-red-200 bg-red-50"
+                )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (isInWishlist(product.id)) {
+                    removeFromWishlist(product.id);
+                  } else {
+                    addToWishlist(product);
+                  }
+                }}
+                title={isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+              >
+                <Heart className={cn("h-4 w-4", isInWishlist(product.id) && "fill-current")} />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <HotDealsQuickViewModal isOpen={isQuickViewOpen} onClose={closeQuickView} product={product} />
     </div>
