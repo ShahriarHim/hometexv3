@@ -7,7 +7,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useRecentViews } from "@/hooks/use-recent-views";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
-import { Eye, Flame, Heart, Leaf, Star, TrendingUp } from "lucide-react";
+import { Eye, Flame, Heart, Layers, Leaf, Star, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -411,6 +411,20 @@ export const ProductCard = ({
                   </Button>
                 )}
 
+                <Link
+                  href={`/products?filter=similar_products&productId=${product.id}`}
+                  className="block"
+                >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 flex-shrink-0 border-input hover:bg-accent hover:text-accent-foreground transition-colors"
+                    title="Find Similar Products"
+                  >
+                    <Layers className="h-4 w-4" />
+                  </Button>
+                </Link>
+
                 <Button
                   variant="outline"
                   size="icon"
@@ -480,6 +494,20 @@ export const ProductCard = ({
                   <span>Add to Cart</span>
                 </Button>
               )}
+
+              <Link
+                href={`/products?filter=similar_products&productId=${product.id}`}
+                className="block"
+              >
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 flex-shrink-0 border-input hover:bg-accent hover:text-accent-foreground transition-colors"
+                  title="Find Similar Products"
+                >
+                  <Layers className="h-4 w-4" />
+                </Button>
+              </Link>
 
               <Button
                 variant="outline"

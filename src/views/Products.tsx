@@ -79,6 +79,8 @@ const Products = () => {
   const isTrending = filterParam === "trending";
   const isBestsellers = filterParam === "bestsellers";
   const isOnSale = filterParam === "onsale";
+  const productIdParam = searchParams.get("productId");
+  const isSimilarProducts = filterParam === "similar_products" && !!productIdParam;
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("featured");
@@ -307,6 +309,74 @@ const Products = () => {
       };
 
       fetchOnSaleProducts();
+    } else if (isSimilarProducts && productIdParam) {
+      const fetchSimilarProducts = async () => {
+        try {
+          setLoading(true);
+          const response = await productService.getSimilarProducts(productIdParam);
+
+          if (response.success && response.data.products) {
+            const transformedProducts: Product[] = response.data.products.map((product) => {
+              // The Product type from service uses different fields than the local APIProduct
+              // Mapping based on src/types/api/product.ts
+              const discountPercent = product.discount_percent || 0;
+              const originalPrice = product.regular_price || 0;
+              const salePrice = product.final_price || product.price || 0;
+
+              // Handle images - type definition has images string[] but no primary_photo
+              const primaryImage =
+                product.images && product.images.length > 0
+                  ? product.images[0]
+                  : product.thumbnail || "/placeholder.svg";
+
+              return {
+                id: product.id.toString(),
+                name: product.name,
+                slug: product.slug,
+                price: salePrice,
+                originalPrice: discountPercent > 0 ? originalPrice : undefined,
+                description: product.description || product.short_description || "",
+                category:
+                  product.category?.slug ||
+                  product.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "product",
+                subcategory:
+                  product.sub_category?.slug ||
+                  product.sub_category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+                  "all",
+                // child_sub_category is not in the type definition
+                childSubcategory: undefined,
+                images: [primaryImage],
+                inStock: (product.stock_quantity ?? 0) > 0,
+                rating: 4.0,
+                reviewCount: 5,
+                discount:
+                  typeof discountPercent === "number"
+                    ? discountPercent
+                    : parseFloat(String(discountPercent)),
+                isNew: false,
+                isFeatured: false,
+                stock: product.stock_quantity,
+              };
+            });
+
+            // Filter out out-of-stock items
+            const inStockProducts = transformedProducts.filter(
+              (product) => (product.stock ?? 0) > 0 && product.inStock
+            );
+
+            setApiProducts(inStockProducts);
+            setHasMore(false);
+            setPage(1);
+          }
+        } catch (err) {
+          console.error("Error fetching similar products:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchSimilarProducts();
     } else {
       const fetchAllProducts = async (pageToFetch = 1) => {
         try {
@@ -401,13 +471,13 @@ const Products = () => {
 
       fetchAllProducts(1);
     }
-  }, [isTrending, isBestsellers, isOnSale]);
+  }, [isTrending, isBestsellers, isOnSale, isSimilarProducts, productIdParam]);
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
       // Find the fetch function we should call
       // Currently only fetchAllProducts supports pagination cleanly
-      if (!isTrending && !isBestsellers && !isOnSale) {
+      if (!isTrending && !isBestsellers && !isOnSale && !isSimilarProducts) {
         const fetchAllProducts = async (pageToFetch: number) => {
           try {
             setLoadingMore(true);
@@ -544,7 +614,9 @@ const Products = () => {
                 ? "Best Sellers"
                 : isOnSale
                   ? "Products On Sale"
-                  : "All Products"}
+                  : isSimilarProducts
+                    ? "Similar Products"
+                    : "All Products"}
           </h1>
           <p className="text-muted-foreground">
             {isTrending
@@ -553,7 +625,9 @@ const Products = () => {
                 ? "Discover our most popular products loved by thousands of customers"
                 : isOnSale
                   ? "Don't miss out on these amazing deals! Limited time offers on selected products."
-                  : "Browse our complete collection"}
+                  : isSimilarProducts
+                    ? "Products you might also like based on your selection"
+                    : "Browse our complete collection"}
           </p>
         </div>
 

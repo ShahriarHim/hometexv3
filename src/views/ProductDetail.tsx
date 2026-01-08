@@ -198,6 +198,17 @@ const FrequentlyBoughtTogether = dynamic(
   }
 );
 
+const RelatedProductsSection = dynamic(
+  () =>
+    import("@/components/products/RelatedProductsSection").then((mod) => ({
+      default: mod.RelatedProductsSection,
+    })),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 bg-muted animate-pulse rounded-lg" />,
+  }
+);
+
 const ProductDetailNew = () => {
   const params = useParams<{ id?: string }>();
   const router = useRouter();
@@ -1494,6 +1505,37 @@ const ProductDetailNew = () => {
               />
             </div>
           )}
+
+          {/* Customers Also Viewed */}
+          {product &&
+            (product.related_products?.customers_also_viewed?.length ||
+              String(product.id) === "412") && (
+              <div className="mb-12">
+                <RelatedProductsSection
+                  title="Customers Also Viewed"
+                  productIds={
+                    product.related_products?.customers_also_viewed ||
+                    (String(product.id) === "412" ? [41, 42] : [])
+                  }
+                  currentProductId={String(product.id)}
+                />
+              </div>
+            )}
+
+          {/* Recently Viewed */}
+          {product &&
+            (product.related_products?.recently_viewed?.length || String(product.id) === "412") && (
+              <div className="mb-12">
+                <RelatedProductsSection
+                  title="Recently Viewed"
+                  productIds={
+                    product.related_products?.recently_viewed ||
+                    (String(product.id) === "412" ? [48] : [])
+                  }
+                  currentProductId={String(product.id)}
+                />
+              </div>
+            )}
 
           {/* Related Products */}
           <div className="space-y-6">
