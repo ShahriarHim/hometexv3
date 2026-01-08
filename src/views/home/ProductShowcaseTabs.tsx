@@ -119,13 +119,15 @@ export const ProductShowcaseTabs = () => {
       <div className="container px-4">
         <div className="flex flex-col lg:flex-row justify-between gap-6 lg:items-end">
           <div className="space-y-3">
-            <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Hot Swaps</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
+              Featured Collections
+            </p>
             <h2 className="text-3xl md:text-4xl font-semibold text-foreground">
-              Mix & Match Capsules
+              Curated Collections
             </h2>
             <p className="text-muted-foreground max-w-2xl">
-              Tap through curated edits by category. Every edit includes quick-view, wishlist, and
-              cart shortcuts powered by our new contexts.
+              Explore our handpicked selections across every category. Discover designs that elevate
+              your living space.
             </p>
           </div>
           <Button asChild variant="outline">

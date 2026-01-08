@@ -49,6 +49,23 @@ export interface LoginResponse {
   }>;
 }
 
+// Google OAuth Login Response (different structure from regular login)
+export interface GoogleLoginResponse {
+  success: boolean;
+  message: string;
+  token: string;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    first_name: string;
+    last_name: string | null;
+    avatar?: string;
+    user_type: string;
+    roles: string[];
+  };
+}
+
 // Signup
 export interface SignupRequest {
   first_name: string;

@@ -28,26 +28,36 @@ interface MediaGalleryProps {
   productName: string;
 }
 
-// Helper function to check and fix image URLs
+// Helper function to validate and process image URLs for both local and production environments
 const getValidImageUrl = (url: string | null | undefined): string => {
   // Handle null, undefined, or non-string values
   if (!url || typeof url !== "string") {
-    console.warn("Invalid URL provided to getValidImageUrl:", url);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[MediaGallery] Invalid URL provided:", url);
+    }
     return "/placeholder.svg";
   }
 
-  // If it's a localhost URL, replace it with placeholder
-  if (url.includes("localhost") || url.includes("127.0.0.1")) {
-    console.warn("Localhost URL detected in product image:", url);
-    return "/placeholder.svg";
+  // Trim whitespace
+  const cleanUrl = url.trim();
+
+  // If it's already a valid HTTP/HTTPS URL (local or server), return as-is
+  if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
+    // Log in development for debugging
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[MediaGallery] Using external URL:", cleanUrl);
+    }
+    return cleanUrl;
   }
 
-  // If it doesn't start with http/https, assume it's a relative path
-  if (!url.startsWith("http")) {
-    return url.startsWith("/") ? url : `/${url}`;
+  // If it's a relative path, ensure it starts with /
+  const relativePath = cleanUrl.startsWith("/") ? cleanUrl : `/${cleanUrl}`;
+
+  if (process.env.NODE_ENV === "development") {
+    console.warn("[MediaGallery] Using relative path:", relativePath);
   }
 
-  return url;
+  return relativePath;
 };
 
 export const MediaGallery = ({

@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import PriceFormatter from "./PriceFormatter";
 
 interface ProductStickyBarProps {
   productImage: string;
   productName: string;
   price: number;
-  currencySymbol: string;
   isInStock: boolean;
   quantity: number;
   minQuantity: number;
@@ -27,7 +27,6 @@ export const ProductStickyBar = ({
   productImage,
   productName,
   price,
-  currencySymbol,
   isInStock,
   quantity,
   minQuantity,
@@ -137,7 +136,7 @@ export const ProductStickyBar = ({
 
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 bg-[#E8FE00] border-b border-[#E8FE00]/20 shadow-lg ${
+      className={`fixed top-0 left-0 right-0 z-50 bg-[#E8FE00] border-b border-[#C5CEE8] shadow-lg ${
         isVisible
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 -translate-y-full pointer-events-none"
@@ -153,7 +152,7 @@ export const ProductStickyBar = ({
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-4 py-3">
           {/* Product Image */}
-          <div className="relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden border-2 border-black/10 shadow-sm">
+          <div className="relative h-12 w-12 flex-shrink-0 rounded-md overflow-hidden border-2 border-[#C5CEE8] shadow-sm">
             <Image
               src={productImage || "/placeholder.svg"}
               alt={productName}
@@ -170,10 +169,7 @@ export const ProductStickyBar = ({
 
           {/* Price */}
           <div className="flex-shrink-0 hidden sm:block">
-            <span className="text-lg font-bold text-black">
-              {currencySymbol}
-              {price.toLocaleString()}
-            </span>
+            <PriceFormatter amount={price} className="text-lg font-bold text-black" />
           </div>
 
           {/* Quantity Controls */}
@@ -181,7 +177,7 @@ export const ProductStickyBar = ({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 bg-white/90 hover:bg-white border-black/20 text-black"
+              className="h-8 w-8 bg-white/90 hover:bg-white border-[#C5CEE8] text-black"
               onClick={handleDecrease}
               disabled={quantity <= minQuantity || !isInStock}
             >
@@ -196,7 +192,7 @@ export const ProductStickyBar = ({
                   onQuantityChange(newQuantity);
                 }
               }}
-              className="w-16 text-center border border-black/20 rounded px-2 py-1 text-sm bg-white/90 text-black font-medium"
+              className="w-16 text-center border border-[#C5CEE8] rounded px-2 py-1 text-sm bg-white/90 text-black font-medium"
               min={minQuantity}
               max={maxQuantity}
               disabled={!isInStock}
@@ -204,7 +200,7 @@ export const ProductStickyBar = ({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8 bg-white/90 hover:bg-white border-black/20 text-black"
+              className="h-8 w-8 bg-white/90 hover:bg-white border-[#C5CEE8] text-black"
               onClick={handleIncrease}
               disabled={quantity >= maxQuantity || !isInStock}
             >
@@ -214,16 +210,27 @@ export const ProductStickyBar = ({
 
           {/* Add to Cart Button */}
           <div className="flex-shrink-0">
-            <Button
-              onClick={onAddToCart}
-              size="sm"
-              className="bg-black text-white hover:bg-black/90 shadow-md hover:shadow-lg transition-all border-0"
-              disabled={!isInStock}
-            >
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Add to Cart</span>
-              <span className="sm:hidden">Add</span>
-            </Button>
+            {isInStock ? (
+              <Button
+                onClick={onAddToCart}
+                size="sm"
+                className="bg-black text-white hover:bg-black/90 shadow-md hover:shadow-lg transition-all border-0"
+              >
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Add to Cart</span>
+                <span className="sm:hidden">Add</span>
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="bg-gray-200 text-gray-500 cursor-not-allowed"
+                disabled
+              >
+                <span className="hidden sm:inline">Request Stock</span>
+                <span className="sm:hidden">Request</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>

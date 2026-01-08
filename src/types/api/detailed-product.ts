@@ -223,6 +223,8 @@ export interface DetailedProduct {
   related_products?: {
     frequently_bought_together?: number[];
     similar_products?: number[];
+    customers_also_viewed?: number[];
+    recently_viewed?: number[];
   };
 
   // Specifications

@@ -127,22 +127,22 @@ const WishlistPopup: React.FC<WishlistPopupProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Bottom section */}
-        <div className="absolute bottom-0 left-0 right-0 bg-secondary/95">
-          <div className="p-4 border-t border-gray-600">
+        <div className="absolute bottom-0 left-0 right-0 bg-[rgba(51,51,51,0.95)] backdrop-blur-sm">
+          <div className="p-4 border-t border-gray-700">
             <div className="flex justify-between items-center gap-4">
               <button
                 onClick={handleRemoveAll}
                 disabled={items.length === 0}
-                className="inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
               >
-                <FaTrashAlt className="text-white" />
+                <FaTrashAlt className="text-red-400" size={14} />
                 Remove All
               </button>
               <button
                 onClick={handleViewWishlistClick}
-                className="inline-flex items-center gap-1 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm"
+                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium"
               >
-                <FaEye className="text-white" />
+                <FaEye size={14} />
                 View Wishlist
               </button>
             </div>

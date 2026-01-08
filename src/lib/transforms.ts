@@ -67,10 +67,12 @@ interface APIProduct {
   stock?: number;
   media?: {
     gallery?: Array<{ url?: string } | string>;
+    primary_image?: string | { url?: string; image_url?: string; path?: string };
+    thumbnail?: string | { url?: string; image_url?: string; path?: string };
   };
   // Support flat images array
   images?: string[];
-  thumbnail?: string;
+  thumbnail?: string | { url?: string; image_url?: string; path?: string };
   primary_photo?: string; // Actual API field for main image
   category?: {
     id?: number;
@@ -383,21 +385,54 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
         ) as string[])
       : [];
 
-  // Get images - priority: primary_photo > images array > media gallery > thumbnail > brand logo
+  // Helper to extract URL from various image formats
+  const extractImageUrl = (
+    img: string | { url?: string; image_url?: string; path?: string } | undefined | null
+  ): string | null => {
+    if (!img) {
+      return null;
+    }
+    if (typeof img === "string") {
+      return img;
+    }
+    return img.url || img.image_url || img.path || null;
+  };
+
+  // Get images - priority: primary_photo > media.primary_image > images array > media gallery > thumbnail > media.thumbnail > brand logo
   const images: string[] = [];
 
-  if (apiProduct.primary_photo) {
-    images.push(apiProduct.primary_photo);
-  } else if (apiProduct.images && apiProduct.images.length > 0) {
-    images.push(...apiProduct.images);
-  } else if (apiProduct.media?.gallery && apiProduct.media.gallery.length > 0) {
+  const primaryPhotoUrl = extractImageUrl(apiProduct.primary_photo);
+  const mediaPrimaryUrl = extractImageUrl(apiProduct.media?.primary_image);
+  const thumbnailUrl = extractImageUrl(apiProduct.thumbnail);
+  const mediaThumbnailUrl = extractImageUrl(apiProduct.media?.thumbnail);
+
+  if (primaryPhotoUrl) {
+    images.push(primaryPhotoUrl);
+  } else if (mediaPrimaryUrl) {
+    images.push(mediaPrimaryUrl);
+  }
+
+  if (apiProduct.images && apiProduct.images.length > 0) {
+    images.push(...apiProduct.images.filter(Boolean));
+  }
+
+  if (apiProduct.media?.gallery && apiProduct.media.gallery.length > 0) {
     const galleryImages = apiProduct.media.gallery
-      .map((img: { url?: string } | string) => (typeof img === "string" ? img : img.url || ""))
-      .filter(Boolean);
+      .map((img) => extractImageUrl(img))
+      .filter((img): img is string => Boolean(img));
     images.push(...galleryImages);
-  } else if (apiProduct.thumbnail) {
-    images.push(apiProduct.thumbnail);
-  } else if (apiProduct.brand?.logo) {
+  }
+
+  // Only add thumbnails if we still don't have enough images (or as fallbacks)
+  if (images.length === 0) {
+    if (thumbnailUrl) {
+      images.push(thumbnailUrl);
+    } else if (mediaThumbnailUrl) {
+      images.push(mediaThumbnailUrl);
+    }
+  }
+
+  if (images.length === 0 && apiProduct.brand?.logo) {
     images.push(apiProduct.brand.logo);
   }
 
@@ -430,10 +465,11 @@ export const transformAPIProductToProduct = (apiProduct: APIProduct): Product =>
     category:
       apiProduct.category?.slug ||
       apiProduct.category?.name?.toLowerCase().replace(/\s+/g, "-") ||
-      "uncategorized",
+      "product",
     subcategory:
       apiProduct.sub_category?.slug ||
-      apiProduct.sub_category?.name?.toLowerCase().replace(/\s+/g, "-"),
+      apiProduct.sub_category?.name?.toLowerCase().replace(/\s+/g, "-") ||
+      "all",
     childSubcategory:
       apiProduct.child_sub_category?.slug ||
       apiProduct.child_sub_category?.name?.toLowerCase().replace(/\s+/g, "-"),

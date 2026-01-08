@@ -24,6 +24,11 @@ export interface Product {
     name: string;
     slug: string;
   };
+  sub_category?: {
+    id?: number;
+    name?: string;
+    slug: string;
+  };
   brand?: {
     id: number;
     name: string;
@@ -36,6 +41,7 @@ export interface Product {
   colors?: string[];
   sizes?: string[];
   rating?: number;
+  average_rating?: number;
   reviews_count?: number;
   is_featured?: boolean;
   is_new?: boolean;
@@ -54,6 +60,12 @@ export interface Product {
   meta_description?: string;
   created_at?: string;
   updated_at?: string;
+  related_products?: {
+    similar_products?: number[];
+    frequently_bought_together?: number[];
+    customers_also_viewed?: number[];
+    recently_viewed?: number[];
+  };
 }
 
 // Product List Response

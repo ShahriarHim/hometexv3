@@ -1,31 +1,23 @@
 "use client";
 
 import { EmptyState } from "@/components/common/EmptyState";
+import { LoginRequired } from "@/components/common/LoginRequired";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import { useRouter } from "@/i18n/routing";
-import { LogIn, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+// Removed unused router to satisfy lint
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
-  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showLoginRequired, setShowLoginRequired] = useState(false);
 
   const totalPrice = getTotalPrice();
   const shippingCost = totalPrice >= 3000 ? 0 : 100;
@@ -34,13 +26,8 @@ const Cart = () => {
   const handleProceedToCheckout = (e: React.MouseEvent) => {
     if (!isAuthenticated) {
       e.preventDefault();
-      setShowLoginDialog(true);
+      setShowLoginRequired(true);
     }
-  };
-
-  const handleLogin = () => {
-    setShowLoginDialog(false);
-    router.push("/auth");
   };
 
   if (items.length === 0) {
@@ -165,17 +152,24 @@ const Cart = () => {
                   <span>৳{grandTotal.toLocaleString()}</span>
                 </div>
                 {isAuthenticated ? (
-                  <Button asChild className="w-full" size="lg" variant="premium">
-                    <Link href="/checkout">Proceed to Checkout</Link>
+                  <Button asChild className="w-full group" size="lg" variant="premium">
+                    <Link
+                      href="/checkout"
+                      className="flex items-center justify-center gap-2 hover:text-black"
+                    >
+                      Proceed to Checkout
+                      <ArrowRight className="h-4 w-4 text-primary-foreground group-hover:text-white transition-colors opacity-100" />
+                    </Link>
                   </Button>
                 ) : (
                   <Button
-                    className="w-full"
                     size="lg"
                     variant="premium"
                     onClick={handleProceedToCheckout}
+                    className="w-full group flex items-center justify-center gap-2"
                   >
                     Proceed to Checkout
+                    <ArrowRight className="h-4 w-4 text-primary-foreground group-hover:text-white transition-colors opacity-100" />
                   </Button>
                 )}
                 <Button asChild variant="outline" className="w-full mt-3">
@@ -188,29 +182,7 @@ const Cart = () => {
       </main>
       <Footer />
 
-      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <LogIn className="h-5 w-5" />
-              Login Required
-            </DialogTitle>
-            <DialogDescription>
-              You need to be logged in to proceed to checkout. Please login to continue with your
-              order.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setShowLoginDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleLogin}>
-              <LogIn className="h-4 w-4 mr-2" />
-              Go to Login
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <LoginRequired isOpen={showLoginRequired} onOpenChange={setShowLoginRequired} />
     </div>
   );
 };

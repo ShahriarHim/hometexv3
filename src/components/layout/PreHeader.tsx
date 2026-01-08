@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { userService } from "@/services/api";
 import { ChevronDown, Mail, MapPin, Ticket, User } from "lucide-react";
@@ -31,13 +32,13 @@ const PreHeader = () => {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
+  const { currency, setCurrency, formatPrice } = useCurrency();
   const [_isPending, startTransition] = useTransition();
   const [visitUsText, setVisitUsText] = useState(TEXT_OPTIONS[0].visitUs);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const [isVisible, setIsVisible] = useState(true);
   const [userType, setUserType] = useState<string | undefined>(undefined);
 
@@ -52,10 +53,21 @@ const PreHeader = () => {
     const fetchUserType = async () => {
       if (isAuthenticated) {
         try {
+          // Check if token exists before making the request
+          const token =
+            typeof window !== "undefined" ? localStorage.getItem("hometex-auth-token") : null;
+          if (!token) {
+            console.warn("[PreHeader] User is authenticated but no token found in localStorage");
+            setUserType(undefined);
+            return;
+          }
+
           const profileResponse = await userService.getProfile();
           setUserType(profileResponse.user?.user_type);
         } catch (error) {
           console.error("Failed to fetch user profile:", error);
+          // If fetching profile fails, user might not be authenticated anymore
+          setUserType(undefined);
         }
       } else {
         setUserType(undefined);
@@ -108,11 +120,13 @@ const PreHeader = () => {
     }, 300);
   };
 
-  const handleCurrencyChange = (currency: string) => {
-    setSelectedCurrency(currency);
-    localStorage.setItem("selectedCurrency", currency);
-    setIsCurrencyDropdownOpen(false);
-    setIsAccountDropdownOpen(false);
+  const handleCurrencyChange = (newCurrency: string) => {
+    // Cast string to CurrencyCode if it's valid
+    if (newCurrency === "USD" || newCurrency === "GBP" || newCurrency === "BDT") {
+      setCurrency(newCurrency as "USD" | "GBP" | "BDT");
+      setIsCurrencyDropdownOpen(false);
+      setIsAccountDropdownOpen(false);
+    }
   };
 
   const handleLanguageChange = (newLocale: string) => {
@@ -212,9 +226,7 @@ const PreHeader = () => {
                     >
                       <div className="px-4 py-2.5 text-slate-700 hover:text-primary hover:bg-primary/5 cursor-pointer flex justify-between items-center transition-colors duration-150">
                         <span className="text-sm">{t("currency")}</span>
-                        <span className="font-semibold text-primary text-sm">
-                          {selectedCurrency}
-                        </span>
+                        <span className="font-semibold text-primary text-sm">{currency}</span>
                       </div>
                       {isCurrencyDropdownOpen && (
                         <div className="absolute left-full top-0 bg-white shadow-lg rounded-xl w-32 -mr-1 transform translate-x-2 border border-slate-200 z-[130] animate-in fade-in slide-in-from-left-2 duration-200">
@@ -370,8 +382,11 @@ const PreHeader = () => {
                 <span className="text-sm font-bold text-black group-hover:text-blue-600 leading-tight transition-colors duration-300">
                   {t("cart")}
                 </span>
-                <span className="text-xs font-bold text-black group-hover:text-blue-600 leading-tight transition-colors duration-300">
-                  ৳{cartTotal.toLocaleString()}
+                <span
+                  className="text-xs font-bold text-black group-hover:text-blue-600 leading-tight transition-colors duration-300"
+                  suppressHydrationWarning
+                >
+                  {formatPrice(cartTotal)}
                 </span>
               </div>
             </Link>

@@ -1,17 +1,9 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 
 const Stores = () => {
-  const router = useRouter();
-
-  const handleShowDirections = () => {
-    router.push("/travelOptions");
-  };
-
   return (
     <>
       <Header />
@@ -50,12 +42,14 @@ const Stores = () => {
               <p className="mb-2">
                 Contact : <a href="tel:+8809610963839">+8809610963839</a>
               </p>
-              <button
-                onClick={handleShowDirections}
-                className="px-3 py-2 bg-blue-500 rounded-full text-white hover:scale-110"
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=Twin+Tower+Concord+Shopping+Complex+Shantinagar+Dhaka"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 bg-blue-500 rounded-full text-white hover:scale-110 inline-block"
               >
                 Show Direction
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -77,12 +71,14 @@ const Stores = () => {
               <p className="mb-2">
                 Contact : <a href="tel:+8809610963839">+8809610963839</a>
               </p>
-              <button
-                onClick={handleShowDirections}
-                className="px-3 py-2 bg-blue-500 rounded-full text-white hover:scale-110"
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=Police+Plaza+Concord+Shopping+Mall+Gulshan+Dhaka"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 bg-blue-500 rounded-full text-white hover:scale-110 inline-block"
               >
                 Show Direction
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -104,12 +100,14 @@ const Stores = () => {
               <p className="mb-2">
                 Contact : <a href="tel:+8809610963839">+8809610963839</a>
               </p>
-              <button
-                onClick={handleShowDirections}
-                className="px-3 py-2 bg-blue-500 rounded-full text-white hover:scale-110"
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=New+Elephant+Road+Dhaka"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 bg-blue-500 rounded-full text-white hover:scale-110 inline-block"
               >
                 Show Direction
-              </button>
+              </a>
             </div>
           </div>
         </div>

@@ -1,8 +1,10 @@
 "use client";
 
+import { LoginRequired } from "@/components/common/LoginRequired";
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaEye, FaShoppingCart, FaTrashAlt } from "react-icons/fa";
 
 interface CartPopupProps {
@@ -12,11 +14,18 @@ interface CartPopupProps {
 
 const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
   const { items, removeFromCart, clearCart, getTotalPrice } = useCart();
+  const { isAuthenticated } = useAuth();
   const cartRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const [showLoginRequired, setShowLoginRequired] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Don't close if login dialog is open
+      if (showLoginRequired) {
+        return;
+      }
+
       if (cartRef.current && !cartRef.current.contains(event.target as Node) && isOpen) {
         onClose();
       }
@@ -26,11 +35,17 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, showLoginRequired]);
 
-  const handleCheckoutClick = () => {
-    router.push("/checkout");
-    onClose();
+  const handleCheckoutClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from bubbling
+
+    if (!isAuthenticated) {
+      setShowLoginRequired(true); // Show login dialog while keeping sidebar visible
+    } else {
+      router.push("/checkout");
+      onClose();
+    }
   };
 
   const handleRemoveAll = () => {
@@ -139,35 +154,56 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Bottom section */}
-        <div className="absolute bottom-0 left-0 right-0 bg-secondary/95">
-          <div className="p-4 border-t border-gray-600">
+        <div className="absolute bottom-0 left-0 right-0 bg-[rgba(51,51,51,0.95)] backdrop-blur-sm">
+          <div className="p-4 border-t border-gray-700">
             <div className="text-lg font-semibold mb-3 text-right">
               Total: ৳{getTotalPrice().toLocaleString()}
             </div>
-            <div className="flex justify-between items-center gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={handleRemoveAll}
                 disabled={items.length === 0}
-                className="inline-flex items-center gap-1 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white py-2 px-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-10 flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 px-2"
+                title="Remove All"
               >
-                <FaTrashAlt className="text-white" />
-                Remove All
+                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  <FaTrashAlt className="text-red-400 w-full h-full" />
+                </div>
+                <span className="hidden sm:inline">Remove</span>
               </button>
               <button
                 onClick={handleViewCart}
-                className="inline-flex items-center gap-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-2 px-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm"
+                className="h-10 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium px-2"
+                title="View Cart"
               >
-                <FaEye className="text-white" />
-                View Cart
+                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  <FaEye className="w-full h-full" />
+                </div>
+                <span className="hidden sm:inline">Cart</span>
               </button>
-              <button
-                onClick={handleCheckoutClick}
-                disabled={items.length === 0}
-                className="inline-flex items-center gap-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-2 px-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FaShoppingCart className="text-white" />
-                Checkout
-              </button>
+              {isAuthenticated ? (
+                <button
+                  onClick={handleCheckoutClick}
+                  disabled={items.length === 0}
+                  className="h-10 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-emerald-500 px-2"
+                  title="Checkout"
+                >
+                  <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                    <FaShoppingCart className="w-full h-full" />
+                  </div>
+                  <span className="hidden sm:inline">Checkout</span>
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="h-10 flex items-center justify-center gap-2 bg-gray-600 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed px-2"
+                >
+                  <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                    <FaShoppingCart className="w-full h-full" />
+                  </div>
+                  <span className="hidden sm:inline">Checkout</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -210,6 +246,12 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose }) => {
           }
         }
       `}</style>
+
+      <LoginRequired
+        isOpen={showLoginRequired}
+        onOpenChange={setShowLoginRequired}
+        onClose={onClose}
+      />
     </div>
   );
 };

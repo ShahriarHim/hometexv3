@@ -31,6 +31,12 @@ export interface Product {
     is_exclusive?: boolean;
     is_eco_friendly?: boolean;
   };
+  related_products?: {
+    similar_products?: number[];
+    frequently_bought_together?: number[];
+    customers_also_viewed?: number[];
+    recently_viewed?: number[];
+  };
 }
 
 export interface ProductVariant {

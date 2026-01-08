@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -15,18 +16,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useOrders, type ApiErrorResponse } from "@/context/OrderContext";
 import { useRouter } from "@/i18n/routing";
 import { ApiError, locationService, userService } from "@/services/api";
 import type { Area, Division } from "@/types/api/location";
-import { Loader2, MapPin } from "lucide-react";
+import { Gift, Loader2, MapPin } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import OrderConfirmation from "./OrderConfirmation";
 
 const Checkout = () => {
+  const GIFT_FEE = 50;
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCart();
   const { isAuthenticated, user } = useAuth();
@@ -43,6 +46,8 @@ const Checkout = () => {
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | undefined>(undefined);
+  const [isGift, setIsGift] = useState(false);
+  const [giftMessage, setGiftMessage] = useState("");
   const isNavigatingRef = useRef(false);
   const [shippingData, setShippingData] = useState<{
     name: string;
@@ -347,6 +352,9 @@ const Checkout = () => {
         paymentStatus: "pending",
         paymentMethod,
         shippingAddress: shippingData,
+        isGift,
+        giftFee: isGift ? GIFT_FEE : 0,
+        giftMessage: isGift ? giftMessage : undefined,
       });
 
       // Set flag to prevent useEffect redirect
@@ -532,6 +540,46 @@ const Checkout = () => {
                 </CardContent>
               </Card>
 
+              {/* Gift Option */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-start space-x-3">
+                    <Checkbox
+                      id="gift-option"
+                      checked={isGift}
+                      onCheckedChange={(checked) => setIsGift(checked as boolean)}
+                    />
+                    <div className="grid gap-1.5 leading-none flex-1">
+                      <label
+                        htmlFor="gift-option"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+                      >
+                        <Gift className="h-4 w-4 text-primary" />
+                        Send as Gift
+                      </label>
+                      <p className="text-sm text-muted-foreground">
+                        Add a special touch with gift packaging for an additional ${GIFT_FEE}
+                      </p>
+                      {isGift && (
+                        <div className="pt-3">
+                          <Label htmlFor="gift-message" className="mb-2 block text-sm font-medium">
+                            Gift Message (Optional)
+                          </Label>
+                          <Textarea
+                            id="gift-message"
+                            placeholder="Enter your personal message here..."
+                            value={giftMessage}
+                            onChange={(e) => setGiftMessage(e.target.value)}
+                            className="resize-none"
+                            rows={3}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Payment Method */}
               <Card>
                 <CardContent className="p-6">
@@ -603,9 +651,15 @@ const Checkout = () => {
                         <span className="text-muted-foreground">Shipping</span>
                         <span>Free</span>
                       </div>
+                      {isGift && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Gift Packaging Fee</span>
+                          <span>${GIFT_FEE.toFixed(2)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-semibold text-lg pt-2 border-t border-border">
                         <span>Total</span>
-                        <span>${getTotalPrice().toFixed(2)}</span>
+                        <span>${(getTotalPrice() + (isGift ? GIFT_FEE : 0)).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>

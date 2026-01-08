@@ -1,6 +1,6 @@
 "use client";
 
-import GenericProductCard from "@/components/products/GenericProductCard";
+import { ProductCard } from "@/components/products/ProductCard";
 import { ProductGridSkeleton } from "@/components/ui/ProductCardSkeleton";
 import { useInfiniteProductSearchFlat } from "@/hooks/useInfiniteProductSearch";
 import { productService } from "@/services/api/product.service";
@@ -267,21 +267,100 @@ const SearchPopup: React.FC<SearchPopupProps> = ({ isOpen, onClose }) => {
               ) : products.length > 0 ? (
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
-                    {products.map((product) => (
-                      <div key={product.id}>
-                        <GenericProductCard
-                          product={{
-                            ...product,
-                            id: product.id.toString(),
-                            discount_percent: product.discount_percent
-                              ? String(product.discount_percent)
-                              : undefined,
-                          }}
-                          showSaleLabel={true}
-                          showTrendingIcon={true}
-                        />
-                      </div>
-                    ))}
+                    {products.map((product) => {
+                      // Robust Category & Subcategory Resolution
+                      let categorySlug = product.category?.slug;
+                      let subcategorySlug = product.sub_category?.slug;
+
+                      // 1. Try to find/repair subcategory slug using ID from the global tree
+                      if (
+                        (!subcategorySlug || subcategorySlug === "") &&
+                        product.sub_category?.id
+                      ) {
+                        const subId = product.sub_category.id;
+                        for (const cat of categories) {
+                          const foundSub = cat.subcategories?.find((s) => s.id === subId);
+                          if (foundSub) {
+                            subcategorySlug = foundSub.slug;
+                            // If we also missed the category slug, we can infer it from this parent
+                            if (!categorySlug) {
+                              categorySlug = cat.slug;
+                            }
+                            break;
+                          }
+                        }
+                      }
+
+                      // 2. If subcategory slug is still missing but we have a name, slugify the name
+                      if (
+                        (!subcategorySlug || subcategorySlug === "") &&
+                        product.sub_category?.name
+                      ) {
+                        subcategorySlug = product.sub_category.name
+                          .toLowerCase()
+                          .trim()
+                          .replace(/[^\w\s-]/g, "") // Remove special chars
+                          .replace(/\s+/g, "-");
+                      }
+
+                      // 3. Last resort: If we have category but missing subcategory, try to fuzzy match by name within the category
+                      if (
+                        (!subcategorySlug || subcategorySlug === "") &&
+                        product.sub_category?.name &&
+                        categorySlug
+                      ) {
+                        const parentCat = categories.find((c) => c.slug === categorySlug);
+                        const fuzzyMatch = parentCat?.subcategories?.find(
+                          (s) => s.name.toLowerCase() === product.sub_category?.name?.toLowerCase()
+                        );
+                        if (fuzzyMatch) {
+                          subcategorySlug = fuzzyMatch.slug;
+                        }
+                      }
+
+                      // 4. Resolve Category if missing (find parent of the subcategory)
+                      if (!categorySlug) {
+                        // Try resolving from subcategory ID or Slug
+                        const subId = product.sub_category?.id;
+                        const subSlugResolving = subcategorySlug || product.sub_category?.slug; // use resolved or raw
+
+                        const parent = categories.find((cat) =>
+                          cat.subcategories?.some(
+                            (s) =>
+                              (subId && s.id === subId) ||
+                              (subSlugResolving && s.slug === subSlugResolving)
+                          )
+                        );
+                        if (parent) {
+                          categorySlug = parent.slug;
+                        }
+                      }
+
+                      return (
+                        <div key={product.id}>
+                          <ProductCard
+                            product={{
+                              ...product,
+                              id: product.id.toString(),
+                              price: product.final_price || product.price,
+                              originalPrice: product.regular_price,
+                              discount: product.discount_percent,
+                              inStock: product.stock_status === "in_stock",
+                              reviewCount: 0,
+                              description: product.description || "",
+                              // Use resolved slugs or fallback to 'all'
+                              category: categorySlug || "all",
+                              subcategory: subcategorySlug || "all",
+                              rating: product.average_rating || 0,
+                            }}
+                            showSaleLabel={true}
+                            showTrendingIcon={true}
+                            hidePrice={true}
+                            hideRating={true}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* Infinite Scroll Trigger */}

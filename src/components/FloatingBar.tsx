@@ -19,6 +19,7 @@ import {
 } from "react-icons/fa";
 import { toast } from "sonner";
 import CartPopup from "./CartPopup";
+import { CategoriesPopup } from "./CategoriesPopup";
 import ChatPopup from "./ChatPopup";
 import WishlistPopup from "./WishlistPopup";
 
@@ -291,25 +292,8 @@ const FloatingBar = () => {
       {/* Wishlist Popup */}
       <WishlistPopup isOpen={isWishOpen} onClose={() => setIsWishOpen(false)} />
 
-      {/* Static Placeholders for Popups (Visual only for now as requested) */}
-
-      {/* Categories Popup Placeholder */}
-      {showCategoriesPopup && (
-        <div className="categories-popup-overlay" onClick={() => setShowCategoriesPopup(false)}>
-          <div className="categories-popup" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setShowCategoriesPopup(false)}>
-              ×
-            </button>
-            <div className="popup-header">
-              <h2>Browse Categories</h2>
-              <p>Discover our collection</p>
-            </div>
-            <div className="popup-content flex items-center justify-center p-10">
-              <p className="text-gray-500">Categories Content Placeholder</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Categories Popup */}
+      <CategoriesPopup isOpen={showCategoriesPopup} onClose={() => setShowCategoriesPopup(false)} />
 
       {/* Recently Viewed Popup */}
       {showRecentlyViewed && (
@@ -321,14 +305,14 @@ const FloatingBar = () => {
             className="bg-white rounded-2xl max-w-6xl w-full mx-4 relative z-10 shadow-2xl transform transition-all animate-popup-in border border-gray-200 recently-viewed-popup flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white p-6 flex items-center justify-between rounded-t-2xl">
+            <div className="bg-primary text-black p-6 flex items-center justify-between rounded-t-2xl">
               <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-lg">
+                <div className="bg-black/20 p-2 rounded-lg">
                   <FaEye className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold">Recently Viewed Products</h3>
-                  <p className="text-teal-100 text-sm mt-1">
+                  <p className="text-black/80 text-sm mt-1">
                     {recentViews.length} {recentViews.length === 1 ? "item" : "items"}
                   </p>
                 </div>
@@ -337,7 +321,7 @@ const FloatingBar = () => {
                 {recentViews.length > 0 && (
                   <button
                     onClick={clearRecentViews}
-                    className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors flex items-center gap-2"
+                    className="text-black hover:bg-black/20 p-2 rounded-lg transition-colors flex items-center gap-2"
                     title="Clear all"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -345,7 +329,7 @@ const FloatingBar = () => {
                 )}
                 <button
                   onClick={() => setShowRecentlyViewed(false)}
-                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors text-2xl leading-none"
+                  className="text-black hover:bg-black/20 p-2 rounded-lg transition-colors text-2xl leading-none"
                   aria-label="Close"
                 >
                   &times;
@@ -393,7 +377,7 @@ const FloatingBar = () => {
                         </div>
                         <div className="flex-1 min-w-0 flex flex-col justify-between p-4">
                           <div>
-                            <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors mb-2">
+                            <h3 className="font-semibold text-black line-clamp-2 group-hover:text-primary transition-colors mb-2">
                               {product.name}
                             </h3>
                             <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
@@ -403,7 +387,7 @@ const FloatingBar = () => {
                           </div>
                           <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="text-lg font-bold text-teal-600">
+                              <span className="text-lg font-bold text-primary">
                                 ৳{product.price.toLocaleString()}
                               </span>
                               {product.originalPrice && product.originalPrice > product.price && (
@@ -481,14 +465,14 @@ const FloatingBar = () => {
             className="bg-white rounded-2xl max-w-6xl w-full mx-4 relative z-10 shadow-2xl transform transition-all animate-popup-in border border-gray-200 location-popup flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-r from-teal-600 to-teal-700 text-white p-6 flex items-center justify-between rounded-t-2xl">
+            <div className="bg-primary text-black p-6 flex items-center justify-between rounded-t-2xl">
               <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-lg">
+                <div className="bg-black/20 p-2 rounded-lg">
                   <FaMapMarkerAlt className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold">Store Locations</h3>
-                  <p className="text-teal-100 text-sm mt-1">
+                  <p className="text-black/80 text-sm mt-1">
                     {storeLocations.length} {storeLocations.length === 1 ? "location" : "locations"}{" "}
                     available
                   </p>
@@ -496,7 +480,7 @@ const FloatingBar = () => {
               </div>
               <button
                 onClick={() => setShowLocationPanel(false)}
-                className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors text-2xl leading-none"
+                className="text-black hover:bg-black/20 p-2 rounded-lg transition-colors text-2xl leading-none"
                 aria-label="Close"
               >
                 &times;
@@ -541,21 +525,21 @@ const FloatingBar = () => {
                         </div>
                         <div className="flex-1 min-w-0 flex flex-col justify-between p-4">
                           <div>
-                            <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-teal-600 transition-colors mb-2">
+                            <h3 className="font-semibold text-black line-clamp-2 group-hover:text-primary transition-colors mb-2">
                               {location.name}
                             </h3>
-                            <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                            <p className="text-sm text-black/70 line-clamp-2 mb-2">
                               {location.address}
                             </p>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                            <div className="flex items-center gap-2 text-xs text-black/60 mb-1">
                               <Clock className="w-3 h-3" />
                               <span>{location.hours}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-black/60">
                               <FaPhoneAlt className="w-3 h-3" />
                               <a
                                 href={`tel:${location.phone}`}
-                                className="hover:text-teal-600 transition-colors"
+                                className="hover:text-primary transition-colors"
                               >
                                 {location.phone}
                               </a>
@@ -569,7 +553,7 @@ const FloatingBar = () => {
                                   "_blank"
                                 );
                               }}
-                              className="w-full text-sm px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors font-medium"
+                              className="w-full text-sm px-4 py-2 bg-primary hover:bg-primary-hover text-black rounded-lg transition-colors font-medium"
                             >
                               Get Directions
                             </button>

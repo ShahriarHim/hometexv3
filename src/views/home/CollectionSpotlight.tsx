@@ -6,7 +6,7 @@ export const CollectionSpotlight = () => {
   return (
     <section className="max-w-screen-xl mx-auto px-4 py-12">
       <h2 className="text-3xl font-bold mb-8 text-center">Shop By Collections</h2>
-      <div className="flex flex-nowrap gap-8 overflow-x-auto pb-4 scrollbar-hide">
+      <div className="flex flex-nowrap gap-8 overflow-x-auto pb-4 scrollbar-hide justify-center">
         {collectionSpotlight.map((category, index) => {
           const isEven = index % 2 === 0;
           const roundedClass = isEven
