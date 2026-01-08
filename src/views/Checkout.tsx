@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useOrders, type ApiErrorResponse } from "@/context/OrderContext";
@@ -46,6 +47,7 @@ const Checkout = () => {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | undefined>(undefined);
   const [isGift, setIsGift] = useState(false);
+  const [giftMessage, setGiftMessage] = useState("");
   const isNavigatingRef = useRef(false);
   const [shippingData, setShippingData] = useState<{
     name: string;
@@ -352,6 +354,7 @@ const Checkout = () => {
         shippingAddress: shippingData,
         isGift,
         giftFee: isGift ? GIFT_FEE : 0,
+        giftMessage: isGift ? giftMessage : undefined,
       });
 
       // Set flag to prevent useEffect redirect
@@ -546,7 +549,7 @@ const Checkout = () => {
                       checked={isGift}
                       onCheckedChange={(checked) => setIsGift(checked as boolean)}
                     />
-                    <div className="grid gap-1.5 leading-none">
+                    <div className="grid gap-1.5 leading-none flex-1">
                       <label
                         htmlFor="gift-option"
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
@@ -557,6 +560,21 @@ const Checkout = () => {
                       <p className="text-sm text-muted-foreground">
                         Add a special touch with gift packaging for an additional ${GIFT_FEE}
                       </p>
+                      {isGift && (
+                        <div className="pt-3">
+                          <Label htmlFor="gift-message" className="mb-2 block text-sm font-medium">
+                            Gift Message (Optional)
+                          </Label>
+                          <Textarea
+                            id="gift-message"
+                            placeholder="Enter your personal message here..."
+                            value={giftMessage}
+                            onChange={(e) => setGiftMessage(e.target.value)}
+                            className="resize-none"
+                            rows={3}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

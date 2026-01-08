@@ -60,6 +60,12 @@ export interface Product {
   meta_description?: string;
   created_at?: string;
   updated_at?: string;
+  related_products?: {
+    similar_products?: number[];
+    frequently_bought_together?: number[];
+    customers_also_viewed?: number[];
+    recently_viewed?: number[];
+  };
 }
 
 // Product List Response

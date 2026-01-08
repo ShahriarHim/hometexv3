@@ -113,7 +113,7 @@ export const DealHighlights = () => {
                     }}
                     className="block group"
                   >
-                    <div className="relative h-48 rounded-lg overflow-hidden bg-gradient-to-br from-background to-muted border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
+                    <div className="relative h-64 rounded-lg overflow-hidden bg-gradient-to-br from-background to-muted border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg">
                       {sub.image ? (
                         <div className="absolute inset-0">
                           <Image
